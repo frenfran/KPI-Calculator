@@ -170,6 +170,7 @@ def name_filling_algorithm(detailed_job_report, counter, crew, start_date_num, e
 
 # sorting algorithm
 # arguments: takes a single one-dimension array
+# and sorts its values from smallest to largest
 # returns nothing
 def sorting_algorithm(array):
     for i in range(len(array) - 1, 0, -1):

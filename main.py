@@ -859,9 +859,8 @@ while not file_found:
 
     try:
         contains_file_type = False
-        for item in range(len(djr_name_split)):
-            if djr_name_split[item] == "xlsx":
-                contains_file_type = True
+        if djr_name_split[len(djr_name_split) - 1] == "xlsx" and len(djr_name_split) > 1:
+            contains_file_type = True
 
         if not contains_file_type:
             djr_name = djr_name + ".xlsx"
@@ -941,7 +940,7 @@ while not user_done:
         end_date_num = int(second_date_string[0:4] + second_date_string[5:7] + second_date_string[8:10])
 
         error = True
-        user_choice = " "
+        user_choice = ""
         while error:
             user_choice = input("Enter (1) to calculate total feeds by shift or (2) to total feeds by crew: ")
 

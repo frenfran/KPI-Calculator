@@ -92,7 +92,7 @@ def obtain_date_string(detailed_job_report):
             if error:
                 print("Please enter a valid date found in the detailed job report: ", end="")
         except:
-            print("Error: please try again: ", end="")
+            print("Error, please try again: ", end="")
 
     return result
 
@@ -105,7 +105,7 @@ def obtain_date_string(detailed_job_report):
 # the array of rows with empty names still undetermined by the algorithm,
 # the list of rows with negative elapsed hours
 # and an int value (either 1, 2, 3 or 4) to determine which variable to increment
-# returns nothing
+# returns new value of the counter variable
 def name_filling_algorithm(detailed_job_report, counter, crew, start_date_num, end_date_num, empty_name_rows, negative_num_rows, option):
     if option == 1: # increment on total machine hours
         for row in range(ROWS):
@@ -167,6 +167,8 @@ def name_filling_algorithm(detailed_job_report, counter, crew, start_date_num, e
                     elif assumed_name == crew and detailed_job_report[row][ELAPSED_HOURS_COL_NUM] < 0:
                         append_neg_num_row(negative_num_rows, row)
 
+    return counter
+
 
 # sorting algorithm
 # arguments: takes a single one-dimension array
@@ -185,8 +187,7 @@ def sorting_algorithm(array):
 # arguments: the number of negative numbers in an array and the array itself
 # returns nothing
 def print_neg_nums_list(num_negatives, negative_nums_list):
-    print("\nRow(s) with negative elapsed hours (omitted from calculation)")
-    print("-----------------------------------------------------------")
+    print("Row(s) with negative elapsed hours:\n")
 
     counter = 0
     for row in range(num_negatives):
@@ -197,7 +198,10 @@ def print_neg_nums_list(num_negatives, negative_nums_list):
             print("")
             counter = 0
 
-    print("", end="\n\n")
+    if counter != 0:
+        print()
+    print("\nThese row(s) were omitted from calculations")
+    print("---------------------------------------------")
 
 
 # function to create array of unique crew members
@@ -356,9 +360,8 @@ def write_to_excel(array):
 
             try:
                 contains_file_type = False
-                for item in range(len(spreadsheet_name_split)):
-                    if spreadsheet_name_split[item] == "xlsx":
-                        contains_file_type = True
+                if spreadsheet_name_split[len(spreadsheet_name_split) - 1] == "xlsx":
+                    contains_file_type = True
 
                 if not contains_file_type:
                     spreadsheet_name = spreadsheet_name + ".xlsx"
@@ -399,6 +402,225 @@ def write_to_excel(array):
     print("Data successfully copied to spreadsheet.")
 
 
+# function to print a long number according to a specific number of digits
+# arguments: the number to print as an int
+# and the number of digits requested as an int
+# returns nothing
+def print_digit_long(result, num_digits):
+    for digit in range(len(str(result))):
+        if digit < num_digits: # note: the decimal point counts as a digit
+            print(str(result)[digit], end="")
+        else:
+            if str(result)[digit] != ".":
+                if int(str(result)[digit + 1]) > 5:
+                    print(int(str(result)[digit]) + 1, end="")
+                else:
+                    print(str(result)[digit], end="")
+            break
+
+
+# function to print a short number according to a specific space to fill
+# arguments: the number to print as an int
+# and the number of total spaces to fill as an int
+# returns nothing
+def print_digit_short(result, length_to_fill):
+    for space in range(int((length_to_fill - len(str(result))) / 2)):
+        print(" ", end="")
+    print(result, end="")
+    for space in range(int((length_to_fill - len(str(result))) / 2)):
+        print(" ", end="")
+
+    if len(str(result)) % 2 != 0 and length_to_fill % 2 == 0:
+        print(" ", end="")
+    elif len(str(result)) % 2 == 0 and length_to_fill % 2 != 0:
+        print(" ", end="")
+
+
+# function to print the table header when user wishes to display info by crew
+# arguments: the list of crew members required for printing
+# and an option (int) which reflects whether the header should print
+# ODT, total feeds or average setup time
+# returns length of longest name
+def print_crew_header(list_of_crew_members, option):
+    # find length of longest name first
+    longest_name_length = 0
+    for crew in list_of_crew_members:
+        if len(crew) > longest_name_length:
+            longest_name_length = len(crew)
+
+    if longest_name_length > 4:
+        if option == 1:
+            for dash in range(longest_name_length + 14):
+                print("-", end="")
+        elif option == 2:
+            for dash in range(longest_name_length + 18):
+                print("-", end="")
+        else:
+            for dash in range(longest_name_length + 35):
+                print("-", end="")
+    else:
+        for dash in range(14):
+            print("-", end="")
+
+    print("\n| ", end="")
+
+    if longest_name_length > 4:
+        for space in range(int((longest_name_length - 4) / 2)):
+            print(" ", end="")
+    print("Crew", end="")
+    if longest_name_length > 4:
+        for space in range(int((longest_name_length - 4) / 2)):
+            print(" ", end="")
+    if longest_name_length % 2 != 0:
+        print(" ", end="")
+
+    if option == 1:
+        print(" | ODT (%) |")
+    elif option == 2:
+        print(" | Total Feeds |")
+    else:
+        print(" | Average Setup Time (minutes) |")
+
+    if longest_name_length > 4:
+        if option == 1:
+            for dash in range(longest_name_length + 14):
+                print("-", end="")
+        elif option == 2:
+            for dash in range(longest_name_length + 18):
+                print("-", end="")
+        else:
+            for dash in range(longest_name_length + 35):
+                print("-", end="")
+    else:
+        for dash in range(14):
+            print("-", end="")
+
+    print()
+
+    return longest_name_length
+
+
+# function to continue printing rest of table
+# arguments: the data array required for printing,
+# the length of the longest crew name
+# and an option (int) which reflects whether the function should print
+# ODT (by crew or by charge code), total feeds or average setup time
+# 1 = ODT (by crew or by charge code), 2 = total feeds, 3 = average setup time
+# returns length of longest name
+def print_rest_of_table(array, longest_name_length, option):
+    # first, find data with longest number of digits
+    longest_number = 0
+    for row in range(len(array) - 1):
+        if len(str(array[row + 1][1])) > longest_number:
+            longest_number = len(str(array[row + 1][1]))
+
+    for row in range(len(array) - 1):
+        print("| ", end="")
+        print_column_element(array[row + 1][0], longest_name_length)
+        print(" | ", end="")
+        if option == 1:
+            if len(str(array[row + 1][1])) < 7:
+                print_digit_short(array[row + 1][1], 7)
+            else:
+                print_digit_long(array[row + 1][1], 6)
+        elif option == 2:
+            if len(str(array[row + 1][1])) < 11:
+                print_digit_short(array[row + 1][1], 11)
+            else:
+                print_digit_long(array[row + 1][1], 10)
+        else:
+            if len(str(array[row + 1][1])) < 28:
+                print_digit_short(array[row + 1][1], 28)
+            else:
+                print_digit_long(array[row + 1][1], 27)
+        print(" |")
+
+    if option == 1:
+        for dash in range(longest_name_length + 14):
+            print("-", end="")
+    elif option == 2:
+        for dash in range(longest_name_length + 18):
+            print("-", end="")
+    else:
+        for dash in range(longest_name_length + 35):
+            print("-", end="")
+    print()
+
+
+# function to print a column element according to a specific number of letters
+# arguments: the word to print as a string
+# and the length of the longest column element
+# returns nothing
+def print_column_element(word, max_length):
+    # determine length of current column element first
+    word_length = len(word)
+
+    for space in range(int((max_length - word_length + 1) / 2)):
+        print(" ", end="")
+    print(word, end="")
+    if (max_length - word_length) % 2 == 0:
+        for space in range(int((max_length - word_length + 1) / 2)):
+            print(" ", end="")
+    else:
+        for space in range(int((max_length - word_length + 1) / 2) - 1):
+            print(" ", end="")
+
+
+# function to print the table header when user wishes to display Pareto chart table
+# arguments: the sorted pareto array
+# returns length of longest charge code
+def print_charge_code_header(pareto_array):
+    # find length of longest charge code
+    longest_charge_code_length = 0
+    for row in range(len(pareto_array)):
+        if len(pareto_array[row][0]) > longest_charge_code_length:
+            longest_charge_code_length = len(pareto_array[row][0])
+
+    if longest_charge_code_length > 11:
+        for dash in range(longest_charge_code_length + 14):
+            print("-", end="")
+    else:
+        for dash in range(25):
+            print("-", end="")
+
+    print("\n| ", end="")
+    if longest_charge_code_length > 11:
+        for space in range(int((longest_charge_code_length - 11) / 2)):
+            print(" ", end="")
+    print("Charge Code", end="")
+    if longest_charge_code_length > 11:
+        for space in range(int((longest_charge_code_length - 11) / 2)):
+            print(" ", end="")
+
+    print(" | ODT (%) |")
+
+    if longest_charge_code_length > 11:
+        for dashes in range(longest_charge_code_length + 14):
+            print("-", end="")
+    else:
+        for dashes in range(21):
+            print("-", end="")
+
+    print()
+
+    return longest_charge_code_length
+
+
+def display_additional_info(algorithm_used, rows_with_no_name, negative_num_rows):
+    # print list of rows where no name was attributed
+    if algorithm_used:
+        print_rows_with_no_name(rows_with_no_name)
+        if len(negative_num_rows) <= 0 and len(rows_with_no_name) > 0:
+            print("-------------------------------------------------------------")
+
+    # print list of rows with negative elapsed hours
+    if len(negative_num_rows) > 0:
+        sorting_algorithm(negative_num_rows)
+        if len(rows_with_no_name) > 0:
+            print("-------------------------------------------------------------")
+        print_neg_nums_list(len(negative_num_rows), negative_num_rows)
+
+
 # function to display ODT by either shift or crew
 # arguments: the detailed job report array, which type of ODT the user wants,
 # the start date and the end date
@@ -409,9 +631,9 @@ def display_ODT (detailed_job_report, user_option, start_date, end_date):
     end_date_num = int(end_date[0:4] + end_date[5:7] + end_date[8:10])
 
     if user_option == "1": # user wants ODT by shift
-        print("-----------------")
-        print("| Shift |  ODT  |")
-        print("-----------------")
+        print("-------------------")
+        print("| Shift | ODT (%) |")
+        print("-------------------")
 
         # create & initialize array to hold data in case user wants to write data to an Excel spreadsheet
         ODT_by_shift_array = [[0 for x in range(2)] for y in range(4)]
@@ -438,11 +660,15 @@ def display_ODT (detailed_job_report, user_option, start_date, end_date):
                         append_neg_num_row(negative_num_rows, row)
 
             if total_machine_hours != 0:
-                print("|   " + str(shift + 1) + "   | " + str((ODT/total_machine_hours) * 100) + " |")
-                ODT_by_shift_array[counter][0], ODT_by_shift_array[counter][1] = shift + 1, (ODT/total_machine_hours) * 100
+                result = (ODT/total_machine_hours) * 100
+                print("|   " + str(shift + 1) + "   | ", end="")
+                print_digit_long(result, 6)
+                print(" |")
+
+                ODT_by_shift_array[counter][0], ODT_by_shift_array[counter][1] = shift + 1, result
                 counter = counter + 1
 
-        print("----------------")
+        print("-------------------")
 
         if len(negative_num_rows) > 0:
             sorting_algorithm(negative_num_rows)
@@ -466,10 +692,6 @@ def display_ODT (detailed_job_report, user_option, start_date, end_date):
             use_algo = use_algorithm()
         rows_with_no_name = []
 
-        print("----------------")
-        print("| Crew |  ODT  |")
-        print("----------------")
-
         # create list of crews
         crews_list = []
         generate_crews_list(detailed_job_report, start_date_num, end_date_num, crews_list)
@@ -478,6 +700,8 @@ def display_ODT (detailed_job_report, user_option, start_date, end_date):
         ODTbyCrewArray = [[0 for x in range(2)] for y in range(len(crews_list) + 1)]
         ODTbyCrewArray[0][0], ODTbyCrewArray[0][1] = "Crew", "ODT %"
         counter = 1
+
+        longest_name_len = print_crew_header(crews_list, 1)
 
         for crew in crews_list:
             # calculate total machine hours for specific crew
@@ -491,7 +715,7 @@ def display_ODT (detailed_job_report, user_option, start_date, end_date):
                             append_neg_num_row(negative_num_rows, row)
 
             if use_algo:
-                name_filling_algorithm(detailed_job_report, total_machine_hours, crew, start_date_num, end_date_num, rows_with_no_name, negative_num_rows, 1)
+                total_machine_hours = name_filling_algorithm(detailed_job_report, total_machine_hours, crew, start_date_num, end_date_num, rows_with_no_name, negative_num_rows, 1)
 
             # calculate total open downtime for specific crew
             ODT = 0
@@ -504,34 +728,28 @@ def display_ODT (detailed_job_report, user_option, start_date, end_date):
                             append_neg_num_row(negative_num_rows, row)
 
             if use_algo:
-                name_filling_algorithm(detailed_job_report, ODT, crew, start_date_num, end_date_num, rows_with_no_name, negative_num_rows, 2)
+                ODT = name_filling_algorithm(detailed_job_report, ODT, crew, start_date_num, end_date_num, rows_with_no_name, negative_num_rows, 2)
 
             # add total run time with total ODT for total_machine_hours
             total_machine_hours = total_machine_hours + ODT
 
             # print(str(ODT) + " " + str(total_machine_hours))
-            print("| " + crew + " |  " + str((ODT/total_machine_hours) * 100) + "  |")
-            ODTbyCrewArray[counter][0], ODTbyCrewArray[counter][1] = crew, (ODT/total_machine_hours) * 100
+            if total_machine_hours > 0:
+                result = (ODT/total_machine_hours) * 100
+
+            if result != 0:
+                ODTbyCrewArray[counter][0], ODTbyCrewArray[counter][1] = crew, result
             counter = counter + 1
 
-        print("----------------")
+        print_rest_of_table(ODTbyCrewArray, longest_name_len, 1)
 
-        # print list of rows where no name was attributed
-        if use_algo:
-            print_rows_with_no_name(rows_with_no_name)
-
-        if len(negative_num_rows) > 0:
-            sorting_algorithm(negative_num_rows)
-            print_neg_nums_list(len(negative_num_rows), negative_num_rows)
+        # breakdown of additional info
+        display_additional_info(use_algo, rows_with_no_name, negative_num_rows)
 
         if to_excel():
             write_to_excel(ODTbyCrewArray)
 
     else: # user wants Pareto chart
-        print("--------")
-        print("| Charge Code | ODT |")
-        print("--------")
-
         # create list of charge codes
         charge_code_list = []
         for row in range(ROWS):
@@ -578,7 +796,7 @@ def display_ODT (detailed_job_report, user_option, start_date, end_date):
                 num_rows = num_rows + 1
 
         charge_code_array = [[0 for x in range(2)] for y in range(num_rows + 1)]
-        charge_code_array[0][0], charge_code_array[0][1] = "Charge Code", "ODT %"
+        charge_code_array[0][0], charge_code_array[0][1] = "Charge Code", "ODT (%)"
 
         # sort charge_code_array from largest ODT to smallest
         counter = 1
@@ -589,13 +807,13 @@ def display_ODT (detailed_job_report, user_option, start_date, end_date):
                     largest_ODT_key = key
 
             if charge_code_dict[largest_ODT_key] > 0:
-                print("| " + str(largest_ODT_key) + " | " + str(charge_code_dict[largest_ODT_key]) + " |")
                 charge_code_array[counter][0], charge_code_array[counter][1] = largest_ODT_key, charge_code_dict[largest_ODT_key]
 
             charge_code_dict.pop(largest_ODT_key)
             counter = counter + 1
 
-        print("---------")
+        longest_charge_code_len = print_charge_code_header(charge_code_array)
+        print_rest_of_table(charge_code_array, longest_charge_code_len, 1)
         # print(charge_code_array)
 
         if len(negative_num_rows) > 0:
@@ -631,11 +849,24 @@ def display_total_feeds(detailed_job_report, user_choice, start_date_num, end_da
                         append_neg_num_row(negative_num_rows, row)
 
             if total_feeds > 0:
-                print("| " + str(shift + 1) + " |  " + str(total_feeds) + "  |")
                 total_feeds_by_shift_array[counter][0], total_feeds_by_shift_array[counter][1] = shift + 1, total_feeds
             counter = counter + 1
 
-        print("---------")
+        # find data with longest number of digits
+        longest_number = 0
+        for row in range(len(total_feeds_by_shift_array) - 1):
+            if len(str(total_feeds_by_shift_array[row + 1][1])) > longest_number:
+                longest_number = len(str(total_feeds_by_shift_array[row + 1][1]))
+
+        for row in range(len(total_feeds_by_shift_array) - 1):
+            print("|   " + str(total_feeds_by_shift_array[row + 1][0]) + "   | ", end="")
+            if longest_number < 11:
+                print_digit_short(total_feeds_by_shift_array[row + 1][1], 11)
+            else:
+                print_digit_long(total_feeds_by_shift_array[row + 1][1], 11)
+            print(" |")
+
+        print("-----------------------")
 
         if len(negative_num_rows) > 0:
             sorting_algorithm(negative_num_rows)
@@ -658,12 +889,9 @@ def display_total_feeds(detailed_job_report, user_choice, start_date_num, end_da
         if gap_name:
             use_algo = use_algorithm()
 
-        print("----------------------")
-        print("| Crew | Total Feeds |")
-        print("----------------------")
-
         crews_list = []
         generate_crews_list(detailed_job_report, start_date_num, end_date_num, crews_list)
+        longest_name_len = print_crew_header(crews_list, 2)
 
         empty_name_rows = []
         negative_num_rows = []
@@ -682,20 +910,14 @@ def display_total_feeds(detailed_job_report, user_choice, start_date_num, end_da
                         append_neg_num_row(negative_num_rows, row)
 
             if use_algo:
-                name_filling_algorithm(detailed_job_report, total_feeds, crew, start_date_num, end_date_num, empty_name_rows, negative_num_rows, 4)
+                total_feeds = name_filling_algorithm(detailed_job_report, total_feeds, crew, start_date_num, end_date_num, empty_name_rows, negative_num_rows, 4)
 
-            print("| " + crew + " |  " + str(total_feeds) + "  |")
             total_feeds_by_crew_array[counter][0], total_feeds_by_crew_array[counter][1] = crew, total_feeds
             counter = counter + 1
 
-        print("--------------")
+        print_rest_of_table(total_feeds_by_crew_array, longest_name_len, 2)
 
-        if use_algo:
-            print_rows_with_no_name(empty_name_rows)
-
-        if len(negative_num_rows) > 0:
-            sorting_algorithm(negative_num_rows)
-            print_neg_nums_list(len(negative_num_rows), negative_num_rows)
+        display_additional_info(use_algo, empty_name_rows, negative_num_rows)
 
         if to_excel():
             write_to_excel(total_feeds_by_crew_array)
@@ -732,14 +954,15 @@ def display_average_setup_time(detailed_job_report, user_choice, start_date_num,
 
         for order in range(ROWS):
             if start_date_num <= int(str(detailed_job_report[order][WORK_DATE_COL_NUM])[0:4] + str(detailed_job_report[order][WORK_DATE_COL_NUM])[5:7] + str(djr_array[order][WORK_DATE_COL_NUM])[8:10]) <= end_date_num:
-                unique = True
-                for item in unique_orders_list:
+                if detailed_job_report[order][DOWNTIME_COL_NUM] == "Setup":
                     unique = True
-                    if detailed_job_report[order][ORDER_NUM_COL_NUM] == item:
-                        unique = False
-                        break
-                if unique:
-                    unique_orders_list.append(detailed_job_report[order][ORDER_NUM_COL_NUM])
+                    for item in unique_orders_list:
+                        unique = True
+                        if detailed_job_report[order][ORDER_NUM_COL_NUM] == item:
+                            unique = False
+                            break
+                    if unique:
+                        unique_orders_list.append(detailed_job_report[order][ORDER_NUM_COL_NUM])
 
         print("Total Unique Orders: " + str(len(unique_orders_list)))
 
@@ -765,20 +988,18 @@ def display_average_setup_time(detailed_job_report, user_choice, start_date_num,
             use_algo = use_algorithm()
         rows_with_no_name = []
 
-        print("----------------")
-        print("| Crew |  Average Setup Time  |")
-        print("----------------")
-
-        crewsList = []
+        crews_list = []
         # create list of crews
-        generate_crews_list(djr_array, start_date_num, end_date_num, crewsList)
+        generate_crews_list(djr_array, start_date_num, end_date_num, crews_list)
+
+        longest_name_len = print_crew_header(crews_list, 3)
 
         # create and initialize array to write to Excel
-        average_setup_time_by_crew_array = [[0 for x in range(2)] for y in range(len(crewsList) + 1)]
+        average_setup_time_by_crew_array = [[0 for x in range(2)] for y in range(len(crews_list) + 1)]
         average_setup_time_by_crew_array[0][0], average_setup_time_by_crew_array[0][1] = "Crew", "Average Setup Time"
 
         counter = 1
-        for crew in crewsList:
+        for crew in crews_list:
             # total elapsed hours
             total_elapsed_hours = 0  # counter for total elapsed hours
 
@@ -792,7 +1013,7 @@ def display_average_setup_time(detailed_job_report, user_choice, start_date_num,
                             total_elapsed_hours = total_elapsed_hours + detailed_job_report[elapsed_hours][ELAPSED_HOURS_COL_NUM]
 
             if use_algo:
-                name_filling_algorithm(detailed_job_report, total_elapsed_hours, crew, start_date_num, end_date_num, rows_with_no_name, negative_num_rows, 3)
+                total_elapsed_hours = name_filling_algorithm(detailed_job_report, total_elapsed_hours, crew, start_date_num, end_date_num, rows_with_no_name, negative_num_rows, 3)
 
             # total orders
             total_unique_orders = 0
@@ -831,19 +1052,13 @@ def display_average_setup_time(detailed_job_report, user_choice, start_date_num,
             total_unique_orders = len(unique_orders_list)
             if total_unique_orders != 0:
                 # print(str(total_elapsed_hours) + " " + str(total_unique_orders))
-                average_setup_time = total_elapsed_hours / total_unique_orders
-                print("| " + crew + " | " + str(average_setup_time * 60) + " minutes |")  # display average setup time in minutes
-                average_setup_time_by_crew_array[counter][0], average_setup_time_by_crew_array[counter][1] = crew, average_setup_time * 60
-                counter = counter + 1
+                average_setup_time = (total_elapsed_hours / total_unique_orders) * 60
+                average_setup_time_by_crew_array[counter][0], average_setup_time_by_crew_array[counter][1] = crew, average_setup_time
+            counter = counter + 1
 
-        print("--------------")
+        print_rest_of_table(average_setup_time_by_crew_array, longest_name_len, 3)
 
-        if use_algo:
-            print_rows_with_no_name(rows_with_no_name)
-
-        if len(negative_num_rows) > 0:
-            sorting_algorithm(negative_num_rows)
-            print_neg_nums_list(len(negative_num_rows), negative_num_rows)
+        display_additional_info(use_algo, rows_with_no_name, negative_num_rows)
 
         if to_excel():
             write_to_excel(average_setup_time_by_crew_array)

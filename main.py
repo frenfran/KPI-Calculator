@@ -16,6 +16,13 @@ GROSS_FG_QTY_COL_NUM = 15
 EMPLOYEE_NAME_COL_NUM = 26
 DOWNTIME_COL_NUM = 28
 
+ODT_LABEL = "ODT (%)"
+TOTAL_FEEDS_LABEL = "Total Feeds"
+AVERAGE_SETUP_TIME_LABEL = "Average Setup Time (minutes)"
+CREW_LABEL = "Crew"
+CHARGE_CODE_LABEL = "Charge Code"
+
+
 ##################
 # helper functions
 ##################
@@ -450,24 +457,31 @@ def print_crew_header(list_of_crew_members, option):
 
     if longest_name_length > 4:
         if option == 1:
-            for dash in range(longest_name_length + 14):
+            for dash in range(longest_name_length + len(ODT_LABEL) + 7):
                 print("-", end="")
         elif option == 2:
-            for dash in range(longest_name_length + 18):
+            for dash in range(longest_name_length + len(TOTAL_FEEDS_LABEL) + 7):
                 print("-", end="")
         else:
-            for dash in range(longest_name_length + 35):
+            for dash in range(longest_name_length + len(AVERAGE_SETUP_TIME_LABEL) + 7):
                 print("-", end="")
     else:
-        for dash in range(14):
-            print("-", end="")
+        if option == 1:
+            for dash in range(len(ODT_LABEL) + len(CREW_LABEL) + 7):
+                print("-", end="")
+        elif option == 2:
+            for dash in range(len(TOTAL_FEEDS_LABEL) + len(CREW_LABEL) + 7):
+                print("-", end="")
+        else:
+            for dash in range(len(AVERAGE_SETUP_TIME_LABEL) + len(CREW_LABEL) + 7):
+                print("-", end="")
 
     print("\n| ", end="")
 
     if longest_name_length > 4:
         for space in range(int((longest_name_length - 4) / 2)):
             print(" ", end="")
-    print("Crew", end="")
+    print(CREW_LABEL, end="")
     if longest_name_length > 4:
         for space in range(int((longest_name_length - 4) / 2)):
             print(" ", end="")
@@ -475,25 +489,32 @@ def print_crew_header(list_of_crew_members, option):
         print(" ", end="")
 
     if option == 1:
-        print(" | ODT (%) |")
+        print(" | " + ODT_LABEL +" |")
     elif option == 2:
-        print(" | Total Feeds |")
+        print(" | " + TOTAL_FEEDS_LABEL + " |")
     else:
-        print(" | Average Setup Time (minutes) |")
+        print(" | " + AVERAGE_SETUP_TIME_LABEL + " |")
 
     if longest_name_length > 4:
         if option == 1:
-            for dash in range(longest_name_length + 14):
+            for dash in range(longest_name_length + len(ODT_LABEL) + 7):
                 print("-", end="")
         elif option == 2:
-            for dash in range(longest_name_length + 18):
+            for dash in range(longest_name_length + len(TOTAL_FEEDS_LABEL) + 7):
                 print("-", end="")
         else:
-            for dash in range(longest_name_length + 35):
+            for dash in range(longest_name_length + len(AVERAGE_SETUP_TIME_LABEL) + 7):
                 print("-", end="")
     else:
-        for dash in range(14):
-            print("-", end="")
+        if option == 1:
+            for dash in range(len(ODT_LABEL) + len(CREW_LABEL) + 7):
+                print("-", end="")
+        elif option == 2:
+            for dash in range(len(TOTAL_FEEDS_LABEL) + len(CREW_LABEL) + 7):
+                print("-", end="")
+        else:
+            for dash in range(len(AVERAGE_SETUP_TIME_LABEL) + len(CREW_LABEL) + 7):
+                print("-", end="")
 
     print()
 
@@ -519,30 +540,30 @@ def print_rest_of_table(array, longest_name_length, option):
         print_column_element(array[row + 1][0], longest_name_length)
         print(" | ", end="")
         if option == 1:
-            if len(str(array[row + 1][1])) < 7:
-                print_digit_short(array[row + 1][1], 7)
+            if len(str(array[row + 1][1])) < len(ODT_LABEL):
+                print_digit_short(array[row + 1][1], len(ODT_LABEL))
             else:
-                print_digit_long(array[row + 1][1], 6)
+                print_digit_long(array[row + 1][1], len(ODT_LABEL) - 1)
         elif option == 2:
-            if len(str(array[row + 1][1])) < 11:
-                print_digit_short(array[row + 1][1], 11)
+            if len(str(array[row + 1][1])) < len(TOTAL_FEEDS_LABEL):
+                print_digit_short(array[row + 1][1], len(TOTAL_FEEDS_LABEL))
             else:
-                print_digit_long(array[row + 1][1], 10)
+                print_digit_long(array[row + 1][1], len(TOTAL_FEEDS_LABEL) - 1)
         else:
-            if len(str(array[row + 1][1])) < 28:
-                print_digit_short(array[row + 1][1], 28)
+            if len(str(array[row + 1][1])) < len(AVERAGE_SETUP_TIME_LABEL):
+                print_digit_short(array[row + 1][1], len(AVERAGE_SETUP_TIME_LABEL))
             else:
-                print_digit_long(array[row + 1][1], 27)
+                print_digit_long(array[row + 1][1], len(AVERAGE_SETUP_TIME_LABEL) - 1)
         print(" |")
 
     if option == 1:
-        for dash in range(longest_name_length + 14):
+        for dash in range(longest_name_length + len(ODT_LABEL) + 7):
             print("-", end="")
     elif option == 2:
-        for dash in range(longest_name_length + 18):
+        for dash in range(longest_name_length + len(TOTAL_FEEDS_LABEL) + 7):
             print("-", end="")
     else:
-        for dash in range(longest_name_length + 35):
+        for dash in range(longest_name_length + len(AVERAGE_SETUP_TIME_LABEL) + 7):
             print("-", end="")
     print()
 
@@ -576,29 +597,29 @@ def print_charge_code_header(pareto_array):
         if len(pareto_array[row][0]) > longest_charge_code_length:
             longest_charge_code_length = len(pareto_array[row][0])
 
-    if longest_charge_code_length > 11:
-        for dash in range(longest_charge_code_length + 14):
+    if longest_charge_code_length > len(CHARGE_CODE_LABEL):
+        for dash in range(longest_charge_code_length + len(ODT_LABEL) + 7):
             print("-", end="")
     else:
-        for dash in range(25):
+        for dash in range(len(CHARGE_CODE_LABEL) + len(ODT_LABEL) + 7):
             print("-", end="")
 
     print("\n| ", end="")
-    if longest_charge_code_length > 11:
-        for space in range(int((longest_charge_code_length - 11) / 2)):
+    if longest_charge_code_length > len(CHARGE_CODE_LABEL):
+        for space in range(int((longest_charge_code_length - len(CHARGE_CODE_LABEL)) / 2)):
             print(" ", end="")
-    print("Charge Code", end="")
-    if longest_charge_code_length > 11:
-        for space in range(int((longest_charge_code_length - 11) / 2)):
+    print(CHARGE_CODE_LABEL, end="")
+    if longest_charge_code_length > len(CHARGE_CODE_LABEL):
+        for space in range(int((longest_charge_code_length - len(CHARGE_CODE_LABEL)) / 2)):
             print(" ", end="")
 
-    print(" | ODT (%) |")
+    print(" | " + ODT_LABEL + " |")
 
-    if longest_charge_code_length > 11:
-        for dashes in range(longest_charge_code_length + 14):
+    if longest_charge_code_length > len(CHARGE_CODE_LABEL):
+        for dash in range(longest_charge_code_length + len(ODT_LABEL) + 7):
             print("-", end="")
     else:
-        for dashes in range(21):
+        for dash in range(len(CHARGE_CODE_LABEL) + len(ODT_LABEL) + 7):
             print("-", end="")
 
     print()
@@ -734,6 +755,7 @@ def display_ODT (detailed_job_report, user_option, start_date, end_date):
             total_machine_hours = total_machine_hours + ODT
 
             # print(str(ODT) + " " + str(total_machine_hours))
+            result = 0
             if total_machine_hours > 0:
                 result = (ODT/total_machine_hours) * 100
 
@@ -1067,6 +1089,7 @@ def display_average_setup_time(detailed_job_report, user_choice, start_date_num,
 ######################################################################
 # obtaining the Detailed Job Report (.xlsx) spreadsheet from directory
 ######################################################################
+djr_array = [] # initialize detailed job report array
 file_found = False
 while not file_found:
     djr_name = input("Enter the file name of the Detailed Job Report: ")

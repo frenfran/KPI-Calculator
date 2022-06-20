@@ -106,6 +106,21 @@ def obtain_date_string(detailed_job_report):
     return result
 
 
+def obtain_second_date_string(detailed_job_report_array, first_date_string):
+    second_date_string = ""
+    error = True
+    while error:
+        print("Enter the second date: ", end="")
+        second_date_string = obtain_date_string(detailed_job_report_array)
+
+        if int(second_date_string[5:7]) < int(first_date_string[5:7]) or int(second_date_string[8:10]) < int(first_date_string[8:10]):
+            print("Error: second date precedes first date. Please try again.")
+        else:
+            error = False
+
+    return second_date_string
+
+
 # algorithm to continue incrementing a counter variable
 # (either total machine hours, ODT, total setup time or total feeds)
 # when a missing name occurs in the employee name column
@@ -1438,15 +1453,7 @@ while not user_done:
         print("Enter the first date: ", end="")
         first_date_string = obtain_date_string(djr_array)
 
-        error = True
-        while error:
-            print("Enter the second date: ", end="")
-            second_date_string = obtain_date_string(djr_array)
-
-            if int(second_date_string[5:7]) < int(first_date_string[5:7]) or int(second_date_string[8:10]) < int(first_date_string[8:10]):
-                print("Error: second date precedes first date. Please try again.")
-            else:
-                error = False
+        second_Date_string = obtain_second_date_string(djr_array, first_date_string)
 
         error = True
         choice = " "
@@ -1475,15 +1482,7 @@ while not user_done:
         print("Enter the first date: ", end="")
         first_date_string = obtain_date_string(djr_array)
 
-        error = True
-        while error:
-            print("Enter the second date: ", end="")
-            second_date_string = obtain_date_string(djr_array)
-
-            if int(second_date_string[5:7]) < int(first_date_string[5:7]) or int(second_date_string[8:10]) < int(first_date_string[8:10]):
-                print("Error: second date precedes first date. Please try again.")
-            else:
-                error = False
+        second_date_string = obtain_second_date_string(djr_array, first_date_string)
 
         start_date_num = int(first_date_string[0:4] + first_date_string[5:7] + first_date_string[8:10])
         end_date_num = int(second_date_string[0:4] + second_date_string[5:7] + second_date_string[8:10])
@@ -1513,15 +1512,7 @@ while not user_done:
         print("Enter the first date: ", end="")
         first_date_string = obtain_date_string(djr_array)
 
-        error = True
-        while error:
-            print("Enter the second date: ", end="")
-            second_date_string = obtain_date_string(djr_array)
-
-            if int(second_date_string[5:7]) < int(first_date_string[5:7]) or int(second_date_string[8:10]) < int(first_date_string[8:10]):
-                print("Error: second date precedes first date. Please try again.")
-            else:
-                error = False
+        second_date_string = obtain_second_date_string(djr_array, first_date_string)
 
         start_date_num = int(first_date_string[0:4] + first_date_string[5:7] + first_date_string[8:10])
         end_date_num = int(second_date_string[0:4] + second_date_string[5:7] + second_date_string[8:10])
@@ -1551,15 +1542,7 @@ while not user_done:
         print("Enter the first date: ", end="")
         first_date_string = obtain_date_string(djr_array)
 
-        error = True
-        while error:
-            print("Enter the second date: ", end="")
-            second_date_string = obtain_date_string(djr_array)
-
-            if int(second_date_string[5:7]) < int(first_date_string[5:7]) or int(second_date_string[8:10]) < int(first_date_string[8:10]):
-                print("Error: second date precedes first date. Please try again.")
-            else:
-                error = False
+        second_date_string = obtain_second_date_string(djr_array, first_date_string)
 
         start_date_num = int(first_date_string[0:4] + first_date_string[5:7] + first_date_string[8:10])
         end_date_num = int(second_date_string[0:4] + second_date_string[5:7] + second_date_string[8:10])
@@ -1580,7 +1563,6 @@ while not user_done:
             print("\nFeeds per day by crew from " + first_date_string + " to " + second_date_string + ":")
 
         display_feeds_per_day(djr_array, user_choice, start_date_num, end_date_num)
-
 
     ######
     # exit

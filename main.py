@@ -106,6 +106,10 @@ def obtain_date_string(detailed_job_report):
     return result
 
 
+# function to obtain a second date as an input from the user and return that same date
+# function performs error checking to ensure date is valid and in the future relative to the first date
+# arguments: the detailed job report array and the first date as a string
+# returns the second date (entered by the user) as a string
 def obtain_second_date_string(detailed_job_report_array, first_date_string):
     second_date_string = ""
     error = True

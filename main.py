@@ -439,7 +439,7 @@ def print_digit_long(result, num_digits):
         if digit < num_digits: # note: the decimal point counts as a digit
             print(str(result)[digit], end="")
         else:
-            if str(result)[digit] != ".":
+            if str(result)[digit] != "." and digit != len(str(result)) - 1:
                 if int(str(result)[digit + 1]) > 5:
                     print(int(str(result)[digit]) + 1, end="")
                 else:
@@ -1373,7 +1373,7 @@ def display_feeds_per_day(detailed_job_report, user_choice, start_date_num, end_
                             total_feeds = total_feeds + detailed_job_report[row_djr][GROSS_FG_QTY_COL_NUM]
                         elif str(detailed_job_report[row_djr][EMPLOYEE_NAME_COL_NUM]) == crew and detailed_job_report[row_djr][ELAPSED_HOURS_COL_NUM] < 0:
                             append_neg_num_row(negative_num_rows, row_djr)
-                        elif use_algo and str(detailed_job_report[row_djr][EMPLOYEE_NAME_COL_NUM]) == "nan" and detailed_job_report[row_djr][ELAPSED_HOURS_COL_NUM] >= 0:
+                        elif use_algo and str(detailed_job_report[row_djr][EMPLOYEE_NAME_COL_NUM]) == "nan":
                             # first determine which employee name should fill this gap
                             assumed_name = assume_name(detailed_job_report, empty_name_rows, row_djr)
 

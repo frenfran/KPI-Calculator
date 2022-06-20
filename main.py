@@ -21,6 +21,7 @@ TOTAL_FEEDS_LABEL = "Total Feeds"
 AVERAGE_SETUP_TIME_LABEL = "Average Setup Time (minutes)"
 CREW_LABEL = "Crew"
 CHARGE_CODE_LABEL = "Charge Code"
+WORK_DATE_LABEL = "Work Date"
 
 
 ##################
@@ -38,14 +39,15 @@ def obtain_instructions():
     print("| 1 - calculate open down time percentage |")
     print("| 2 - calculate total feeds               |")
     print("| 3 - calculate average setup time        |")
-    print("| 4 - exit                                |")
+    print("| 4 - break down feeds per day            |")
+    print("| 5 - exit                                |")
     print("-------------------------------------------")
 
     user_error = True
     user_input = ""
     while user_error:
         user_input = input("Enter the number associated to your command: ")
-        if user_input == "1" or user_input == "2" or user_input == "3" or user_input == "4":
+        if user_input == "1" or user_input == "2" or user_input == "3" or user_input == "4" or user_input == "5":
             user_error = False
         else:
             print("Error: please try again.")
@@ -627,6 +629,183 @@ def print_charge_code_header(pareto_array):
     return longest_charge_code_length
 
 
+# function for converting an integer corresponding to a date
+# to its string equivalent
+# arguments: the date as an integer
+# returns the date as a string
+def convert_date_int_to_string(date_num):
+    day = ""
+    month = ""
+    year = ""
+
+    day = str(date_num)[6:8]
+    if int(str(date_num)[4:6]) == 1:
+        month = "Jan"
+    elif int(str(date_num)[4:6]) == 2:
+        month = "Feb"
+    elif int(str(date_num)[4:6]) == 3:
+        month = "Mar"
+    elif int(str(date_num)[4:6]) == 4:
+        month = "Apr"
+    elif int(str(date_num)[4:6]) == 5:
+        month = "May"
+    elif int(str(date_num)[4:6]) == 6:
+        month = "Jun"
+    elif int(str(date_num)[4:6]) == 7:
+        month = "Jul"
+    elif int(str(date_num)[4:6]) == 8:
+        month = "Aug"
+    elif int(str(date_num)[4:6]) == 9:
+        month = "Sep"
+    elif int(str(date_num)[4:6]) == 10:
+        month = "Oct"
+    elif int(str(date_num)[4:6]) == 11:
+        month = "Nov"
+    else:
+        month = "Dec"
+    year = str(date_num)[0:4]
+
+    return day + "-" + month + "-" + year
+
+
+# function to ask user to remove
+# holidays and other days with zero feeds for all 3 shifts
+# in the resulting table for feeds by day
+# arguments: none
+# returns either True or False
+def remove_holidays():
+    while True:
+        option = input("Would you like to remove holidays and days off from the table (y/n)? ")
+        if option == "y" or option == "Y":
+            return True
+        elif option == "n" or option == "N":
+            return False
+        else:
+            print("Please try again.")
+
+
+# function for printing feeds per day according to shift number
+# arguments: the resulting table for feeds per day and the length of said table
+# returns nothing
+def print_feeds_per_day_by_shift(feeds_per_day_array, length_of_table):
+    # first find length of longest number of total feeds
+    longest_number_len = 0
+    for row in range(len(feeds_per_day_array) - 1):
+        for col in range(3):
+            if len(str(feeds_per_day_array[row + 1][col + 1])) > longest_number_len:
+                longest_number_len = len(str(feeds_per_day_array[row + 1][col + 1]))
+
+    if longest_number_len > 7:
+        for dash in range(3 * longest_number_len + len(WORK_DATE_LABEL) + 13):
+            print("-", end="")
+    else:
+        for dash in range(len(WORK_DATE_LABEL) + (3 * 7) + 15):
+            print("-", end="")
+    print()
+
+    print("|  Work Date  | ", end="")
+    for shift in range(3):
+        if longest_number_len > 7:
+            print_column_element("Shift " + str(shift + 1), longest_number_len)
+        else:
+            print("Shift " + str(shift + 1), end="")
+        print(" | ", end="")
+    print()
+
+    if longest_number_len > 7:
+        for dash in range(3 * longest_number_len + len(WORK_DATE_LABEL) + 13):
+            print("-", end="")
+    else:
+        for dash in range(len(WORK_DATE_LABEL) + (3 * 7) + 15):
+            print("-", end="")
+    print()
+
+    for row in range(length_of_table - 1):
+        print("| " + feeds_per_day_array[row + 1][0] + " | ", end="")
+
+        for col in range(3):
+            if longest_number_len > 7:
+                print_digit_long(feeds_per_day_array[row + 1][col + 1], 7)
+            else:
+                print_digit_short(feeds_per_day_array[row + 1][col + 1], 7)
+            print(" | ", end="")
+
+        print()
+
+    if longest_number_len > 7:
+        for dash in range(3 * longest_number_len + len(WORK_DATE_LABEL) + 13):
+            print("-", end="")
+    else:
+        for dash in range(len(WORK_DATE_LABEL) + (3 * 7) + 15):
+            print("-", end="")
+    print()
+
+
+# function for printing feeds per day according to crew
+# arguments: the resulting table for feeds per day and the length of said table
+# returns nothing
+def print_feeds_per_day_by_crew(feeds_per_day_array, length_of_table, list_of_crews):
+    # first find length of longest number of total feeds
+    longest_number_len = 0
+    for row in range(len(feeds_per_day_array) - 1):
+        for col in range(3):
+            if len(str(feeds_per_day_array[row + 1][col + 1])) > longest_number_len:
+                longest_number_len = len(str(feeds_per_day_array[row + 1][col + 1]))
+
+    # find the longest crew name
+    longest_name_len = 0
+    for crew in list_of_crews:
+        if len(str(crew)) > longest_name_len:
+            longest_name_len = len(str(crew))
+
+    print_dashes_by_crew(longest_number_len, longest_name_len, list_of_crews)
+
+    print("|  Work Date  | ", end="")
+    for crew in list_of_crews:
+        if longest_number_len > longest_name_len:
+            print_column_element(crew, longest_number_len)
+        else:
+            print_column_element(crew, longest_name_len)
+        print(" | ", end="")
+    print()
+
+    print_dashes_by_crew(longest_number_len, longest_name_len, list_of_crews)
+
+    for row in range(length_of_table - 1):
+        print("| " + feeds_per_day_array[row + 1][0] + " | ", end="")
+
+        for col in range(len(list_of_crews)):
+            if longest_number_len > longest_name_len:
+                print_digit_long(feeds_per_day_array[row + 1][col + 1], longest_number_len)
+            else:
+                print_digit_short(feeds_per_day_array[row + 1][col + 1], longest_name_len)
+            print(" | ", end="")
+
+        print()
+
+    print_dashes_by_crew(longest_number_len, longest_name_len, list_of_crews)
+
+
+# function for printing dashes when displaying feeds per day by crew
+# arguments: length of longest number, length of longest name and
+# the list of crew members
+# returns nothing
+def print_dashes_by_crew(length_of_longest_number, length_of_longest_name, list_of_crews):
+    if length_of_longest_number > length_of_longest_name:
+        for dash in range(len(list_of_crews) * length_of_longest_number + len(WORK_DATE_LABEL) + len(list_of_crews) * 3 + 6):
+            print("-", end="")
+    else:
+        for dash in range(len(WORK_DATE_LABEL) + 3 * len(list_of_crews) + 6):
+            print("-", end="")
+        for dash in range(length_of_longest_name * len(list_of_crews)):
+            print("-", end="")
+    print()
+
+
+# function for displaying both the list of rows where no crew name could be attributed by the AI
+# and the list of rows with negative elapsed hours
+# arguments: whether the algorithm was used, the list of rows with no names
+# and the list of rows with negative elapsed hours
 def display_additional_info(algorithm_used, rows_with_no_name, negative_num_rows):
     # print list of rows where no name was attributed
     if algorithm_used:
@@ -646,7 +825,7 @@ def display_additional_info(algorithm_used, rows_with_no_name, negative_num_rows
 # arguments: the detailed job report array, which type of ODT the user wants,
 # the start date and the end date
 # returns nothing
-def display_ODT (detailed_job_report, user_option, start_date, end_date):
+def display_ODT(detailed_job_report, user_option, start_date, end_date):
     negative_num_rows = []
     start_date_num = int(start_date[0:4] + start_date[5:7] + start_date[8:10])
     end_date_num = int(end_date[0:4] + end_date[5:7] + end_date[8:10])
@@ -993,6 +1172,11 @@ def display_average_setup_time(detailed_job_report, user_choice, start_date_num,
             average_setup_time = total_elapsed_hours / len(unique_orders_list)
             print("Average Setup Time: " + str(average_setup_time * 60) + " minutes")  # display average setup time in minutes
 
+        # display list of negative elapsed hours
+        if len(negative_num_rows) > 0:
+            sorting_algorithm(negative_num_rows)
+            print_neg_nums_list(len(negative_num_rows), negative_num_rows)
+
     else:  # user wants average setup time by crew
         negative_num_rows = []  # list to track rows with negative elapsed hours
 
@@ -1086,6 +1270,133 @@ def display_average_setup_time(detailed_job_report, user_choice, start_date_num,
             write_to_excel(average_setup_time_by_crew_array)
 
 
+# function to display chart for feeds per day either by shift or by crew
+# arguments: the detailed job report as an array, whether the user wants
+# feeds per day by shift or by crew, the start date as an integer and
+# the end date as an integer
+# returns nothing
+def display_feeds_per_day(detailed_job_report, user_choice, start_date_num, end_date_num):
+    negative_num_rows = []
+
+    if user_choice == "1": # user wants to display feeds per day by shift
+        resulting_table = [[0 for x in range(4)] for y in range(int(end_date_num - start_date_num + 2))]
+        resulting_table[0][0], resulting_table[0][1], resulting_table[0][2], resulting_table[0][3] = "Work Date", "Shift 1", "Shift 2", "Shift 3"
+
+        for row_table in range(len(resulting_table) - 1):
+            resulting_table[row_table + 1][0] = convert_date_int_to_string(start_date_num + row_table)
+            for shift in range(3):
+                total_feeds = 0
+                for row_djr in range(ROWS):
+                    if str(start_date_num + row_table) == str(detailed_job_report[row_djr][WORK_DATE_COL_NUM])[0:4] + str(detailed_job_report[row_djr][WORK_DATE_COL_NUM])[5:7] + str(detailed_job_report[row_djr][WORK_DATE_COL_NUM])[8:10]:
+                        if detailed_job_report[row_djr][SHIFT_COL_NUM] == shift + 1 and detailed_job_report[row_djr][ELAPSED_HOURS_COL_NUM] >= 0:
+                            total_feeds = total_feeds + detailed_job_report[row_djr][GROSS_FG_QTY_COL_NUM]
+                        elif detailed_job_report[row_djr][SHIFT_COL_NUM] == shift + 1 and detailed_job_report[row_djr][ELAPSED_HOURS_COL_NUM] < 0:
+                            append_neg_num_row(negative_num_rows, row_djr)
+
+                if total_feeds > 0:
+                    resulting_table[row_table + 1][shift + 1] = total_feeds
+
+        table_length = len(resulting_table)
+
+        if remove_holidays():
+            # delete unnecessary rows
+            location = 1
+            for row_table in range(len(resulting_table) - 1):
+                all_zero = True
+                for col in range(3):
+                    if resulting_table[row_table + 1][col + 1] > 0:
+                        all_zero = False
+                if not all_zero:
+                    for col in range(4):
+                        resulting_table[location][col] = resulting_table[row_table + 1][col]
+
+                    location = location + 1
+
+            table_length = location
+
+        if len(negative_num_rows) > 0:
+            sorting_algorithm(negative_num_rows)
+            print_neg_nums_list(len(negative_num_rows), negative_num_rows)
+
+        print_feeds_per_day_by_shift(resulting_table, table_length)
+
+    else: # user wants to display feeds per day by crew
+        # check if there are gaps in data
+        gap_name = False
+        for row in range(ROWS):
+            if start_date_num <= int(str(detailed_job_report[row][WORK_DATE_COL_NUM])[0:4] + str(detailed_job_report[row][WORK_DATE_COL_NUM])[5:7] + str(detailed_job_report[row][WORK_DATE_COL_NUM])[8:10]) <= end_date_num:
+                if str(detailed_job_report[row][EMPLOYEE_NAME_COL_NUM]) == "nan":
+                    gap_name = True
+                    break
+
+        # ask user if they want to use name-filling algorithm
+        use_algo = False
+        if gap_name:
+            use_algo = use_algorithm()
+        empty_name_rows = []
+
+        crews_list = []
+        generate_crews_list(detailed_job_report, start_date_num, end_date_num, crews_list)
+
+        resulting_table = [[0 for x in range(len(crews_list) + 1)] for y in range(int(end_date_num - start_date_num + 2))]
+        resulting_table[0][0] = "Work Date"
+        for col in range(len(crews_list)):
+            resulting_table[0][col + 1] = crews_list[col]
+
+        for row_table in range(len(resulting_table) - 1):
+            resulting_table[row_table + 1][0] = convert_date_int_to_string(start_date_num + row_table)
+            crew_counter = 1
+            for crew in crews_list:
+                total_feeds = 0
+                for row_djr in range(ROWS):
+                    if str(start_date_num + row_table) == str(detailed_job_report[row_djr][WORK_DATE_COL_NUM])[0:4] + str(detailed_job_report[row_djr][WORK_DATE_COL_NUM])[5:7] + str(detailed_job_report[row_djr][WORK_DATE_COL_NUM])[8:10]:
+                        if str(detailed_job_report[row_djr][EMPLOYEE_NAME_COL_NUM]) == crew and detailed_job_report[row_djr][ELAPSED_HOURS_COL_NUM] >= 0:
+                            total_feeds = total_feeds + detailed_job_report[row_djr][GROSS_FG_QTY_COL_NUM]
+                        elif str(detailed_job_report[row_djr][EMPLOYEE_NAME_COL_NUM]) == crew and detailed_job_report[row_djr][ELAPSED_HOURS_COL_NUM] < 0:
+                            append_neg_num_row(negative_num_rows, row_djr)
+
+                if use_algo:
+                    for row in range(ROWS):
+                        if str(detailed_job_report[row][EMPLOYEE_NAME_COL_NUM]) == "nan":
+                            if str(start_date_num + row_table) == str(detailed_job_report[row][WORK_DATE_COL_NUM])[0:4] + str(detailed_job_report[row][WORK_DATE_COL_NUM])[5:7] + str(detailed_job_report[row][WORK_DATE_COL_NUM])[8:10]:
+                                # first determine which employee name should fill this gap
+                                assumed_name = assume_name(detailed_job_report, empty_name_rows, row)
+
+                                if assumed_name == crew and detailed_job_report[row][ELAPSED_HOURS_COL_NUM] >= 0:
+                                    total_feeds = total_feeds + detailed_job_report[row][GROSS_FG_QTY_COL_NUM]
+                                elif assumed_name == crew and detailed_job_report[row][ELAPSED_HOURS_COL_NUM] < 0:
+                                    append_neg_num_row(negative_num_rows, row)
+
+                if total_feeds > 0:
+                    resulting_table[row_table + 1][crew_counter] = total_feeds
+                crew_counter = crew_counter + 1
+
+        table_length = len(resulting_table)
+
+        if remove_holidays():
+            # delete unnecessary rows
+            location = 1
+            for row_table in range(len(resulting_table) - 1):
+                all_zero = True
+                for col in range(len(crews_list)):
+                    if resulting_table[row_table + 1][col + 1] > 0:
+                        all_zero = False
+                if not all_zero:
+                    for col in range(len(crews_list) + 1):
+                        resulting_table[location][col] = resulting_table[row_table + 1][col]
+
+                    location = location + 1
+
+            table_length = location
+
+        print_feeds_per_day_by_crew(resulting_table, table_length, crews_list)
+
+        display_additional_info(use_algo,empty_name_rows, negative_num_rows)
+
+    if to_excel():
+        write_to_excel(resulting_table)
+
+
 ######################################################################
 # obtaining the Detailed Job Report (.xlsx) spreadsheet from directory
 ######################################################################
@@ -1159,7 +1470,7 @@ while not user_done:
     #########################
     # calculating total feeds
     #########################
-    if user_input == 2:
+    elif user_input == 2:
         # obtain date frame from user
         print("Enter the first date: ", end="")
         first_date_string = obtain_date_string(djr_array)
@@ -1197,7 +1508,7 @@ while not user_done:
     ################################
     # calculating average setup time
     ################################
-    if user_input == 3:
+    elif user_input == 3:
         # obtain date frame from user
         print("Enter the first date: ", end="")
         first_date_string = obtain_date_string(djr_array)
@@ -1232,8 +1543,47 @@ while not user_done:
 
         display_average_setup_time(djr_array, user_choice, start_date_num, end_date_num)
 
+    #############################
+    # breaking down feeds per day
+    #############################
+    elif user_input == 4:
+        # obtain date frame from user
+        print("Enter the first date: ", end="")
+        first_date_string = obtain_date_string(djr_array)
+
+        error = True
+        while error:
+            print("Enter the second date: ", end="")
+            second_date_string = obtain_date_string(djr_array)
+
+            if int(second_date_string[5:7]) < int(first_date_string[5:7]) or int(second_date_string[8:10]) < int(first_date_string[8:10]):
+                print("Error: second date precedes first date. Please try again.")
+            else:
+                error = False
+
+        start_date_num = int(first_date_string[0:4] + first_date_string[5:7] + first_date_string[8:10])
+        end_date_num = int(second_date_string[0:4] + second_date_string[5:7] + second_date_string[8:10])
+
+        error = True
+        user_choice = " "
+        while error:
+            user_choice = input("Enter (1) to display feeds per day by shift or (2) to display feeds per day by crew: ")
+
+            if user_choice == "1" or user_choice == "2":
+                error = False
+            else:
+                print("Error: please try again.")
+
+        if user_choice == "1":
+            print("\nFeeds per day by shift from " + first_date_string + " to " + second_date_string + ":")
+        else:
+            print("\nFeeds per day by crew from " + first_date_string + " to " + second_date_string + ":")
+
+        display_feeds_per_day(djr_array, user_choice, start_date_num, end_date_num)
+
+
     ######
     # exit
     ######
-    if user_input == 4:
+    elif user_input == 5:
         exit()

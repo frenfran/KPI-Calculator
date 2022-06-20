@@ -767,7 +767,7 @@ def print_feeds_per_day_by_crew(feeds_per_day_array, length_of_table, list_of_cr
     # first find length of longest number of total feeds
     longest_number_len = 0
     for row in range(len(feeds_per_day_array) - 1):
-        for col in range(3):
+        for col in range(len(list_of_crews)):
             if len(str(feeds_per_day_array[row + 1][col + 1])) > longest_number_len:
                 longest_number_len = len(str(feeds_per_day_array[row + 1][col + 1]))
 
@@ -1333,11 +1333,11 @@ def display_feeds_per_day(detailed_job_report, user_choice, start_date_num, end_
 
             table_length = location
 
+        print_feeds_per_day_by_shift(resulting_table, table_length)
+
         if len(negative_num_rows) > 0:
             sorting_algorithm(negative_num_rows)
             print_neg_nums_list(len(negative_num_rows), negative_num_rows)
-
-        print_feeds_per_day_by_shift(resulting_table, table_length)
 
     else: # user wants to display feeds per day by crew
         # check if there are gaps in data
@@ -1373,18 +1373,14 @@ def display_feeds_per_day(detailed_job_report, user_choice, start_date_num, end_
                             total_feeds = total_feeds + detailed_job_report[row_djr][GROSS_FG_QTY_COL_NUM]
                         elif str(detailed_job_report[row_djr][EMPLOYEE_NAME_COL_NUM]) == crew and detailed_job_report[row_djr][ELAPSED_HOURS_COL_NUM] < 0:
                             append_neg_num_row(negative_num_rows, row_djr)
+                        elif use_algo and str(detailed_job_report[row_djr][EMPLOYEE_NAME_COL_NUM]) == "nan" and detailed_job_report[row_djr][ELAPSED_HOURS_COL_NUM] >= 0:
+                            # first determine which employee name should fill this gap
+                            assumed_name = assume_name(detailed_job_report, empty_name_rows, row_djr)
 
-                if use_algo:
-                    for row in range(ROWS):
-                        if str(detailed_job_report[row][EMPLOYEE_NAME_COL_NUM]) == "nan":
-                            if str(start_date_num + row_table) == str(detailed_job_report[row][WORK_DATE_COL_NUM])[0:4] + str(detailed_job_report[row][WORK_DATE_COL_NUM])[5:7] + str(detailed_job_report[row][WORK_DATE_COL_NUM])[8:10]:
-                                # first determine which employee name should fill this gap
-                                assumed_name = assume_name(detailed_job_report, empty_name_rows, row)
-
-                                if assumed_name == crew and detailed_job_report[row][ELAPSED_HOURS_COL_NUM] >= 0:
-                                    total_feeds = total_feeds + detailed_job_report[row][GROSS_FG_QTY_COL_NUM]
-                                elif assumed_name == crew and detailed_job_report[row][ELAPSED_HOURS_COL_NUM] < 0:
-                                    append_neg_num_row(negative_num_rows, row)
+                            if assumed_name == crew and detailed_job_report[row_djr][ELAPSED_HOURS_COL_NUM] >= 0:
+                                total_feeds = total_feeds + detailed_job_report[row_djr][GROSS_FG_QTY_COL_NUM]
+                            elif assumed_name == crew and detailed_job_report[row_djr][ELAPSED_HOURS_COL_NUM] < 0:
+                                append_neg_num_row(negative_num_rows, row_djr)
 
                 if total_feeds > 0:
                     resulting_table[row_table + 1][crew_counter] = total_feeds
@@ -1457,7 +1453,7 @@ while not user_done:
         print("Enter the first date: ", end="")
         first_date_string = obtain_date_string(djr_array)
 
-        second_Date_string = obtain_second_date_string(djr_array, first_date_string)
+        second_date_string = obtain_second_date_string(djr_array, first_date_string)
 
         error = True
         choice = " "

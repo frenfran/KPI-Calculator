@@ -366,9 +366,9 @@ def to_excel():
 
 # function to obtain spreadsheet name and write data from user's previous
 # command to said spreadsheet
-# arguments: array containing the data to write to spreadsheet
+# arguments: array containing the data to write to spreadsheet and its length
 # returns nothing
-def write_to_excel(array):
+def write_to_excel(array, length_of_array):
     spreadsheet_name = ""
 
     error = True
@@ -418,14 +418,16 @@ def write_to_excel(array):
     # clear any rows with irrelevant data
     rows_to_delete = [] # list to remember which rows to delete
     counter = 0
-    for row in range(len(array)):
+    for row in range(length_of_array):
         if array[row][0] == 0 and array[row][1] == 0:
             rows_to_delete.append(row)
     for row in rows_to_delete:
         array = np.delete(array, row - counter, axis=0)
-        counter = counter + 1 # size of array decreases with every deletion
+        # size of array decreases with every deletion
+        counter = counter + 1
+        length_of_array = length_of_array - 1
 
-    charge_code_dataframe = pd.DataFrame(array) # convert array containing data into a dataframe
+    charge_code_dataframe = pd.DataFrame(array[0:length_of_array]) # convert array containing data into a dataframe
     charge_code_dataframe.to_excel(spreadsheet_name, index=False) # write dataframe to Excel spreadsheet
     print("Data successfully copied to spreadsheet.")
 
@@ -894,7 +896,7 @@ def display_ODT(detailed_job_report, user_option, start_date, end_date):
             print_neg_nums_list(len(negative_num_rows), negative_num_rows)
 
         if to_excel():
-            write_to_excel(ODT_by_shift_array)
+            write_to_excel(ODT_by_shift_array, len(ODT_by_shift_array))
 
     elif user_option == "2": # user wants ODT by crew
         # check if there are gaps in data
@@ -916,8 +918,8 @@ def display_ODT(detailed_job_report, user_option, start_date, end_date):
         generate_crews_list(detailed_job_report, start_date_num, end_date_num, crews_list)
 
         # create & initialize array to hold data in case user wants to write data to an Excel spreadsheet
-        ODTbyCrewArray = [[0 for x in range(2)] for y in range(len(crews_list) + 1)]
-        ODTbyCrewArray[0][0], ODTbyCrewArray[0][1] = "Crew", "ODT %"
+        ODT_by_crew_array = [[0 for x in range(2)] for y in range(len(crews_list) + 1)]
+        ODT_by_crew_array[0][0], ODT_by_crew_array[0][1] = "Crew", "ODT %"
         counter = 1
 
         longest_name_len = print_crew_header(crews_list, 1)
@@ -958,16 +960,16 @@ def display_ODT(detailed_job_report, user_option, start_date, end_date):
                 result = (ODT/total_machine_hours) * 100
 
             if result != 0:
-                ODTbyCrewArray[counter][0], ODTbyCrewArray[counter][1] = crew, result
+                ODT_by_crew_array[counter][0], ODT_by_crew_array[counter][1] = crew, result
             counter = counter + 1
 
-        print_rest_of_table(ODTbyCrewArray, longest_name_len, 1)
+        print_rest_of_table(ODT_by_crew_array, longest_name_len, 1)
 
         # breakdown of additional info
         display_additional_info(use_algo, rows_with_no_name, negative_num_rows)
 
         if to_excel():
-            write_to_excel(ODTbyCrewArray)
+            write_to_excel(ODT_by_crew_array, len(ODT_by_crew_array))
 
     else: # user wants Pareto chart
         # create list of charge codes
@@ -1041,7 +1043,7 @@ def display_ODT(detailed_job_report, user_option, start_date, end_date):
             print_neg_nums_list(len(negative_num_rows), negative_num_rows)
 
         if to_excel():
-            write_to_excel(charge_code_array)
+            write_to_excel(charge_code_array, len(charge_code_array))
 
 
 # function to display total feeds either by shift or by crew
@@ -1078,22 +1080,26 @@ def display_total_feeds(detailed_job_report, user_choice, start_date_num, end_da
             if len(str(total_feeds_by_shift_array[row + 1][1])) > longest_number:
                 longest_number = len(str(total_feeds_by_shift_array[row + 1][1]))
 
+        table_empty = True
         for row in range(len(total_feeds_by_shift_array) - 1):
-            print("|   " + str(total_feeds_by_shift_array[row + 1][0]) + "   | ", end="")
-            if longest_number < 11:
-                print_digit_short(total_feeds_by_shift_array[row + 1][1], 11)
-            else:
-                print_digit_long(total_feeds_by_shift_array[row + 1][1], 11)
-            print(" |")
+            if int(total_feeds_by_shift_array[row + 1][0]) != 0 and int(total_feeds_by_shift_array[row + 1][1]) != 0:
+                table_empty = False
+                print("|   " + str(total_feeds_by_shift_array[row + 1][0]) + "   | ", end="")
+                if longest_number < len(TOTAL_FEEDS_LABEL):
+                    print_digit_short(total_feeds_by_shift_array[row + 1][1], len(TOTAL_FEEDS_LABEL))
+                else:
+                    print_digit_long(total_feeds_by_shift_array[row + 1][1], len(TOTAL_FEEDS_LABEL))
+                print(" |")
 
-        print("-----------------------")
+        if not table_empty:
+            print("-----------------------")
 
         if len(negative_num_rows) > 0:
             sorting_algorithm(negative_num_rows)
             print_neg_nums_list(len(negative_num_rows), negative_num_rows)
 
         if to_excel():
-            write_to_excel(total_feeds_by_shift_array)
+            write_to_excel(total_feeds_by_shift_array, len(total_feeds_by_shift_array))
 
     else: # user wants total feeds by crew
         # check for gaps in Employee Name column
@@ -1140,7 +1146,7 @@ def display_total_feeds(detailed_job_report, user_choice, start_date_num, end_da
         display_additional_info(use_algo, empty_name_rows, negative_num_rows)
 
         if to_excel():
-            write_to_excel(total_feeds_by_crew_array)
+            write_to_excel(total_feeds_by_crew_array, len(total_feeds_by_crew_array))
 
 
 # function to display average setup time either by shift or by crew
@@ -1286,7 +1292,7 @@ def display_average_setup_time(detailed_job_report, user_choice, start_date_num,
         display_additional_info(use_algo, rows_with_no_name, negative_num_rows)
 
         if to_excel():
-            write_to_excel(average_setup_time_by_crew_array)
+            write_to_excel(average_setup_time_by_crew_array, len(average_setup_time_by_crew_array))
 
 
 # function to display chart for feeds per day either by shift or by crew
@@ -1327,7 +1333,7 @@ def display_feeds_per_day(detailed_job_report, user_choice, start_date_num, end_
                         all_zero = False
                 if not all_zero:
                     for col in range(4):
-                        resulting_table[location][col] = resulting_table[row_table + 1][col]
+                        resulting_table[location][col] = int(resulting_table[row_table + 1][col])
 
                     location = location + 1
 
@@ -1383,7 +1389,7 @@ def display_feeds_per_day(detailed_job_report, user_choice, start_date_num, end_
                                 append_neg_num_row(negative_num_rows, row_djr)
 
                 if total_feeds > 0:
-                    resulting_table[row_table + 1][crew_counter] = total_feeds
+                    resulting_table[row_table + 1][crew_counter] = int(total_feeds)
                 crew_counter = crew_counter + 1
 
         table_length = len(resulting_table)
@@ -1406,10 +1412,10 @@ def display_feeds_per_day(detailed_job_report, user_choice, start_date_num, end_
 
         print_feeds_per_day_by_crew(resulting_table, table_length, crews_list)
 
-        display_additional_info(use_algo,empty_name_rows, negative_num_rows)
+        display_additional_info(use_algo, empty_name_rows, negative_num_rows)
 
     if to_excel():
-        write_to_excel(resulting_table)
+        write_to_excel(resulting_table, table_length)
 
 
 ######################################################################

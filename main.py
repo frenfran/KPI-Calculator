@@ -555,8 +555,12 @@ def print_rest_of_table(array, longest_name_length, option):
     # first, find data with longest number of digits
     longest_number = 0
     for row in range(len(array) - 1):
-        if len(str(array[row + 1][1])) > longest_number:
-            longest_number = len(str(array[row + 1][1]))
+        if option == 2:
+            if len(str(int(array[row + 1][1]))) > longest_number:
+                longest_number = len(str(int(array[row + 1][1])))
+        else:
+            if len(str(array[row + 1][1])) > longest_number:
+                longest_number = len(str(array[row + 1][1]))
 
     for row in range(len(array) - 1):
         print("| ", end="")
@@ -568,10 +572,10 @@ def print_rest_of_table(array, longest_name_length, option):
             else:
                 print_digit_long(array[row + 1][1], len(ODT_LABEL) - 1)
         elif option == 2:
-            if len(str(array[row + 1][1])) < len(TOTAL_FEEDS_LABEL):
-                print_digit_short(array[row + 1][1], len(TOTAL_FEEDS_LABEL))
+            if len(str(int(array[row + 1][1]))) < len(TOTAL_FEEDS_LABEL):
+                print_digit_short(int(array[row + 1][1]), len(TOTAL_FEEDS_LABEL))
             else:
-                print_digit_long(array[row + 1][1], len(TOTAL_FEEDS_LABEL) - 1)
+                print_digit_long(int(array[row + 1][1]), len(TOTAL_FEEDS_LABEL) - 1)
         else:
             if len(str(array[row + 1][1])) < len(AVERAGE_SETUP_TIME_LABEL):
                 print_digit_short(array[row + 1][1], len(AVERAGE_SETUP_TIME_LABEL))
@@ -1086,9 +1090,9 @@ def display_total_feeds(detailed_job_report, user_choice, start_date_num, end_da
                 table_empty = False
                 print("|   " + str(total_feeds_by_shift_array[row + 1][0]) + "   | ", end="")
                 if longest_number < len(TOTAL_FEEDS_LABEL):
-                    print_digit_short(total_feeds_by_shift_array[row + 1][1], len(TOTAL_FEEDS_LABEL))
+                    print_digit_short(int(total_feeds_by_shift_array[row + 1][1]), len(TOTAL_FEEDS_LABEL))
                 else:
-                    print_digit_long(total_feeds_by_shift_array[row + 1][1], len(TOTAL_FEEDS_LABEL))
+                    print_digit_long(int(total_feeds_by_shift_array[row + 1][1]), len(TOTAL_FEEDS_LABEL))
                 print(" |")
 
         if not table_empty:

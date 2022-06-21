@@ -1323,7 +1323,7 @@ def display_feeds_per_day(detailed_job_report, user_choice, start_date_num, end_
                             append_neg_num_row(negative_num_rows, row_djr)
 
                 if total_feeds > 0:
-                    resulting_table[row_table + 1][shift + 1] = total_feeds
+                    resulting_table[row_table + 1][shift + 1] = int(total_feeds)
 
         table_length = len(resulting_table)
 
@@ -1337,7 +1337,7 @@ def display_feeds_per_day(detailed_job_report, user_choice, start_date_num, end_
                         all_zero = False
                 if not all_zero:
                     for col in range(4):
-                        resulting_table[location][col] = int(resulting_table[row_table + 1][col])
+                        resulting_table[location][col] = resulting_table[row_table + 1][col]
 
                     location = location + 1
 

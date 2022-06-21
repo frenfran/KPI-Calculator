@@ -60,14 +60,12 @@ def obtain_instructions():
 # arguments: the detailed job report array and the total number of rows in the detailed job array
 # returns the date entered by the user as a string
 def obtain_date_string(detailed_job_report):
-    day = ""
-    month = ""
-    year = ""
     result = ""
 
     error = True
     while error:
         try:
+            day, month, year = "", "", ""
             date = input()
             date_split = date.split("/")
 
@@ -442,7 +440,7 @@ def print_digit_long(result, num_digits):
             print(str(result)[digit], end="")
         else:
             if str(result)[digit] != "." and digit != len(str(result)) - 1:
-                if int(str(result)[digit + 1]) > 5 and int(str(result)[digit + 1]) != 9:
+                if int(str(result)[digit + 1]) > 5 and int(str(result)[digit]) != 9:
                     print(int(str(result)[digit]) + 1, end="")
                 else:
                     print(str(result)[digit], end="")
@@ -601,7 +599,7 @@ def print_rest_of_table(array, longest_name_length, option):
 # returns nothing
 def print_column_element(word, max_length):
     # determine length of current column element first
-    word_length = len(word)
+    word_length = len(str(word))
 
     for space in range(int((max_length - word_length + 1) / 2)):
         print(" ", end="")
@@ -963,8 +961,7 @@ def display_ODT(detailed_job_report, user_option, start_date, end_date):
             if total_machine_hours > 0:
                 result = (ODT/total_machine_hours) * 100
 
-            if result != 0:
-                ODT_by_crew_array[counter][0], ODT_by_crew_array[counter][1] = crew, result
+            ODT_by_crew_array[counter][0], ODT_by_crew_array[counter][1] = crew, result
             counter = counter + 1
 
         print_rest_of_table(ODT_by_crew_array, longest_name_len, 1)

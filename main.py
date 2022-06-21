@@ -442,7 +442,7 @@ def print_digit_long(result, num_digits):
             print(str(result)[digit], end="")
         else:
             if str(result)[digit] != "." and digit != len(str(result)) - 1:
-                if int(str(result)[digit + 1]) > 5:
+                if int(str(result)[digit + 1]) > 5 and int(str(result)[digit + 1]) != 9:
                     print(int(str(result)[digit]) + 1, end="")
                 else:
                     print(str(result)[digit], end="")

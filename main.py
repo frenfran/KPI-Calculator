@@ -999,6 +999,8 @@ def display_ODT(detailed_job_report, user_option, start_date, end_date):
                 elif include and detailed_job_report[row][ELAPSED_HOURS_COL_NUM] < 0:
                     append_neg_num_row(negative_num_rows, row)
 
+        print(totalODT)
+
         # temporary dictionary to contain each charge code and their corresponding ODT
         charge_code_dict = {}
         for charge_code in charge_code_list:
@@ -1008,10 +1010,8 @@ def display_ODT(detailed_job_report, user_option, start_date, end_date):
                 if start_date_num <= int(str(detailed_job_report[row][WORK_DATE_COL_NUM])[0:4] + str(detailed_job_report[row][WORK_DATE_COL_NUM])[5:7] + str(detailed_job_report[row][WORK_DATE_COL_NUM])[8:10]) <= end_date_num:
                     if detailed_job_report[row][CHARGE_CODE_COL_NUM] == charge_code and detailed_job_report[row][ELAPSED_HOURS_COL_NUM] >= 0:
                         ODT = ODT + detailed_job_report[row][ELAPSED_HOURS_COL_NUM]
-                    if detailed_job_report[row][CHARGE_CODE_COL_NUM] == charge_code and detailed_job_report[row][ELAPSED_HOURS_COL_NUM] < 0:
-                        append_neg_num_row(negative_num_rows, row)
 
-            charge_code_dict[charge_code] = ODT
+            charge_code_dict[charge_code] = (ODT / totalODT) * 100
 
         num_rows = 0
         for key in charge_code_dict.keys():

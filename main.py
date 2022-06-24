@@ -1360,6 +1360,8 @@ def display_average_setup_time(detailed_job_report, user_choice, start_date_num,
                 # print(str(total_elapsed_hours) + " " + str(total_unique_orders))
                 average_setup_time = (total_elapsed_hours / total_unique_orders) * 60
                 average_setup_time_by_crew_array[counter][0], average_setup_time_by_crew_array[counter][1] = crew, average_setup_time
+            else:
+                average_setup_time_by_crew_array[counter][0], average_setup_time_by_crew_array[counter][1] = crew, 0
             counter = counter + 1
 
         print_rest_of_table(average_setup_time_by_crew_array, longest_name_len, 3)

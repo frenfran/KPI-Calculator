@@ -16,7 +16,7 @@ GROSS_FG_QTY_COL_NUM = 15
 EMPLOYEE_NAME_COL_NUM = 26
 DOWNTIME_COL_NUM = 28
 
-ODT_LABEL = "ODT (%)"
+ODT_LABEL = "ODT (hours)"
 TOTAL_FEEDS_LABEL = "Total Feeds"
 AVERAGE_SETUP_TIME_LABEL = "Average Setup Time (minutes)"
 CREW_LABEL = "Crew"
@@ -332,7 +332,7 @@ def assume_name(detailed_job_report, empty_name_rows, row):
     keep_going = True # check rows prior
     iterator = -1
     while keep_going:
-        if row + iterator < 0:
+        if row + iterator > 0:
             if detailed_job_report[row + iterator][SHIFT_COL_NUM] == shift_num and str(detailed_job_report[row + iterator][EMPLOYEE_NAME_COL_NUM]) != "nan" and int(str(detailed_job_report[row][WORK_DATE_COL_NUM])[0:4] + str(detailed_job_report[row][WORK_DATE_COL_NUM])[5:7] + str(detailed_job_report[row][WORK_DATE_COL_NUM])[8:10]) - int(str(detailed_job_report[row + iterator][WORK_DATE_COL_NUM])[0:4] + str(detailed_job_report[row + iterator][WORK_DATE_COL_NUM])[5:7] + str(detailed_job_report[row + iterator][WORK_DATE_COL_NUM])[8:10]) < 2:
                 assumed_name = str(detailed_job_report[row + iterator][EMPLOYEE_NAME_COL_NUM])
                 keep_going = False
@@ -1048,24 +1048,6 @@ def display_ODT(detailed_job_report, user_option, start_date, end_date):
             if not alreadyIncluded and detailed_job_report[row][CHARGE_CODE_COL_NUM] != "RUN" and detailed_job_report[row][CHARGE_CODE_COL_NUM] != "SET UP":
                 charge_code_list.append(detailed_job_report[row][CHARGE_CODE_COL_NUM])
 
-        # calculate total open downtime for all charge codes
-        totalODT = 0
-        for row in range(ROWS):
-            if start_date_num <= int(str(detailed_job_report[row][WORK_DATE_COL_NUM])[0:4] + str(detailed_job_report[row][WORK_DATE_COL_NUM])[5:7] + str(detailed_job_report[row][WORK_DATE_COL_NUM])[8:10]) <= end_date_num:
-                include = False
-                for charge_code in charge_code_list:
-                    if detailed_job_report[row][CHARGE_CODE_COL_NUM] == charge_code:
-                        include = True
-
-                if include and 0 <= detailed_job_report[row][ELAPSED_HOURS_COL_NUM] <= EXCESSIVE_THRESHOLD:
-                    totalODT = totalODT + detailed_job_report[row][ELAPSED_HOURS_COL_NUM]
-                elif include and detailed_job_report[row][ELAPSED_HOURS_COL_NUM] < 0:
-                    append_element_in_array(negative_num_rows, row)
-                elif include and detailed_job_report[row][ELAPSED_HOURS_COL_NUM] > EXCESSIVE_THRESHOLD:
-                    append_element_in_array(excessive_num_rows, row)
-
-        # print(totalODT) # print total ODT (denominator of equation)
-
         # temporary dictionary to contain each charge code and their corresponding ODT
         charge_code_dict = {}
         for charge_code in charge_code_list:
@@ -1080,8 +1062,7 @@ def display_ODT(detailed_job_report, user_option, start_date, end_date):
                     elif detailed_job_report[row][CHARGE_CODE_COL_NUM] == charge_code and detailed_job_report[row][ELAPSED_HOURS_COL_NUM] > EXCESSIVE_THRESHOLD:
                         append_element_in_array(excessive_num_rows, row)
 
-            if totalODT != 0:
-                charge_code_dict[charge_code] = (ODT / totalODT) * 100
+            charge_code_dict[charge_code] = ODT
 
         num_rows = 0
         for key in charge_code_dict.keys():
@@ -1089,7 +1070,7 @@ def display_ODT(detailed_job_report, user_option, start_date, end_date):
                 num_rows = num_rows + 1
 
         charge_code_array = [[0 for x in range(2)] for y in range(num_rows + 1)]
-        charge_code_array[0][0], charge_code_array[0][1] = "Charge Code", "ODT (%)"
+        charge_code_array[0][0], charge_code_array[0][1] = "Charge Code", "ODT (hours)"
 
         # sort charge_code_array from largest ODT to smallest
         counter = 1

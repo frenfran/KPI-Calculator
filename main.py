@@ -290,8 +290,6 @@ def generate_crews_list(detailed_job_report, start_date_num, end_date_num, crews
 def print_rows_with_no_name(rows_with_no_name):
     if len(rows_with_no_name) > 0:
         print("AI was unable to attribute names to the following row(s) due to insufficient information:\n")
-        # reorganize rows_with_no_name from first row to last in numerical order
-        sorting_algorithm(rows_with_no_name)
         counter = 0
         for item in rows_with_no_name:
             counter = counter + 1
@@ -334,11 +332,14 @@ def assume_name(detailed_job_report, empty_name_rows, row):
     keep_going = True # check rows prior
     iterator = -1
     while keep_going:
-        if detailed_job_report[row + iterator][SHIFT_COL_NUM] == shift_num and str(detailed_job_report[row + iterator][EMPLOYEE_NAME_COL_NUM]) != "nan" and int(str(detailed_job_report[row][WORK_DATE_COL_NUM])[0:4] + str(detailed_job_report[row][WORK_DATE_COL_NUM])[5:7] + str(detailed_job_report[row][WORK_DATE_COL_NUM])[8:10]) - int(str(detailed_job_report[row + iterator][WORK_DATE_COL_NUM])[0:4] + str(detailed_job_report[row + iterator][WORK_DATE_COL_NUM])[5:7] + str(detailed_job_report[row + iterator][WORK_DATE_COL_NUM])[8:10]) < 2:
-            assumed_name = str(detailed_job_report[row + iterator][EMPLOYEE_NAME_COL_NUM])
-            keep_going = False
-        elif detailed_job_report[row + iterator][SHIFT_COL_NUM] == shift_num and str(detailed_job_report[row + iterator][EMPLOYEE_NAME_COL_NUM]) == "nan" and int(str(detailed_job_report[row + iterator][WORK_DATE_COL_NUM])[0:4] + str(detailed_job_report[row + iterator][WORK_DATE_COL_NUM])[5:7] + str(detailed_job_report[row + iterator][WORK_DATE_COL_NUM])[8:10]) - int(str(detailed_job_report[row + iterator - 1][WORK_DATE_COL_NUM])[0:4] + str(detailed_job_report[row + iterator - 1][WORK_DATE_COL_NUM])[5:7] + str(detailed_job_report[row + iterator - 1][WORK_DATE_COL_NUM])[8:10]) < 2:
-            iterator = iterator - 1
+        if row + iterator < 0:
+            if detailed_job_report[row + iterator][SHIFT_COL_NUM] == shift_num and str(detailed_job_report[row + iterator][EMPLOYEE_NAME_COL_NUM]) != "nan" and int(str(detailed_job_report[row][WORK_DATE_COL_NUM])[0:4] + str(detailed_job_report[row][WORK_DATE_COL_NUM])[5:7] + str(detailed_job_report[row][WORK_DATE_COL_NUM])[8:10]) - int(str(detailed_job_report[row + iterator][WORK_DATE_COL_NUM])[0:4] + str(detailed_job_report[row + iterator][WORK_DATE_COL_NUM])[5:7] + str(detailed_job_report[row + iterator][WORK_DATE_COL_NUM])[8:10]) < 2:
+                assumed_name = str(detailed_job_report[row + iterator][EMPLOYEE_NAME_COL_NUM])
+                keep_going = False
+            elif detailed_job_report[row + iterator][SHIFT_COL_NUM] == shift_num and str(detailed_job_report[row + iterator][EMPLOYEE_NAME_COL_NUM]) == "nan" and int(str(detailed_job_report[row + iterator][WORK_DATE_COL_NUM])[0:4] + str(detailed_job_report[row + iterator][WORK_DATE_COL_NUM])[5:7] + str(detailed_job_report[row + iterator][WORK_DATE_COL_NUM])[8:10]) - int(str(detailed_job_report[row + iterator - 1][WORK_DATE_COL_NUM])[0:4] + str(detailed_job_report[row + iterator - 1][WORK_DATE_COL_NUM])[5:7] + str(detailed_job_report[row + iterator - 1][WORK_DATE_COL_NUM])[8:10]) < 2:
+                iterator = iterator - 1
+            else:
+                keep_going = False
         else:
             keep_going = False
 
@@ -346,20 +347,23 @@ def assume_name(detailed_job_report, empty_name_rows, row):
         keep_going = True
         iterator = 1
         while keep_going:
-            if detailed_job_report[row + iterator][SHIFT_COL_NUM] == shift_num and str(detailed_job_report[row + iterator][EMPLOYEE_NAME_COL_NUM]) != "nan" and int(str(detailed_job_report[row + iterator][WORK_DATE_COL_NUM])[0:4] + str(detailed_job_report[row + iterator][WORK_DATE_COL_NUM])[5:7] + str(detailed_job_report[row + iterator][WORK_DATE_COL_NUM])[8:10]) - int(str(detailed_job_report[row][WORK_DATE_COL_NUM])[0:4] + str(detailed_job_report[row][WORK_DATE_COL_NUM])[5:7] + str(detailed_job_report[row][WORK_DATE_COL_NUM])[8:10]) < 2:
-                assumed_name = str(detailed_job_report[row + iterator][EMPLOYEE_NAME_COL_NUM])
-                keep_going = False
-            elif detailed_job_report[row + iterator][SHIFT_COL_NUM] == shift_num and str(detailed_job_report[row + iterator][EMPLOYEE_NAME_COL_NUM]) == "nan"  and int(str(detailed_job_report[row + iterator][WORK_DATE_COL_NUM])[0:4] + str(detailed_job_report[row + iterator][WORK_DATE_COL_NUM])[5:7] + str(detailed_job_report[row + iterator][WORK_DATE_COL_NUM])[8:10]) - int(str(detailed_job_report[row + iterator - 1][WORK_DATE_COL_NUM])[0:4] + str(detailed_job_report[row + iterator - 1][WORK_DATE_COL_NUM])[5:7] + str(detailed_job_report[row + iterator - 1][WORK_DATE_COL_NUM])[8:10]) < 2:
-                iterator = iterator + 1
+            if row + iterator < ROWS:
+                if detailed_job_report[row + iterator][SHIFT_COL_NUM] == shift_num and str(detailed_job_report[row + iterator][EMPLOYEE_NAME_COL_NUM]) != "nan" and int(str(detailed_job_report[row + iterator][WORK_DATE_COL_NUM])[0:4] + str(detailed_job_report[row + iterator][WORK_DATE_COL_NUM])[5:7] + str(detailed_job_report[row + iterator][WORK_DATE_COL_NUM])[8:10]) - int(str(detailed_job_report[row][WORK_DATE_COL_NUM])[0:4] + str(detailed_job_report[row][WORK_DATE_COL_NUM])[5:7] + str(detailed_job_report[row][WORK_DATE_COL_NUM])[8:10]) < 2:
+                    assumed_name = str(detailed_job_report[row + iterator][EMPLOYEE_NAME_COL_NUM])
+                    keep_going = False
+                elif detailed_job_report[row + iterator][SHIFT_COL_NUM] == shift_num and str(detailed_job_report[row + iterator][EMPLOYEE_NAME_COL_NUM]) == "nan"  and int(str(detailed_job_report[row + iterator][WORK_DATE_COL_NUM])[0:4] + str(detailed_job_report[row + iterator][WORK_DATE_COL_NUM])[5:7] + str(detailed_job_report[row + iterator][WORK_DATE_COL_NUM])[8:10]) - int(str(detailed_job_report[row + iterator - 1][WORK_DATE_COL_NUM])[0:4] + str(detailed_job_report[row + iterator - 1][WORK_DATE_COL_NUM])[5:7] + str(detailed_job_report[row + iterator - 1][WORK_DATE_COL_NUM])[8:10]) < 2:
+                    iterator = iterator + 1
+                else:
+                    keep_going = False
+                    already_included = False
+                    for item in empty_name_rows:
+                        if row == item:
+                            already_included = True
+
+                    if not already_included:
+                        empty_name_rows.append(row)
             else:
                 keep_going = False
-                already_included = False
-                for item in empty_name_rows:
-                    if row == item:
-                        already_included = True
-
-                if not already_included:
-                    empty_name_rows.append(row)
 
     return assumed_name
 
@@ -874,6 +878,7 @@ def print_dashes_by_crew(length_of_longest_number, length_of_longest_name, list_
 def display_additional_info(algorithm_used, rows_with_no_name, negative_num_rows, excessive_num_rows):
     # print list of rows where no name was attributed
     if algorithm_used:
+        sorting_algorithm(rows_with_no_name)
         print_rows_with_no_name(rows_with_no_name)
         if len(negative_num_rows) <= 0 and len(excessive_num_rows) <= 0 and len(rows_with_no_name) > 0:
             print("-------------------------------------------------------------")
@@ -887,6 +892,7 @@ def display_additional_info(algorithm_used, rows_with_no_name, negative_num_rows
 
     # print list of rows with excessive elapsed hours
     if len(excessive_num_rows) > 0:
+        sorting_algorithm(excessive_num_rows)
         if len(rows_with_no_name) > 0 and len(negative_num_rows) == 0:
             print("-------------------------------------------------------------")
         print_wrong_nums_list(len(excessive_num_rows), excessive_num_rows, 2)

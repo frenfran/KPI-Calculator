@@ -6,7 +6,6 @@ import numpy as np
 # helper functions
 ##################
 
-
 # function to print all possible instructions and receive input from the user
 # function also performs error checking to ensure user's input is valid
 # arguments: none
@@ -508,7 +507,7 @@ def print_crew_header(list_of_crew_members, option):
                 print("-", end="")
     else:
         if option == 1:
-            for dash in range(len(ODT_LABEL) + len(CREW_LABEL) + 7):
+            for dash in range(len(ODT_LABEL_PERCENTAGE) + len(CREW_LABEL) + 7):
                 print("-", end="")
         elif option == 2:
             for dash in range(len(TOTAL_FEEDS_LABEL) + len(CREW_LABEL) + 7):
@@ -651,10 +650,10 @@ def print_charge_code_header(pareto_array):
             longest_charge_code_length = len(pareto_array[row][0])
 
     if longest_charge_code_length > len(CHARGE_CODE_LABEL):
-        for dash in range(longest_charge_code_length + len(ODT_LABEL) + 7):
+        for dash in range(longest_charge_code_length + len(ODT_LABEL_HOURS) + 7):
             print("-", end="")
     else:
-        for dash in range(len(CHARGE_CODE_LABEL) + len(ODT_LABEL) + 7):
+        for dash in range(len(CHARGE_CODE_LABEL) + len(ODT_LABEL_HOURS) + 7):
             print("-", end="")
 
     print("\n| ", end="")
@@ -668,13 +667,13 @@ def print_charge_code_header(pareto_array):
     if longest_charge_code_length % 2 == 0:
         print(" ", end="")
 
-    print(" | " + ODT_LABEL + " |")
+    print(" | " + ODT_LABEL_HOURS + " |")
 
     if longest_charge_code_length > len(CHARGE_CODE_LABEL):
-        for dash in range(longest_charge_code_length + len(ODT_LABEL) + 7):
+        for dash in range(longest_charge_code_length + len(ODT_LABEL_HOURS) + 7):
             print("-", end="")
     else:
-        for dash in range(len(CHARGE_CODE_LABEL) + len(ODT_LABEL) + 7):
+        for dash in range(len(CHARGE_CODE_LABEL) + len(ODT_LABEL_HOURS) + 7):
             print("-", end="")
 
     print()
@@ -1517,8 +1516,7 @@ while user_error: # obtaining the Detailed Job Report (.xlsx) spreadsheet by nam
 ##################
 # global variables
 ##################
-ROWS = 0
-COLUMNS = 0
+ROWS, COLUMNS = djr_array.shape
 
 CHARGE_CODE_COL_NUM = 0
 ELAPSED_HOURS_COL_NUM = 3

@@ -1466,9 +1466,9 @@ def display_feeds_per_day(detailed_job_report, user_choice, start_date_num, end_
 ###################################
 djr_array = [] # initialize detailed job report array
 user_error = True
-while user_error: # obtaining the Detailed Job Report (.xlsx) spreadsheet by name from directory
+while user_error:
     choice = input("Enter (1) to enter the Detailed Job Report by name or (2) to enter the Detailed Job Report by path: ")
-    if choice == "1":
+    if choice == "1": # obtaining the Detailed Job Report (.xlsx) spreadsheet by name from directory
         file_found = False
         while not file_found:
             djr_name = input("Enter the file name of the Detailed Job Report: ")

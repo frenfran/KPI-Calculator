@@ -1,5 +1,6 @@
 import pandas as pd
 import numpy as np
+from sys import exit
 
 
 ##################
@@ -307,7 +308,7 @@ def assume_name(detailed_job_report, empty_name_rows, row):
     keep_going = True # check rows prior
     iterator = -1
     while keep_going:
-        if row + iterator > 0:
+        if row + iterator >= 0:
             if detailed_job_report[row + iterator][SHIFT_COL_NUM] == shift_num and str(detailed_job_report[row + iterator][EMPLOYEE_NAME_COL_NUM]) != "nan" and int(str(detailed_job_report[row][WORK_DATE_COL_NUM])[0:4] + str(detailed_job_report[row][WORK_DATE_COL_NUM])[5:7] + str(detailed_job_report[row][WORK_DATE_COL_NUM])[8:10]) - int(str(detailed_job_report[row + iterator][WORK_DATE_COL_NUM])[0:4] + str(detailed_job_report[row + iterator][WORK_DATE_COL_NUM])[5:7] + str(detailed_job_report[row + iterator][WORK_DATE_COL_NUM])[8:10]) < 2:
                 assumed_name = str(detailed_job_report[row + iterator][EMPLOYEE_NAME_COL_NUM])
                 keep_going = False

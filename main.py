@@ -2,35 +2,10 @@ import pandas as pd
 import numpy as np
 from sys import exit
 
-##################
-# global variables
-##################
-ROWS = 0
-COLUMNS = 0
-
-CHARGE_CODE_COL_NUM = 0
-ELAPSED_HOURS_COL_NUM = 3
-WORK_DATE_COL_NUM = 4
-SHIFT_COL_NUM = 5
-ORDER_NUM_COL_NUM = 8
-GROSS_FG_QTY_COL_NUM = 15
-EMPLOYEE_NAME_COL_NUM = 26
-DOWNTIME_COL_NUM = 28
-
-ODT_LABEL = "ODT (hours)"
-TOTAL_FEEDS_LABEL = "Total Feeds"
-AVERAGE_SETUP_TIME_LABEL = "Average Setup Time (minutes)"
-CREW_LABEL = "Crew"
-CHARGE_CODE_LABEL = "Charge Code"
-WORK_DATE_LABEL = "Work Date"
-
-EXCESSIVE_THRESHOLD = 5
-
 
 ##################
 # helper functions
 ##################
-
 
 # function to print all possible instructions and receive input from the user
 # function also performs error checking to ensure user's input is valid
@@ -523,7 +498,7 @@ def print_crew_header(list_of_crew_members, option):
 
     if longest_name_length > 4:
         if option == 1:
-            for dash in range(longest_name_length + len(ODT_LABEL) + 7):
+            for dash in range(longest_name_length + len(ODT_LABEL_PERCENTAGE) + 7):
                 print("-", end="")
         elif option == 2:
             for dash in range(longest_name_length + len(TOTAL_FEEDS_LABEL) + 7):
@@ -533,7 +508,7 @@ def print_crew_header(list_of_crew_members, option):
                 print("-", end="")
     else:
         if option == 1:
-            for dash in range(len(ODT_LABEL) + len(CREW_LABEL) + 7):
+            for dash in range(len(ODT_LABEL_PERCENTAGE) + len(CREW_LABEL) + 7):
                 print("-", end="")
         elif option == 2:
             for dash in range(len(TOTAL_FEEDS_LABEL) + len(CREW_LABEL) + 7):
@@ -555,7 +530,7 @@ def print_crew_header(list_of_crew_members, option):
         print(" ", end="")
 
     if option == 1:
-        print(" | " + ODT_LABEL +" |")
+        print(" | " + ODT_LABEL_PERCENTAGE +" |")
     elif option == 2:
         print(" | " + TOTAL_FEEDS_LABEL + " |")
     else:
@@ -563,7 +538,7 @@ def print_crew_header(list_of_crew_members, option):
 
     if longest_name_length > 4:
         if option == 1:
-            for dash in range(longest_name_length + len(ODT_LABEL) + 7):
+            for dash in range(longest_name_length + len(ODT_LABEL_PERCENTAGE) + 7):
                 print("-", end="")
         elif option == 2:
             for dash in range(longest_name_length + len(TOTAL_FEEDS_LABEL) + 7):
@@ -573,7 +548,7 @@ def print_crew_header(list_of_crew_members, option):
                 print("-", end="")
     else:
         if option == 1:
-            for dash in range(len(ODT_LABEL) + len(CREW_LABEL) + 7):
+            for dash in range(len(ODT_LABEL_PERCENTAGE) + len(CREW_LABEL) + 7):
                 print("-", end="")
         elif option == 2:
             for dash in range(len(TOTAL_FEEDS_LABEL) + len(CREW_LABEL) + 7):
@@ -592,13 +567,13 @@ def print_crew_header(list_of_crew_members, option):
 # the length of the longest crew name
 # and an option (int) which reflects whether the function should print
 # ODT (by crew or by charge code), total feeds or average setup time
-# 1 = ODT (by crew or by charge code), 2 = total feeds, 3 = average setup time
+# 1 = ODT by crew, 2 = ODT by charge code, 3 = total feeds, 4 = average setup time
 # returns length of longest name
 def print_rest_of_table(array, longest_name_length, option):
     # first, find data with longest number of digits
     longest_number = 0
     for row in range(len(array) - 1):
-        if option == 2:
+        if option == 3:
             if len(str(int(array[row + 1][1]))) > longest_number:
                 longest_number = len(str(int(array[row + 1][1])))
         else:
@@ -610,11 +585,16 @@ def print_rest_of_table(array, longest_name_length, option):
         print_column_element(array[row + 1][0], longest_name_length)
         print(" | ", end="")
         if option == 1:
-            if len(str(array[row + 1][1])) < len(ODT_LABEL):
-                print_digit_short(array[row + 1][1], len(ODT_LABEL))
+            if len(str(array[row + 1][1])) < len(ODT_LABEL_PERCENTAGE):
+                print_digit_short(array[row + 1][1], len(ODT_LABEL_PERCENTAGE))
             else:
-                print_digit_long(array[row + 1][1], len(ODT_LABEL) - 1)
+                print_digit_long(array[row + 1][1], len(ODT_LABEL_PERCENTAGE) - 1)
         elif option == 2:
+            if len(str(array[row + 1][1])) < len(ODT_LABEL_HOURS):
+                print_digit_short(array[row + 1][1], len(ODT_LABEL_HOURS))
+            else:
+                print_digit_long(array[row + 1][1], len(ODT_LABEL_HOURS) - 1)
+        elif option == 3:
             if len(str(int(array[row + 1][1]))) < len(TOTAL_FEEDS_LABEL):
                 print_digit_short(int(array[row + 1][1]), len(TOTAL_FEEDS_LABEL))
             else:
@@ -627,9 +607,12 @@ def print_rest_of_table(array, longest_name_length, option):
         print(" |")
 
     if option == 1:
-        for dash in range(longest_name_length + len(ODT_LABEL) + 7):
+        for dash in range(longest_name_length + len(ODT_LABEL_PERCENTAGE) + 7):
             print("-", end="")
     elif option == 2:
+        for dash in range(longest_name_length + len(ODT_LABEL_HOURS) + 7):
+            print("-", end="")
+    elif option == 3:
         for dash in range(longest_name_length + len(TOTAL_FEEDS_LABEL) + 7):
             print("-", end="")
     else:
@@ -668,10 +651,10 @@ def print_charge_code_header(pareto_array):
             longest_charge_code_length = len(pareto_array[row][0])
 
     if longest_charge_code_length > len(CHARGE_CODE_LABEL):
-        for dash in range(longest_charge_code_length + len(ODT_LABEL) + 7):
+        for dash in range(longest_charge_code_length + len(ODT_LABEL_HOURS) + 7):
             print("-", end="")
     else:
-        for dash in range(len(CHARGE_CODE_LABEL) + len(ODT_LABEL) + 7):
+        for dash in range(len(CHARGE_CODE_LABEL) + len(ODT_LABEL_HOURS) + 7):
             print("-", end="")
 
     print("\n| ", end="")
@@ -685,13 +668,13 @@ def print_charge_code_header(pareto_array):
     if longest_charge_code_length % 2 == 0:
         print(" ", end="")
 
-    print(" | " + ODT_LABEL + " |")
+    print(" | " + ODT_LABEL_HOURS + " |")
 
     if longest_charge_code_length > len(CHARGE_CODE_LABEL):
-        for dash in range(longest_charge_code_length + len(ODT_LABEL) + 7):
+        for dash in range(longest_charge_code_length + len(ODT_LABEL_HOURS) + 7):
             print("-", end="")
     else:
-        for dash in range(len(CHARGE_CODE_LABEL) + len(ODT_LABEL) + 7):
+        for dash in range(len(CHARGE_CODE_LABEL) + len(ODT_LABEL_HOURS) + 7):
             print("-", end="")
 
     print()
@@ -1088,7 +1071,7 @@ def display_ODT(detailed_job_report, user_option, start_date, end_date):
             counter = counter + 1
 
         longest_charge_code_len = print_charge_code_header(charge_code_array)
-        print_rest_of_table(charge_code_array, longest_charge_code_len, 1)
+        print_rest_of_table(charge_code_array, longest_charge_code_len, 2)
         # print(charge_code_array)
 
         print_incorrect_hours(negative_num_rows, excessive_num_rows)
@@ -1195,7 +1178,7 @@ def display_total_feeds(detailed_job_report, user_choice, start_date_num, end_da
             total_feeds_by_crew_array[counter][0], total_feeds_by_crew_array[counter][1] = crew, total_feeds
             counter = counter + 1
 
-        print_rest_of_table(total_feeds_by_crew_array, longest_name_len, 2)
+        print_rest_of_table(total_feeds_by_crew_array, longest_name_len, 3)
 
         display_additional_info(use_algo, empty_name_rows, negative_num_rows, excessive_num_rows)
 
@@ -1341,7 +1324,7 @@ def display_average_setup_time(detailed_job_report, user_choice, start_date_num,
                 average_setup_time_by_crew_array[counter][0], average_setup_time_by_crew_array[counter][1] = crew, "N/A"
             counter = counter + 1
 
-        print_rest_of_table(average_setup_time_by_crew_array, longest_name_len, 3)
+        print_rest_of_table(average_setup_time_by_crew_array, longest_name_len, 4)
 
         display_additional_info(use_algo, rows_with_no_name, negative_num_rows, excessive_num_rows)
 
@@ -1479,33 +1462,81 @@ def display_feeds_per_day(detailed_job_report, user_choice, start_date_num, end_
         write_to_excel(resulting_table, table_length)
 
 
-######################################################################
-# obtaining the Detailed Job Report (.xlsx) spreadsheet from directory
-######################################################################
+###################################
+# obtaining the Detailed Job Report
+###################################
 djr_array = [] # initialize detailed job report array
-file_found = False
-while not file_found:
-    djr_name = input("Enter the file name of the Detailed Job Report: ")
-    djr_name_split = djr_name.split(".")
+user_error = True
+while user_error:
+    choice = input("Enter (1) to enter the Detailed Job Report by name or (2) to enter the Detailed Job Report by path: ")
+    if choice == "1": # obtaining the Detailed Job Report (.xlsx) spreadsheet by name from directory
+        file_found = False
+        while not file_found:
+            djr_name = input("Enter the file name of the Detailed Job Report: ")
+            djr_name_split = djr_name.split(".")
 
-    try:
-        contains_file_type = False
-        if djr_name_split[len(djr_name_split) - 1] == "xlsx" and len(djr_name_split) > 1:
-            contains_file_type = True
+            try:
+                contains_file_type = False
+                if djr_name_split[len(djr_name_split) - 1] == "xlsx" and len(djr_name_split) > 1:
+                    contains_file_type = True
 
-        if not contains_file_type:
-            djr_name = djr_name + ".xlsx"
+                if not contains_file_type:
+                    djr_name = djr_name + ".xlsx"
 
-        djr_dataframe = pd.read_excel(djr_name)
-        djr_array = djr_dataframe.to_numpy()  # convert data frame to an array
-        ROWS, COLUMNS = djr_array.shape
+                djr_dataframe = pd.read_excel(djr_name, sheet_name='Sheet1')
+                djr_array = djr_dataframe.to_numpy()  # convert data frame to an array
 
-        file_found = True
-        print("File found.")
-    except:
-        print("Error: no such file found in current directory")
-        print("Please try again")
+                file_found = True
+                print("File found.")
+            except:
+                print("Error: no such file found in current directory")
+                print("Please try again")
+        user_error = False
 
+    elif choice == "2": # obtaining the Detailed Job Report (.xlsx) spreadsheet by path
+        path = ""
+
+        file_found = False
+        while not file_found:
+            try:
+                path = input("Paste the path to the Detailed Job Report here: ")
+
+                djr_dataframe = pd.read_excel(path)
+                djr_array = djr_dataframe.to_numpy()  # convert from dataframe to numpy array
+                print("File found.")
+                file_found = True
+            except:
+                print("Error: no such file found")
+                print("Please try again")
+        user_error = False
+
+    else:
+        print("Invalid option, please try again")
+
+
+##################
+# global variables
+##################
+ROWS, COLUMNS = djr_array.shape
+
+CHARGE_CODE_COL_NUM = 0
+ELAPSED_HOURS_COL_NUM = 3
+WORK_DATE_COL_NUM = 4
+SHIFT_COL_NUM = 5
+ORDER_NUM_COL_NUM = 8
+GROSS_FG_QTY_COL_NUM = 15
+EMPLOYEE_NAME_COL_NUM = 26
+DOWNTIME_COL_NUM = 28
+
+ODT_LABEL_HOURS = "ODT (hours)"
+ODT_LABEL_PERCENTAGE = "ODT (%)"
+TOTAL_FEEDS_LABEL = "Total Feeds"
+AVERAGE_SETUP_TIME_LABEL = "Average Setup Time (minutes)"
+CREW_LABEL = "Crew"
+CHARGE_CODE_LABEL = "Charge Code"
+WORK_DATE_LABEL = "Work Date"
+
+EXCESSIVE_THRESHOLD = 5
 
 user_done = False
 while not user_done:

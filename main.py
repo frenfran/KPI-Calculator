@@ -294,6 +294,21 @@ def generate_crews_list(detailed_job_report, start_date_num, end_date_num, crews
                 append_element_in_array(crews_list, assumed_name)
 
 
+# function for updating a list of unique orders
+# arguments: the detailed job report, the list of unique orders and the row being parsed
+# the list of unique orders passed as one of the arguments will be updated at the end of this function
+# returns nothing
+def update_unique_orders_list(detailed_job_report, unique_orders_list, row):
+    unique = True
+    for item in unique_orders_list:
+        unique = True
+        if detailed_job_report[row][ORDER_NUM_COL_NUM] == item:
+            unique = False
+            break
+    if unique:
+        unique_orders_list.append(detailed_job_report[row][ORDER_NUM_COL_NUM])
+
+
 # function for printing all the rows in which AI was unable to attribute a name
 # arguments: the completed list of rows with no name
 # returns nothing
@@ -570,7 +585,7 @@ def print_crew_header(list_of_crew_members, option):
         print(" ", end="")
 
     if option == 1:
-        print(" | " + ODT_LABEL_PERCENTAGE +" |")
+        print(" | " + ODT_LABEL_PERCENTAGE + " |")
     elif option == 2:
         print(" | " + TOTAL_FEEDS_LABEL + " |")
     elif option == 3:
@@ -1262,40 +1277,43 @@ def incrementing_algo(detailed_job_report, row, total_quantity, unique_orders_li
 # arguments: the array to print and the maximum number of colors/ups found in the detailed job report
 # returns nothing
 def print_order_type_array(array_to_print, num_cols):
-    for dash in range(len(AVERAGE_ORDER_QTY_LABEL) + 10 * (num_cols + 1) + 4):
+    for dash in range(len(array_to_print[0][0]) + 8 * (num_cols + 1) + 4):
         print("-", end="")
     print()
 
     print("| ", end="")
-    for space in range(int((len(AVERAGE_ORDER_QTY_LABEL) - len(str(array_to_print[0][0])))/2)):
-        print(" ", end="")
     print(array_to_print[0][0], end="")
-    for space in range(int((len(AVERAGE_ORDER_QTY_LABEL) - len(str(array_to_print[0][0]))) / 2)):
+    print(" |", end="")
+
+    for num in range(num_cols + 1):
+        print("   " + str(array_to_print[0][num + 1]) + "   |", end="")
+    print()
+
+    for dash in range(len(array_to_print[0][0]) + 8 * (num_cols + 1) + 4):
+        print("-", end="")
+    print()
+
+    print("| ", end="")
+    for space in range(int((len(str(array_to_print[0][0])) - (len(TOTAL_ORDERS_LABEL))) / 2)):
+        print(" ", end="")
+    print(TOTAL_ORDERS_LABEL, end="")
+    for space in range(int((len(str(array_to_print[0][0])) - (len(TOTAL_ORDERS_LABEL))) / 2)):
         print(" ", end="")
     if len(str(array_to_print[0][0])) % 2 != 0:
         print(" ", end="")
     print(" |", end="")
 
-    for num in range(num_cols + 1):
-        print("    " + str(array_to_print[0][num + 1]) + "    |", end="")
-    print()
-
-    for dash in range(len(AVERAGE_ORDER_QTY_LABEL) + 10 * (num_cols + 1) + 4):
-        print("-", end="")
-    print()
-
-    print("| " + str(array_to_print[1][0]) + " |", end="")
     for col in range(num_cols + 1):
         print(" ", end="")
-        if len(str(array_to_print[1][col + 1])) > 7:
-            print_digit_long(array_to_print[1][col + 1], 6)
+        if len(str(array_to_print[1][col + 1])) > 5:
+            print_digit_long(array_to_print[1][col + 1], 5)
         else:
-            print_digit_short(array_to_print[1][col + 1], 7)
+            print_digit_short(array_to_print[1][col + 1], 5)
         print(" |", end="")
 
     print()
 
-    for dash in range(len(AVERAGE_ORDER_QTY_LABEL) + 10 * (num_cols + 1) + 4):
+    for dash in range(len(array_to_print[0][0]) + 8 * (num_cols + 1) + 4):
         print("-", end="")
     print()
 
@@ -1655,14 +1673,7 @@ def display_average_setup_time(detailed_job_report, user_choice, start_date_num,
         for order in range(ROWS):
             if start_date_num <= int(str(detailed_job_report[order][WORK_DATE_COL_NUM])[0:4] + str(detailed_job_report[order][WORK_DATE_COL_NUM])[5:7] + str(djr_array[order][WORK_DATE_COL_NUM])[8:10]) <= end_date_num:
                 if detailed_job_report[order][DOWNTIME_COL_NUM] == "Setup":
-                    unique = True
-                    for item in unique_orders_list:
-                        unique = True
-                        if detailed_job_report[order][ORDER_NUM_COL_NUM] == item:
-                            unique = False
-                            break
-                    if unique:
-                        unique_orders_list.append(detailed_job_report[order][ORDER_NUM_COL_NUM])
+                    update_unique_orders_list(detailed_job_report, unique_orders_list, order)
 
         print("Total Unique Orders: " + str(len(unique_orders_list)))
 
@@ -1722,15 +1733,7 @@ def display_average_setup_time(detailed_job_report, user_choice, start_date_num,
                 if start_date_num <= int(str(detailed_job_report[order][WORK_DATE_COL_NUM])[0:4] + str(detailed_job_report[order][WORK_DATE_COL_NUM])[5:7] + str(detailed_job_report[order][WORK_DATE_COL_NUM])[8:10]) <= end_date_num:
                     if detailed_job_report[order][DOWNTIME_COL_NUM] == "Setup" and 0 <= detailed_job_report[order][ELAPSED_HOURS_COL_NUM] <= EXCESSIVE_THRESHOLD:
                         if detailed_job_report[order][EMPLOYEE_NAME_COL_NUM] == crew:
-                            unique = True
-                            for item in unique_orders_list:
-                                unique = True
-                                if detailed_job_report[order][ORDER_NUM_COL_NUM] == item:
-                                    unique = False
-                                    break
-                            if unique:
-                                unique_orders_list.append(detailed_job_report[order][ORDER_NUM_COL_NUM])
-                                # print(detailed_job_report[order][ORDER_NUM_COL_NUM])
+                            update_unique_orders_list(detailed_job_report, unique_orders_list, order)
 
                         elif use_algo and str(detailed_job_report[order][EMPLOYEE_NAME_COL_NUM]) == "nan":
                             # first determine which employee name should fill this gap
@@ -1917,27 +1920,23 @@ def display_order_type(detailed_job_report, option, start_date_num, end_date_num
     # create resulting array for printing/writing
     resulting_array = [[0 for x in range(largest_num_items + 2)] for y in range(2)]
     if option == 1:
-        resulting_array[0][0], resulting_array[1][0] = NUM_COLORS_LABEL, AVERAGE_ORDER_QTY_LABEL
+        resulting_array[0][0], resulting_array[1][0] = NUM_COLORS_LABEL, TOTAL_ORDERS_LABEL
     else:
-        resulting_array[0][0], resulting_array[1][0] = NUM_UPS_LABEL, AVERAGE_ORDER_QTY_LABEL
+        resulting_array[0][0], resulting_array[1][0] = NUM_UPS_LABEL, TOTAL_ORDERS_LABEL
 
     for num_items in range(largest_num_items + 1):
         unique_orders = []  # array to keep track of unique orders
-        total_quantity = 0  # counter to keep track of total order quantity for a specific # of colors
         for row in range(ROWS):
             if start_date_num <= int(str(detailed_job_report[row][WORK_DATE_COL_NUM])[0:4] + str(detailed_job_report[row][WORK_DATE_COL_NUM])[5:7] + str(detailed_job_report[row][WORK_DATE_COL_NUM])[8:10]) <= end_date_num:
                 if option == 1: # user wants jobs by number of colors
                     if detailed_job_report[row][NUM_COLORS_COL_NUM] == num_items:
-                        total_quantity = incrementing_algo(detailed_job_report, row, total_quantity, unique_orders)
+                        update_unique_orders_list(detailed_job_report, unique_orders, row)
                 else: # user wants jobs by number of ups
                     if detailed_job_report[row][NUM_UPS_COL_NUM] == num_items:
-                        total_quantity = incrementing_algo(detailed_job_report, row, total_quantity, unique_orders)
+                        update_unique_orders_list(detailed_job_report, unique_orders, row)
 
         resulting_array[0][num_items + 1] = num_items
-        if len(unique_orders) != 0:
-            resulting_array[1][num_items + 1] = total_quantity / len(unique_orders)
-        else:
-            resulting_array[1][num_items + 1] = "N/A"
+        resulting_array[1][num_items + 1] = len(unique_orders)
 
     print_order_type_array(resulting_array, largest_num_items)
 
@@ -1996,7 +1995,6 @@ while user_error: # obtaining the Detailed Job Report (.xlsx) spreadsheet by nam
     else:
         print("Invalid option, please try again")
 
-
 ##################
 # global variables
 ##################
@@ -2026,6 +2024,7 @@ AVERAGE_FEEDS_LABEL = "Average Feeds per Day"
 OPPORTUNITY_LABEL = "Opportunity (%)"
 NUM_COLORS_LABEL = "Number of Colors"
 NUM_UPS_LABEL = "Number of Ups"
+TOTAL_ORDERS_LABEL = "Total Orders"
 AVERAGE_ORDER_QTY_LABEL = "Average Order Quantity"
 
 EXCESSIVE_THRESHOLD = 5

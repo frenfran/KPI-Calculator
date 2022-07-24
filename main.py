@@ -253,6 +253,8 @@ def print_wrong_nums_list(num_numbers, wrong_nums_list, option):
 # used in all situations except when user requests information by crew
 # returns nothing
 def print_incorrect_hours(negative_num_rows, excessive_num_rows):
+    print("\n")
+
     if len(negative_num_rows) > 0:
         sorting_algorithm(negative_num_rows)
         print_wrong_nums_list(len(negative_num_rows), negative_num_rows, 1)
@@ -330,20 +332,6 @@ def print_rows_with_no_name(rows_with_no_name):
         print("\nThese row(s) were omitted from calculations")
 
 
-# function to determine whether user wants to ue AI
-# arguments: none
-# returns true or false depending on if user wants to use AI
-def use_algorithm():
-    while True:
-        temp = input("Warning: gaps found in Employee Name column. Use AI to compute (y/n)? ")
-        if temp == "y" or temp == "Y":
-            return True
-        elif temp == "n" or temp == "N":
-            return False
-        else:
-            print("Error: please try again.")
-
-
 # function to assume name to a particular empty Employee Name cell
 # or to include the row as part of rows the AI could not assign a name to
 # arguments: the detailed job report as an array,
@@ -408,27 +396,6 @@ def append_element_in_array(array, element):
 
     if not already_included:
         array.append(element)
-
-
-# function to determine whether to write to an Excel spreadsheet
-# asks the user if they'd like to write the data to an Excel spreadsheet
-# arguments: none
-# returns True or False
-def to_excel():
-    choice = ""
-    error = True
-    while error:
-        choice = input("Would you like to write this data to Excel (y/n)? ")
-
-        if choice == "y" or choice == "n" or choice == "Y" or choice == "N":
-            error = False
-        else:
-            print("Please try again.")
-
-    if choice == "y" or choice == "Y":
-        return True
-    else:
-        return False
 
 
 # function to obtain spreadsheet name and write data from user's previous
@@ -784,22 +751,6 @@ def convert_date_int_to_string(date_num):
     return day + "-" + month + "-" + year
 
 
-# function to ask user to remove
-# holidays and other days with zero feeds for all shifts/crews
-# in the resulting table for feeds by day
-# arguments: none
-# returns either True or False
-def remove_holidays():
-    while True:
-        option = input("Would you like to remove holidays and days off from the table (y/n)? ")
-        if option == "y" or option == "Y":
-            return True
-        elif option == "n" or option == "N":
-            return False
-        else:
-            print("Please try again.")
-
-
 # function for printing feeds per day according to shift number
 # arguments: the resulting table for feeds per day and the length of said table
 # returns nothing
@@ -930,21 +881,6 @@ def check_for_gaps_in_data(detailed_job_report, start_date_num, end_date_num):
     return False
 
 
-# function to ask user if they would like to calculate the average feeds per day
-# arguments: none
-# returns true or false depending on what the user would like to do
-def continue_with_average():
-    while True:
-        option = input("Would you like to calculate the average feeds per day (y/n)? ")
-
-        if option == "y" or option == "Y":
-            return True
-        elif option == "n" or option == "N":
-            return False
-        else:
-            print("Error. Please try again.")
-
-
 # function for calculating the average feeds by shift
 # arguments: the feeds per day by shift array and the length of said array
 # returns nothing
@@ -981,7 +917,7 @@ def calculate_average_feeds_by_shift(feeds_per_day_array, len_feeds_per_day_arra
             resulting_average_table[index + 1][2] = "N/A"
 
     print_average_feeds_by_shift(resulting_average_table)
-    if to_excel():
+    if yes_or_no(2):
         write_to_excel(resulting_average_table, len(resulting_average_table))
 
 
@@ -1024,7 +960,7 @@ def calculate_average_feeds_by_crew(feeds_per_day_array, len_feeds_per_day_array
             resulting_average_table[index + 1][2] = "N/A"
 
     print_average_feeds_by_crew(resulting_average_table, list_of_crews)
-    if to_excel():
+    if yes_or_no(2):
         write_to_excel(resulting_average_table, len(resulting_average_table))
 
 
@@ -1112,21 +1048,6 @@ def print_average_feeds_by_crew(average_array, list_of_crews):
     print()
 
 
-# function to ask user if they would like to calculate the ODT by crew for a specific charge code
-# arguments: none
-# returns either true or false depending on what the user wants
-def analyze_specific_charge_code():
-    while True:
-        option = input("Would you like to calculate the ODT by operator for a specific charge code (y/n)? ")
-
-        if option == "y" or option == "Y":
-            return True
-        elif option == "n" or option == "N":
-            return False
-        else:
-            print("Error. Please try again.")
-
-
 # function for calculating the total ODT in hours by crew based on a selected charge code
 # arguments: the pareto chart array, the detailed job report, the start and end dates as integers,
 # the list of negative num rows and the list of excessive num rows
@@ -1151,7 +1072,7 @@ def calculate_ODT_by_crew(charge_code_array, detailed_job_report, start_date_num
     # ask user if they want to use name-filling algorithm
     use_algo = False
     if gap_name:
-        use_algo = use_algorithm()
+        use_algo = yes_or_no(1)
     rows_with_no_name = []
 
     # generate list of crews
@@ -1185,9 +1106,10 @@ def calculate_ODT_by_crew(charge_code_array, detailed_job_report, start_date_num
 
     print_ODT_by_crew_for_charge_code(crew_ODT_by_charge_code_array, crews_list)
     if use_algo and len(rows_with_no_name) > 0:
-        if display_more():
+        if yes_or_no(3):
+            print()
             print_rows_with_no_name(rows_with_no_name)
-    if to_excel():
+    if yes_or_no(2):
         write_to_excel(crew_ODT_by_charge_code_array, len(crew_ODT_by_charge_code_array))
 
 
@@ -1319,14 +1241,26 @@ def print_order_type_array(array_to_print, num_cols):
     print()
 
 
-# function to ask user if they would like to display all rows with negative elapsed hours, excessive elapsed hours or
-# missing crew names unable to be analyzed by the AI
-# performs error checking
-# arguments: none
-# returns either true or false depending on the user's decision
-def display_more():
+# function for obtaining a "yes" or "no" command from the user
+# called in any instance where a yes/no answer is required from the user
+# arguments: an option integer variable to dictate what phrase we are asking the user
+# returns true or false depending on the user's decision + includes error checking
+def yes_or_no(option):
+    choice = ""
+
     while True:
-        choice = input("Would you like to see a breakdown of all rows with potential machine errors (y/n)? ")
+        if option == 1: # asking the user if they would like to use AI
+            choice = input("Warning: gaps found in Employee Name column. Use AI to compute (y/n)? ")
+        elif option == 2: # asking if the user would like to write to Excel
+            choice = input("Would you like to write this data to Excel (y/n)? ")
+        elif option == 3: # asking if the user would like to see additional information
+            choice = input("Would you like to see a breakdown of all rows with potential machine errors (y/n)? ")
+        elif option == 4: # asking if the user would like to analyze a specific charge code
+            choice = input("Would you like to calculate the ODT by operator for a specific charge code (y/n)? ")
+        elif option == 5: # asking if the user would like to remove holidays
+            choice = input("Would you like to remove holidays and days off from the table (y/n)? ")
+        elif option == 6: # asking if the user would like to calculate the average feeds per day
+            choice = input("Would you like to calculate the average feeds per day (y/n)? ")
 
         if choice == "y" or choice == "Y":
             return True
@@ -1341,6 +1275,8 @@ def display_more():
 # arguments: whether the algorithm was used, the list of rows with no names,
 # the list of rows with negative elapsed hours and the list of rows with excessive elapsed hours
 def display_additional_info(algorithm_used, rows_with_no_name, negative_num_rows, excessive_num_rows):
+    print("\n")
+
     # print list of rows where no name was attributed
     if algorithm_used:
         sorting_algorithm(rows_with_no_name)
@@ -1420,10 +1356,10 @@ def display_ODT(detailed_job_report, user_option, start_date, end_date):
         print("-------------------")
 
         if len(negative_num_rows) > 0 or len(excessive_num_rows) > 0:
-            if display_more():
+            if yes_or_no(3):
                 print_incorrect_hours(negative_num_rows, excessive_num_rows)
 
-        if to_excel():
+        if yes_or_no(2):
             write_to_excel(ODT_by_shift_array, len(ODT_by_shift_array))
 
     elif user_option == "2": # user wants ODT by crew
@@ -1433,7 +1369,7 @@ def display_ODT(detailed_job_report, user_option, start_date, end_date):
         # ask user if they want to use name-filling algorithm
         use_algo = False
         if gap_name:
-            use_algo = use_algorithm()
+            use_algo = yes_or_no(1)
         rows_with_no_name = []
 
         # create list of crews
@@ -1492,10 +1428,10 @@ def display_ODT(detailed_job_report, user_option, start_date, end_date):
         print_rest_of_table(ODT_by_crew_array, longest_name_len, 1)
 
         if len(rows_with_no_name) > 0 or len(negative_num_rows) > 0 or len(excessive_num_rows) > 0:
-            if display_more():
+            if yes_or_no(3):
                 display_additional_info(use_algo, rows_with_no_name, negative_num_rows, excessive_num_rows)
 
-        if to_excel():
+        if yes_or_no(2):
             write_to_excel(ODT_by_crew_array, len(ODT_by_crew_array))
 
     else: # user wants Pareto chart
@@ -1553,13 +1489,13 @@ def display_ODT(detailed_job_report, user_option, start_date, end_date):
         print_rest_of_table(charge_code_array, longest_charge_code_len, 2)
 
         if len(negative_num_rows) > 0 or len(excessive_num_rows) > 0:
-            if display_more():
+            if yes_or_no(3):
                 print_incorrect_hours(negative_num_rows, excessive_num_rows)
 
-        if to_excel():
+        if yes_or_no(2):
             write_to_excel(charge_code_array, len(charge_code_array))
 
-        if analyze_specific_charge_code():
+        if yes_or_no(4):
             calculate_ODT_by_crew(charge_code_array, detailed_job_report, start_date_num, end_date_num, negative_num_rows, excessive_num_rows)
 
 
@@ -1617,10 +1553,10 @@ def display_total_feeds(detailed_job_report, user_choice, start_date_num, end_da
             print("-----------------------")
 
         if len(negative_num_rows) > 0 or len(excessive_num_rows) > 0:
-            if display_more():
+            if yes_or_no(3):
                 print_incorrect_hours(negative_num_rows, excessive_num_rows)
 
-        if to_excel():
+        if yes_or_no(2):
             write_to_excel(total_feeds_by_shift_array, len(total_feeds_by_shift_array))
 
     else: # user wants total feeds by crew
@@ -1630,7 +1566,7 @@ def display_total_feeds(detailed_job_report, user_choice, start_date_num, end_da
         # ask if user would like to use AI to compute
         use_algo = False
         if gap_name:
-            use_algo = use_algorithm()
+            use_algo = yes_or_no(1)
         empty_name_rows = []
 
         crews_list = []
@@ -1661,10 +1597,10 @@ def display_total_feeds(detailed_job_report, user_choice, start_date_num, end_da
         print_rest_of_table(total_feeds_by_crew_array, longest_name_len, 3)
 
         if len(empty_name_rows) > 0 or len(negative_num_rows) > 0 or len(excessive_num_rows) > 0:
-            if display_more():
+            if yes_or_no(3):
                 display_additional_info(use_algo, empty_name_rows, negative_num_rows, excessive_num_rows)
 
-        if to_excel():
+        if yes_or_no(2):
             write_to_excel(total_feeds_by_crew_array, len(total_feeds_by_crew_array))
 
 
@@ -1710,7 +1646,7 @@ def display_average_setup_time(detailed_job_report, user_choice, start_date_num,
 
         if len(negative_num_rows) > 0 or len(excessive_num_rows) > 0:
             print("\n")
-            if display_more():
+            if yes_or_no(3):
                 print_incorrect_hours(negative_num_rows, excessive_num_rows)
 
     else:  # user wants average setup time by crew
@@ -1720,7 +1656,7 @@ def display_average_setup_time(detailed_job_report, user_choice, start_date_num,
         # ask user if they want to use name-filling algorithm
         use_algo = False
         if gap_name:
-            use_algo = use_algorithm()
+            use_algo = yes_or_no(1)
         rows_with_no_name = []
 
         crews_list = []
@@ -1791,10 +1727,10 @@ def display_average_setup_time(detailed_job_report, user_choice, start_date_num,
         print_rest_of_table(average_setup_time_by_crew_array, longest_name_len, 4)
 
         if len(rows_with_no_name) > 0 or len(negative_num_rows) > 0 or len(excessive_num_rows) > 0:
-            if display_more():
+            if yes_or_no(3):
                 display_additional_info(use_algo, rows_with_no_name, negative_num_rows, excessive_num_rows)
 
-        if to_excel():
+        if yes_or_no(2):
             write_to_excel(average_setup_time_by_crew_array, len(average_setup_time_by_crew_array))
 
 
@@ -1829,7 +1765,7 @@ def display_feeds_per_day(detailed_job_report, user_choice, start_date_num, end_
 
         table_length = len(resulting_table)
 
-        if remove_holidays():
+        if yes_or_no(5):
             # delete unnecessary rows
             location = 1
             for row_table in range(len(resulting_table) - 1):
@@ -1848,13 +1784,13 @@ def display_feeds_per_day(detailed_job_report, user_choice, start_date_num, end_
         print_feeds_per_day_by_shift(resulting_table, table_length)
 
         if len(negative_num_rows) > 0 or len(excessive_num_rows) > 0:
-            if display_more():
+            if yes_or_no(3):
                 print_incorrect_hours(negative_num_rows, excessive_num_rows)
 
-        if to_excel():
+        if yes_or_no(2):
             write_to_excel(resulting_table, table_length)
 
-        if continue_with_average():
+        if yes_or_no(6):
             calculate_average_feeds_by_shift(resulting_table, table_length)
 
     else: # user wants to display feeds per day by crew
@@ -1864,7 +1800,7 @@ def display_feeds_per_day(detailed_job_report, user_choice, start_date_num, end_
         # ask user if they want to use name-filling algorithm
         use_algo = False
         if gap_name:
-            use_algo = use_algorithm()
+            use_algo = yes_or_no(1)
         empty_name_rows = []
 
         crews_list = []
@@ -1907,7 +1843,7 @@ def display_feeds_per_day(detailed_job_report, user_choice, start_date_num, end_
 
         table_length = len(resulting_table)
 
-        if remove_holidays():
+        if yes_or_no(5):
             # delete unnecessary rows
             location = 1
             for row_table in range(len(resulting_table) - 1):
@@ -1926,13 +1862,13 @@ def display_feeds_per_day(detailed_job_report, user_choice, start_date_num, end_
         print_feeds_per_day_by_crew(resulting_table, table_length, crews_list)
 
         if len(empty_name_rows) > 0 or len(negative_num_rows) > 0 or len(excessive_num_rows) > 0:
-            if display_more():
+            if yes_or_no(3):
                 display_additional_info(use_algo, empty_name_rows, negative_num_rows, excessive_num_rows)
 
-        if to_excel():
+        if yes_or_no(2):
             write_to_excel(resulting_table, table_length)
 
-        if continue_with_average():
+        if yes_or_no(6):
             calculate_average_feeds_by_crew(resulting_table, table_length, crews_list)
 
 
@@ -1992,7 +1928,7 @@ def display_order_type(detailed_job_report, option, start_date_num, end_date_num
 
         print_order_type_array(resulting_array, largest_num_items)
 
-        if to_excel():
+        if yes_or_no(2):
             write_to_excel(resulting_array, 2)
 
 

@@ -1184,8 +1184,9 @@ def calculate_ODT_by_crew(charge_code_array, detailed_job_report, start_date_num
         crew_ODT_by_charge_code_array[index + 1][1] = elapsed_hours_for_crew
 
     print_ODT_by_crew_for_charge_code(crew_ODT_by_charge_code_array, crews_list)
-    if use_algo:
-        print_rows_with_no_name(rows_with_no_name)
+    if use_algo and len(rows_with_no_name) > 0:
+        if display_more():
+            print_rows_with_no_name(rows_with_no_name)
     if to_excel():
         write_to_excel(crew_ODT_by_charge_code_array, len(crew_ODT_by_charge_code_array))
 
@@ -1318,6 +1319,23 @@ def print_order_type_array(array_to_print, num_cols):
     print()
 
 
+# function to ask user if they would like to display all rows with negative elapsed hours, excessive elapsed hours or
+# missing crew names unable to be analyzed by the AI
+# performs error checking
+# arguments: none
+# returns either true or false depending on the user's decision
+def display_more():
+    while True:
+        choice = input("Would you like to see a breakdown of all rows with potential machine errors (y/n)? ")
+
+        if choice == "y" or choice == "Y":
+            return True
+        elif choice == "n" or choice == "N":
+            return False
+        else:
+            print("Error. Please try again.")
+
+
 # function for displaying both the list of rows where no crew name could be attributed by the AI,
 # the list of rows with negative elapsed hours and the list of excessive elapsed hours
 # arguments: whether the algorithm was used, the list of rows with no names,
@@ -1401,7 +1419,9 @@ def display_ODT(detailed_job_report, user_option, start_date, end_date):
 
         print("-------------------")
 
-        print_incorrect_hours(negative_num_rows, excessive_num_rows)
+        if len(negative_num_rows) > 0 or len(excessive_num_rows) > 0:
+            if display_more():
+                print_incorrect_hours(negative_num_rows, excessive_num_rows)
 
         if to_excel():
             write_to_excel(ODT_by_shift_array, len(ODT_by_shift_array))
@@ -1471,8 +1491,9 @@ def display_ODT(detailed_job_report, user_option, start_date, end_date):
 
         print_rest_of_table(ODT_by_crew_array, longest_name_len, 1)
 
-        # breakdown of additional info
-        display_additional_info(use_algo, rows_with_no_name, negative_num_rows, excessive_num_rows)
+        if len(rows_with_no_name) > 0 or len(negative_num_rows) > 0 or len(excessive_num_rows) > 0:
+            if display_more():
+                display_additional_info(use_algo, rows_with_no_name, negative_num_rows, excessive_num_rows)
 
         if to_excel():
             write_to_excel(ODT_by_crew_array, len(ODT_by_crew_array))
@@ -1530,9 +1551,10 @@ def display_ODT(detailed_job_report, user_option, start_date, end_date):
 
         longest_charge_code_len = print_charge_code_header(charge_code_array)
         print_rest_of_table(charge_code_array, longest_charge_code_len, 2)
-        # print(charge_code_array)
 
-        print_incorrect_hours(negative_num_rows, excessive_num_rows)
+        if len(negative_num_rows) > 0 or len(excessive_num_rows) > 0:
+            if display_more():
+                print_incorrect_hours(negative_num_rows, excessive_num_rows)
 
         if to_excel():
             write_to_excel(charge_code_array, len(charge_code_array))
@@ -1594,7 +1616,9 @@ def display_total_feeds(detailed_job_report, user_choice, start_date_num, end_da
         if not table_empty:
             print("-----------------------")
 
-        print_incorrect_hours(negative_num_rows, excessive_num_rows)
+        if len(negative_num_rows) > 0 or len(excessive_num_rows) > 0:
+            if display_more():
+                print_incorrect_hours(negative_num_rows, excessive_num_rows)
 
         if to_excel():
             write_to_excel(total_feeds_by_shift_array, len(total_feeds_by_shift_array))
@@ -1636,7 +1660,9 @@ def display_total_feeds(detailed_job_report, user_choice, start_date_num, end_da
 
         print_rest_of_table(total_feeds_by_crew_array, longest_name_len, 3)
 
-        display_additional_info(use_algo, empty_name_rows, negative_num_rows, excessive_num_rows)
+        if len(empty_name_rows) > 0 or len(negative_num_rows) > 0 or len(excessive_num_rows) > 0:
+            if display_more():
+                display_additional_info(use_algo, empty_name_rows, negative_num_rows, excessive_num_rows)
 
         if to_excel():
             write_to_excel(total_feeds_by_crew_array, len(total_feeds_by_crew_array))
@@ -1682,8 +1708,10 @@ def display_average_setup_time(detailed_job_report, user_choice, start_date_num,
             average_setup_time = total_elapsed_hours / len(unique_orders_list)
             print("Average Setup Time: " + str(average_setup_time * 60) + " minutes")  # display average setup time in minutes
 
-        # display list of negative and excessive elapsed hours
-        print_incorrect_hours(negative_num_rows, excessive_num_rows)
+        if len(negative_num_rows) > 0 or len(excessive_num_rows) > 0:
+            print("\n")
+            if display_more():
+                print_incorrect_hours(negative_num_rows, excessive_num_rows)
 
     else:  # user wants average setup time by crew
         # check if there are gaps in data
@@ -1762,7 +1790,9 @@ def display_average_setup_time(detailed_job_report, user_choice, start_date_num,
 
         print_rest_of_table(average_setup_time_by_crew_array, longest_name_len, 4)
 
-        display_additional_info(use_algo, rows_with_no_name, negative_num_rows, excessive_num_rows)
+        if len(rows_with_no_name) > 0 or len(negative_num_rows) > 0 or len(excessive_num_rows) > 0:
+            if display_more():
+                display_additional_info(use_algo, rows_with_no_name, negative_num_rows, excessive_num_rows)
 
         if to_excel():
             write_to_excel(average_setup_time_by_crew_array, len(average_setup_time_by_crew_array))
@@ -1817,7 +1847,9 @@ def display_feeds_per_day(detailed_job_report, user_choice, start_date_num, end_
 
         print_feeds_per_day_by_shift(resulting_table, table_length)
 
-        print_incorrect_hours(negative_num_rows, excessive_num_rows)
+        if len(negative_num_rows) > 0 or len(excessive_num_rows) > 0:
+            if display_more():
+                print_incorrect_hours(negative_num_rows, excessive_num_rows)
 
         if to_excel():
             write_to_excel(resulting_table, table_length)
@@ -1893,7 +1925,9 @@ def display_feeds_per_day(detailed_job_report, user_choice, start_date_num, end_
 
         print_feeds_per_day_by_crew(resulting_table, table_length, crews_list)
 
-        display_additional_info(use_algo, empty_name_rows, negative_num_rows, excessive_num_rows)
+        if len(empty_name_rows) > 0 or len(negative_num_rows) > 0 or len(excessive_num_rows) > 0:
+            if display_more():
+                display_additional_info(use_algo, empty_name_rows, negative_num_rows, excessive_num_rows)
 
         if to_excel():
             write_to_excel(resulting_table, table_length)

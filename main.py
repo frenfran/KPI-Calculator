@@ -296,21 +296,6 @@ def generate_crews_list(detailed_job_report, start_date_num, end_date_num, crews
                 append_element_in_array(crews_list, assumed_name)
 
 
-# function for updating a list of unique orders
-# arguments: the detailed job report, the list of unique orders and the row being parsed
-# the list of unique orders passed as one of the arguments will be updated at the end of this function
-# returns nothing
-def update_unique_orders_list(detailed_job_report, unique_orders_list, row):
-    unique = True
-    for item in unique_orders_list:
-        unique = True
-        if detailed_job_report[row][ORDER_NUM_COL_NUM] == item:
-            unique = False
-            break
-    if unique:
-        unique_orders_list.append(detailed_job_report[row][ORDER_NUM_COL_NUM])
-
-
 # function for printing all the rows in which AI was unable to attribute a name
 # arguments: the completed list of rows with no name
 # returns nothing
@@ -385,8 +370,8 @@ def assume_name(detailed_job_report, empty_name_rows, row):
 # only appends the element if it is unique (if it is not already found in the array)
 # arguments: the array itself and the element to be appended
 # returns nothing
-# used to append rows with negative elapsed hours or rows with excessive elapsed hours
-# or for appending crew names to a list of crews
+# called to append rows with negative elapsed hours, rows with excessive elapsed hours,
+# crew names to a list of crews and unique orders to a list of all unique orders
 def append_element_in_array(array, element):
     already_included = False
     for item in array:
@@ -1635,7 +1620,7 @@ def display_average_setup_time(detailed_job_report, user_choice, start_date_num,
         for order in range(ROWS):
             if start_date_num <= int(str(detailed_job_report[order][WORK_DATE_COL_NUM])[0:4] + str(detailed_job_report[order][WORK_DATE_COL_NUM])[5:7] + str(djr_array[order][WORK_DATE_COL_NUM])[8:10]) <= end_date_num:
                 if detailed_job_report[order][DOWNTIME_COL_NUM] == "Setup":
-                    update_unique_orders_list(detailed_job_report, unique_orders_list, order)
+                    append_element_in_array(unique_orders_list, detailed_job_report[order][ORDER_NUM_COL_NUM])
 
         print("Total Unique Orders: " + str(len(unique_orders_list)))
 
@@ -1697,7 +1682,7 @@ def display_average_setup_time(detailed_job_report, user_choice, start_date_num,
                 if start_date_num <= int(str(detailed_job_report[order][WORK_DATE_COL_NUM])[0:4] + str(detailed_job_report[order][WORK_DATE_COL_NUM])[5:7] + str(detailed_job_report[order][WORK_DATE_COL_NUM])[8:10]) <= end_date_num:
                     if detailed_job_report[order][DOWNTIME_COL_NUM] == "Setup" and 0 <= detailed_job_report[order][ELAPSED_HOURS_COL_NUM] <= EXCESSIVE_THRESHOLD:
                         if detailed_job_report[order][EMPLOYEE_NAME_COL_NUM] == crew:
-                            update_unique_orders_list(detailed_job_report, unique_orders_list, order)
+                            append_element_in_array(unique_orders_list, detailed_job_report[order][ORDER_NUM_COL_NUM])
 
                         elif use_algo and str(detailed_job_report[order][EMPLOYEE_NAME_COL_NUM]) == "nan":
                             # first determine which employee name should fill this gap
@@ -1918,10 +1903,10 @@ def display_order_type(detailed_job_report, option, start_date_num, end_date_num
                 if start_date_num <= int(str(detailed_job_report[row][WORK_DATE_COL_NUM])[0:4] + str(detailed_job_report[row][WORK_DATE_COL_NUM])[5:7] + str(detailed_job_report[row][WORK_DATE_COL_NUM])[8:10]) <= end_date_num:
                     if option == 2: # user wants jobs by number of colors
                         if detailed_job_report[row][NUM_COLORS_COL_NUM] == num_items:
-                            update_unique_orders_list(detailed_job_report, unique_orders, row)
+                            append_element_in_array(unique_orders, detailed_job_report[row][ORDER_NUM_COL_NUM])
                     else: # user wants jobs by number of ups
                         if detailed_job_report[row][NUM_UPS_COL_NUM] == num_items:
-                            update_unique_orders_list(detailed_job_report, unique_orders, row)
+                            append_element_in_array(unique_orders, detailed_job_report[row][ORDER_NUM_COL_NUM])
 
             resulting_array[0][num_items + 1] = num_items
             resulting_array[1][num_items + 1] = len(unique_orders)

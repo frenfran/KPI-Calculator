@@ -13,14 +13,14 @@ from sys import exit
 # returns nothing
 def obtain_instruction():
     print("\nWhat would you like to do?")
-    print("---------------------------------------------")
-    print("| 1 - calculate open down time percentage   |")
-    print("| 2 - calculate total feeds                 |")
-    print("| 3 - calculate average setup time          |")
-    print("| 4 - break down feeds per day              |")
-    print("| 5 - analyze order type by # of colors/ups |")
-    print("| 6 - exit                                  |")
-    print("---------------------------------------------")
+    print("-------------------------------------------")
+    print("| 1 - calculate open down time percentage |")
+    print("| 2 - calculate total feeds               |")
+    print("| 3 - calculate average setup time        |")
+    print("| 4 - break down feeds per day            |")
+    print("| 5 - analyze order type                  |")
+    print("| 6 - exit                                |")
+    print("-------------------------------------------")
 
     user_error = True
     user_input = ""
@@ -51,9 +51,9 @@ def obtain_sub_instruction(option):
         elif option == 4:
             choice = input("Enter (1) to display feeds per day by shift or (2) to display feeds per day by crew: ")
         else:
-            choice = input("Enter (1) to analyze jobs by number of colors or (2) to analyze jobs by number of ups: ")
+            choice = input("Enter (1) to calculate the average order size, (2) to analyze jobs by the number of colors or (3) to analyze jobs by the number of ups: ")
 
-        if option == 1:
+        if option == 1 or option == 5:
             if choice == "1" or choice == "2" or choice == "3":
                 error = False
             else:
@@ -1936,46 +1936,64 @@ def display_feeds_per_day(detailed_job_report, user_choice, start_date_num, end_
             calculate_average_feeds_by_crew(resulting_table, table_length, crews_list)
 
 
-# function to display average order size by number of colors or ups
-# arguments: the detailed job report as an array, whether the user wants average order size by the number of
-# colors or ups, the start date as an integer and the end date as an integer
+# function to display the average order size, or the total number of jobs by # of colors or ups
+# arguments: the detailed job report as an array, whether the user wants average order size, the total number of jobs
+# by the number of colors or the total number of jobs by the number of ups,
+# the start date as an integer and the end date as an integer
 # returns nothing
 def display_order_type(detailed_job_report, option, start_date_num, end_date_num):
-    # first find the largest number of items in the detailed job report (either the # of colors or ups)
-    largest_num_items = 0
-    for row in range(ROWS):
-        if option == 1: # find the largest number of colors used
-            if detailed_job_report[row][NUM_COLORS_COL_NUM] > largest_num_items:
-                largest_num_items = detailed_job_report[row][NUM_COLORS_COL_NUM]
-        else: # find the largest number of ups used
-            if detailed_job_report[row][NUM_UPS_COL_NUM] > largest_num_items:
-                largest_num_items = detailed_job_report[row][NUM_UPS_COL_NUM]
+    if option == 1: # if user chooses option 1, find average order size
+        unique_orders = []
+        total_quantity = 0
 
-    # create resulting array for printing/writing
-    resulting_array = [[0 for x in range(largest_num_items + 2)] for y in range(2)]
-    if option == 1:
-        resulting_array[0][0], resulting_array[1][0] = NUM_COLORS_LABEL, TOTAL_ORDERS_LABEL
-    else:
-        resulting_array[0][0], resulting_array[1][0] = NUM_UPS_LABEL, TOTAL_ORDERS_LABEL
-
-    for num_items in range(largest_num_items + 1):
-        unique_orders = []  # array to keep track of unique orders
+        # sum all unique orders + total feed quantity
         for row in range(ROWS):
             if start_date_num <= int(str(detailed_job_report[row][WORK_DATE_COL_NUM])[0:4] + str(detailed_job_report[row][WORK_DATE_COL_NUM])[5:7] + str(detailed_job_report[row][WORK_DATE_COL_NUM])[8:10]) <= end_date_num:
-                if option == 1: # user wants jobs by number of colors
-                    if detailed_job_report[row][NUM_COLORS_COL_NUM] == num_items:
-                        update_unique_orders_list(detailed_job_report, unique_orders, row)
-                else: # user wants jobs by number of ups
-                    if detailed_job_report[row][NUM_UPS_COL_NUM] == num_items:
-                        update_unique_orders_list(detailed_job_report, unique_orders, row)
+                total_quantity = incrementing_algo(detailed_job_report, row, total_quantity, unique_orders)
 
-        resulting_array[0][num_items + 1] = num_items
-        resulting_array[1][num_items + 1] = len(unique_orders)
+        print("\nTotal Order Quantity: " + str(total_quantity))
+        print("Total Unique Orders: " + str(len(unique_orders)))
+        print("Average Order Size: ", end="")
+        if len(unique_orders) > 0:
+            print(total_quantity / len(unique_orders))
+        else:
+            print("N/A")
+    else: # any other option means user wants total orders by the # of colors/ups
+        # first find the largest number of items in the detailed job report (either the # of colors or ups)
+        largest_num_items = 0
+        for row in range(ROWS):
+            if option == 2: # find the largest number of colors used
+                if detailed_job_report[row][NUM_COLORS_COL_NUM] > largest_num_items:
+                    largest_num_items = detailed_job_report[row][NUM_COLORS_COL_NUM]
+            else: # find the largest number of ups used
+                if detailed_job_report[row][NUM_UPS_COL_NUM] > largest_num_items:
+                    largest_num_items = detailed_job_report[row][NUM_UPS_COL_NUM]
 
-    print_order_type_array(resulting_array, largest_num_items)
+        # create resulting array for printing/writing
+        resulting_array = [[0 for x in range(largest_num_items + 2)] for y in range(2)]
+        if option == 2:
+            resulting_array[0][0], resulting_array[1][0] = NUM_COLORS_LABEL, TOTAL_ORDERS_LABEL
+        else:
+            resulting_array[0][0], resulting_array[1][0] = NUM_UPS_LABEL, TOTAL_ORDERS_LABEL
 
-    if to_excel():
-        write_to_excel(resulting_array, 2)
+        for num_items in range(largest_num_items + 1):
+            unique_orders = []  # array to keep track of unique orders
+            for row in range(ROWS):
+                if start_date_num <= int(str(detailed_job_report[row][WORK_DATE_COL_NUM])[0:4] + str(detailed_job_report[row][WORK_DATE_COL_NUM])[5:7] + str(detailed_job_report[row][WORK_DATE_COL_NUM])[8:10]) <= end_date_num:
+                    if option == 2: # user wants jobs by number of colors
+                        if detailed_job_report[row][NUM_COLORS_COL_NUM] == num_items:
+                            update_unique_orders_list(detailed_job_report, unique_orders, row)
+                    else: # user wants jobs by number of ups
+                        if detailed_job_report[row][NUM_UPS_COL_NUM] == num_items:
+                            update_unique_orders_list(detailed_job_report, unique_orders, row)
+
+            resulting_array[0][num_items + 1] = num_items
+            resulting_array[1][num_items + 1] = len(unique_orders)
+
+        print_order_type_array(resulting_array, largest_num_items)
+
+        if to_excel():
+            write_to_excel(resulting_array, 2)
 
 
 ###################################
@@ -2073,7 +2091,7 @@ while not user_done:
     # calculating open down time percentage
     #######################################
     if user_input == 1:
-        print("Enter the first date: ", end="")
+        print("\nEnter the first date: ", end="")
         first_date_string = obtain_date_string(djr_array)
         second_date_string = obtain_second_date_string(djr_array, first_date_string)
 
@@ -2166,6 +2184,8 @@ while not user_done:
         user_choice = obtain_sub_instruction(5)
 
         if user_choice == "1":
+            print("\nAverage order size from " + first_date_string + " to " + second_date_string + ":")
+        elif user_choice == "2":
             print("\nJobs by number of colours from " + first_date_string + " to " + second_date_string + ":")
         else:
             print("\nJobs by number of ups from " + first_date_string + " to " + second_date_string + ":")

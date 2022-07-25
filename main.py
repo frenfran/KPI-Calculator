@@ -1308,11 +1308,11 @@ def display_ODT(detailed_job_report, user_option, start_date, end_date):
             ODT = 0
             for row in range(ROWS):
                 if start_date_num <= int(str(detailed_job_report[row][WORK_DATE_COL_NUM])[0:4] + str(detailed_job_report[row][WORK_DATE_COL_NUM])[5:7] + str(detailed_job_report[row][WORK_DATE_COL_NUM])[8:10]) <= end_date_num:
-                    if detailed_job_report[row][DOWNTIME_COL_NUM] == "Open Downtime" and str(detailed_job_report[row][SHIFT_COL_NUM]) == str(shift + 1) and 0 <= detailed_job_report[row][ELAPSED_HOURS_COL_NUM] <= EXCESSIVE_THRESHOLD:
+                    if str(detailed_job_report[row][DOWNTIME_COL_NUM]) != "Closed Downtime" and str(detailed_job_report[row][DOWNTIME_COL_NUM]) != "Setup" and str(detailed_job_report[row][DOWNTIME_COL_NUM]) != "Run" and str(detailed_job_report[row][SHIFT_COL_NUM]) == str(shift + 1) and 0 <= detailed_job_report[row][ELAPSED_HOURS_COL_NUM] <= EXCESSIVE_THRESHOLD:
                         ODT = ODT + detailed_job_report[row][ELAPSED_HOURS_COL_NUM]
-                    elif detailed_job_report[row][DOWNTIME_COL_NUM] == "Open Downtime" and str(detailed_job_report[row][SHIFT_COL_NUM]) == str(shift + 1) and detailed_job_report[row][ELAPSED_HOURS_COL_NUM] > EXCESSIVE_THRESHOLD:
+                    elif str(detailed_job_report[row][DOWNTIME_COL_NUM]) != "Closed Downtime" and str(detailed_job_report[row][DOWNTIME_COL_NUM]) != "Setup" and str(detailed_job_report[row][DOWNTIME_COL_NUM]) != "Run" and str(detailed_job_report[row][SHIFT_COL_NUM]) == str(shift + 1) and detailed_job_report[row][ELAPSED_HOURS_COL_NUM] > EXCESSIVE_THRESHOLD:
                         append_element_in_array(excessive_num_rows, row)
-                    elif detailed_job_report[row][DOWNTIME_COL_NUM] == "Open Downtime" and str(detailed_job_report[row][SHIFT_COL_NUM]) == str(shift + 1) and detailed_job_report[row][ELAPSED_HOURS_COL_NUM] < 0:
+                    elif str(detailed_job_report[row][DOWNTIME_COL_NUM]) != "Closed Downtime" and str(detailed_job_report[row][DOWNTIME_COL_NUM]) != "Setup" and str(detailed_job_report[row][DOWNTIME_COL_NUM]) != "Run" and str(detailed_job_report[row][SHIFT_COL_NUM]) == str(shift + 1) and detailed_job_report[row][ELAPSED_HOURS_COL_NUM] < 0:
                         append_element_in_array(negative_num_rows, row)
 
             total_machine_hours = total_machine_hours + ODT

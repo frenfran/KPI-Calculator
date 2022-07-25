@@ -181,7 +181,11 @@ def name_filling_algorithm(detailed_job_report, counter, crew, start_date_num, e
                     assumed_name = assume_name(detailed_job_report, empty_name_rows, row)
                     counter = update_counter(detailed_job_report, row, assumed_name, crew, counter, negative_num_rows, excessive_num_rows, False)
             elif option == 2: # increment on ODT
+<<<<<<< Updated upstream
                 if detailed_job_report[row][DOWNTIME_COL_NUM] == "Open Downtime" and str(detailed_job_report[row][EMPLOYEE_NAME_COL_NUM]) == "nan":
+=======
+                if str(detailed_job_report[row][DOWNTIME_COL_NUM]) == "Open Downtime" and str(detailed_job_report[row][EMPLOYEE_NAME_COL_NUM]) == "nan":
+>>>>>>> Stashed changes
                     assumed_name = assume_name(detailed_job_report, empty_name_rows, row)
                     counter = update_counter(detailed_job_report, row, assumed_name, crew, counter, negative_num_rows, excessive_num_rows, False)
             elif option == 3: # increment on total setup hours
@@ -1379,7 +1383,11 @@ def display_ODT(detailed_job_report, user_option, start_date, end_date):
                     if str(detailed_job_report[row][EMPLOYEE_NAME_COL_NUM]) == crew:
                         if str(detailed_job_report[row][DOWNTIME_COL_NUM]) == "Open Downtime" and 0 <= detailed_job_report[row][ELAPSED_HOURS_COL_NUM] <= EXCESSIVE_THRESHOLD:
                             ODT = ODT + detailed_job_report[row][ELAPSED_HOURS_COL_NUM]
+<<<<<<< Updated upstream
                         elif str(detailed_job_report[row][DOWNTIME_COL_NUM]) == "Open Downtime" and detailed_job_report[row][ELAPSED_HOURS_COL_NUM] > EXCESSIVE_THRESHOLD:
+=======
+                        if str(detailed_job_report[row][DOWNTIME_COL_NUM]) == "Open Downtime" and detailed_job_report[row][ELAPSED_HOURS_COL_NUM] > EXCESSIVE_THRESHOLD:
+>>>>>>> Stashed changes
                             append_element_in_array(excessive_num_rows, row)
                         elif str(detailed_job_report[row][DOWNTIME_COL_NUM]) == "Open Downtime" and detailed_job_report[row][ELAPSED_HOURS_COL_NUM] < 0:
                             append_element_in_array(negative_num_rows, row)

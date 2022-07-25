@@ -181,15 +181,7 @@ def name_filling_algorithm(detailed_job_report, counter, crew, start_date_num, e
                     assumed_name = assume_name(detailed_job_report, empty_name_rows, row)
                     counter = update_counter(detailed_job_report, row, assumed_name, crew, counter, negative_num_rows, excessive_num_rows, False)
             elif option == 2: # increment on ODT
-<<<<<<< HEAD
-<<<<<<< Updated upstream
                 if detailed_job_report[row][DOWNTIME_COL_NUM] == "Open Downtime" and str(detailed_job_report[row][EMPLOYEE_NAME_COL_NUM]) == "nan":
-=======
-                if str(detailed_job_report[row][DOWNTIME_COL_NUM]) == "Open Downtime" and str(detailed_job_report[row][EMPLOYEE_NAME_COL_NUM]) == "nan":
->>>>>>> Stashed changes
-=======
-                if str(detailed_job_report[row][DOWNTIME_COL_NUM]) != "Closed Downtime" and str(detailed_job_report[row][DOWNTIME_COL_NUM]) != "Setup" and str(detailed_job_report[row][DOWNTIME_COL_NUM]) != "Run" and str(detailed_job_report[row][EMPLOYEE_NAME_COL_NUM]) == "nan":
->>>>>>> 017569e3a0017700b83efb0893da947e9f52aa74
                     assumed_name = assume_name(detailed_job_report, empty_name_rows, row)
                     counter = update_counter(detailed_job_report, row, assumed_name, crew, counter, negative_num_rows, excessive_num_rows, False)
             elif option == 3: # increment on total setup hours

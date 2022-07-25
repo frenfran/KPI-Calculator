@@ -1207,7 +1207,11 @@ def print_order_type_array(array_to_print, num_cols):
     print(" |", end="")
 
     for num in range(num_cols + 1):
-        print("   " + str(array_to_print[0][num + 1]) + "   |", end="")
+        print("   " + str(array_to_print[0][num + 1]), end="")
+        if array_to_print[0][num + 1] < 10:
+            print("   |", end="")
+        else:
+            print("  |", end="")
     print()
 
     for dash in range(len(array_to_print[0][0]) + 8 * (num_cols + 1) + 4):
@@ -1868,11 +1872,13 @@ def display_order_type(detailed_job_report, option, start_date_num, end_date_num
         largest_num_items = 0
         for row in range(ROWS):
             if option == 2: # find the largest number of colors used
-                if detailed_job_report[row][NUM_COLORS_COL_NUM] > largest_num_items:
-                    largest_num_items = detailed_job_report[row][NUM_COLORS_COL_NUM]
+                if str(detailed_job_report[row][NUM_COLORS_COL_NUM]) != "nan":
+                    if detailed_job_report[row][NUM_COLORS_COL_NUM] > largest_num_items:
+                        largest_num_items = int(detailed_job_report[row][NUM_COLORS_COL_NUM])
             else: # find the largest number of ups used
-                if detailed_job_report[row][NUM_UPS_COL_NUM] > largest_num_items:
-                    largest_num_items = detailed_job_report[row][NUM_UPS_COL_NUM]
+                if str(detailed_job_report[row][NUM_UPS_COL_NUM]) != "nan":
+                    if detailed_job_report[row][NUM_UPS_COL_NUM] > largest_num_items:
+                        largest_num_items = int(detailed_job_report[row][NUM_UPS_COL_NUM])
 
         # create resulting array for printing/writing
         resulting_array = [[0 for x in range(largest_num_items + 2)] for y in range(2)]

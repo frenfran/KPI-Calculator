@@ -67,6 +67,35 @@ def obtain_sub_instruction(option):
     return choice
 
 
+# function for obtaining a "yes" or "no" command from the user
+# called in any instance where a yes/no answer is required from the user
+# arguments: an option integer variable to dictate what phrase we are asking the user
+# returns true or false depending on the user's decision + includes error checking
+def yes_or_no(option):
+    choice = ""
+
+    while True:
+        if option == 1: # asking the user if they would like to use AI
+            choice = input("Warning: gaps found in Employee Name column. Use AI to compute (y/n)? ")
+        elif option == 2: # asking if the user would like to write to Excel
+            choice = input("Would you like to write this data to Excel (y/n)? ")
+        elif option == 3: # asking if the user would like to see additional information
+            choice = input("Would you like to see a breakdown of all rows with potential machine errors (y/n)? ")
+        elif option == 4: # asking if the user would like to analyze a specific charge code
+            choice = input("Would you like to calculate the ODT by operator for a specific charge code (y/n)? ")
+        elif option == 5: # asking if the user would like to remove holidays
+            choice = input("Would you like to remove holidays and days off from the table (y/n)? ")
+        elif option == 6: # asking if the user would like to calculate the average feeds per day
+            choice = input("Would you like to calculate the average feeds per day (y/n)? ")
+
+        if choice == "y" or choice == "Y":
+            return True
+        elif choice == "n" or choice == "N":
+            return False
+        else:
+            print("Error. Please try again.")
+
+
 # function to obtain a date as an input from the user and return that same date
 # function performs error checking to ensure date is valid and within the detailed job report
 # arguments: the detailed job report array and the total number of rows in the detailed job array
@@ -145,64 +174,45 @@ def obtain_second_date_string(detailed_job_report_array, first_date_string):
 # and an int value (either 1, 2, 3 or 4) to determine which variable to increment
 # returns new value of the counter variable
 def name_filling_algorithm(detailed_job_report, counter, crew, start_date_num, end_date_num, empty_name_rows, negative_num_rows, excessive_num_rows, option):
-    if option == 1: # increment on total machine hours
-        for row in range(ROWS):
-            if detailed_job_report[row][DOWNTIME_COL_NUM] == "Run" and str(detailed_job_report[row][EMPLOYEE_NAME_COL_NUM]) == "nan":
-                if start_date_num <= int(str(detailed_job_report[row][WORK_DATE_COL_NUM])[0:4] + str(detailed_job_report[row][WORK_DATE_COL_NUM])[5:7] + str(detailed_job_report[row][WORK_DATE_COL_NUM])[8:10]) <= end_date_num:
-                    # first determine which employee name should fill this gap
+    for row in range(ROWS):
+        if start_date_num <= int(str(detailed_job_report[row][WORK_DATE_COL_NUM])[0:4] + str(detailed_job_report[row][WORK_DATE_COL_NUM])[5:7] + str(detailed_job_report[row][WORK_DATE_COL_NUM])[8:10]) <= end_date_num:
+            if option == 1: # increment on total machine hours
+                if detailed_job_report[row][DOWNTIME_COL_NUM] == "Run" and str(detailed_job_report[row][EMPLOYEE_NAME_COL_NUM]) == "nan":
                     assumed_name = assume_name(detailed_job_report, empty_name_rows, row)
-
-                    # add to counter if name filled matches crew name
-                    if assumed_name == crew and 0 <= detailed_job_report[row][ELAPSED_HOURS_COL_NUM] <= EXCESSIVE_THRESHOLD:
-                        counter = counter + detailed_job_report[row][ELAPSED_HOURS_COL_NUM]
-                    elif assumed_name == crew and detailed_job_report[row][ELAPSED_HOURS_COL_NUM] > EXCESSIVE_THRESHOLD:
-                        append_element_in_array(excessive_num_rows, row)
-                    elif assumed_name == crew and detailed_job_report[row][ELAPSED_HOURS_COL_NUM] < 0:
-                        append_element_in_array(negative_num_rows, row)
-
-    elif option == 2: # increment on ODT
-        for row in range(ROWS):
-            if detailed_job_report[row][DOWNTIME_COL_NUM] == "Open Downtime" and str(detailed_job_report[row][EMPLOYEE_NAME_COL_NUM]) == "nan":
-                if start_date_num <= int(str(detailed_job_report[row][WORK_DATE_COL_NUM])[0:4] + str(detailed_job_report[row][WORK_DATE_COL_NUM])[5:7] + str(detailed_job_report[row][WORK_DATE_COL_NUM])[8:10]) <= end_date_num:
-                    # first determine which name should fill this empty cell
+                    counter = update_counter(detailed_job_report, row, assumed_name, crew, counter, negative_num_rows, excessive_num_rows, False)
+            elif option == 2: # increment on ODT
+                if detailed_job_report[row][DOWNTIME_COL_NUM] == "Open Downtime" and str(detailed_job_report[row][EMPLOYEE_NAME_COL_NUM]) == "nan":
                     assumed_name = assume_name(detailed_job_report, empty_name_rows, row)
-
-                    # add to counter if name filled matches crew name
-                    if assumed_name == crew and 0 <= detailed_job_report[row][ELAPSED_HOURS_COL_NUM] <= EXCESSIVE_THRESHOLD:
-                        counter = counter + detailed_job_report[row][ELAPSED_HOURS_COL_NUM]
-                    elif assumed_name == crew and detailed_job_report[row][ELAPSED_HOURS_COL_NUM] > EXCESSIVE_THRESHOLD:
-                        append_element_in_array(excessive_num_rows, row)
-                    elif assumed_name == crew and detailed_job_report[row][ELAPSED_HOURS_COL_NUM] < 0:
-                        append_element_in_array(negative_num_rows, row)
-
-    elif option == 3: # increment on total setup hours
-        for row in range(ROWS):
-            if detailed_job_report[row][DOWNTIME_COL_NUM] == "Setup" and str(detailed_job_report[row][EMPLOYEE_NAME_COL_NUM]) == "nan":
-                if start_date_num <= int(str(detailed_job_report[row][WORK_DATE_COL_NUM])[0:4] + str(detailed_job_report[row][WORK_DATE_COL_NUM])[5:7] + str(detailed_job_report[row][WORK_DATE_COL_NUM])[8:10]) <= end_date_num:
-                    # first determine which employee name should fill this gap
+                    counter = update_counter(detailed_job_report, row, assumed_name, crew, counter, negative_num_rows, excessive_num_rows, False)
+            elif option == 3: # increment on total setup hours
+                if detailed_job_report[row][DOWNTIME_COL_NUM] == "Setup" and str(detailed_job_report[row][EMPLOYEE_NAME_COL_NUM]) == "nan":
                     assumed_name = assume_name(detailed_job_report, empty_name_rows, row)
-
-                    # add to counter if name filled matches crew name
-                    if assumed_name == crew and 0 <= detailed_job_report[row][ELAPSED_HOURS_COL_NUM] <= EXCESSIVE_THRESHOLD:
-                        counter = counter + detailed_job_report[row][ELAPSED_HOURS_COL_NUM]
-                    elif assumed_name == crew and detailed_job_report[row][ELAPSED_HOURS_COL_NUM] > EXCESSIVE_THRESHOLD:
-                        append_element_in_array(excessive_num_rows, row)
-                    elif assumed_name == crew and detailed_job_report[row][ELAPSED_HOURS_COL_NUM] < 0:
-                        append_element_in_array(negative_num_rows, row)
-
-    else: # increment on total feeds
-        for row in range(ROWS):
-            if str(detailed_job_report[row][EMPLOYEE_NAME_COL_NUM]) == "nan":
-                if start_date_num <= int(str(detailed_job_report[row][WORK_DATE_COL_NUM])[0:4] + str(detailed_job_report[row][WORK_DATE_COL_NUM])[5:7] + str(detailed_job_report[row][WORK_DATE_COL_NUM])[8:10]) <= end_date_num:
-                    # first determine which employee name should fill this gap
+                    counter = update_counter(detailed_job_report, row, assumed_name, crew, counter, negative_num_rows, excessive_num_rows, False)
+            else: # increment on total feeds
+                if str(detailed_job_report[row][EMPLOYEE_NAME_COL_NUM]) == "nan":
                     assumed_name = assume_name(detailed_job_report, empty_name_rows, row)
+                    counter = update_counter(detailed_job_report, row, assumed_name, crew, counter, negative_num_rows, excessive_num_rows, True)
 
-                    if assumed_name == crew and 0 <= detailed_job_report[row][ELAPSED_HOURS_COL_NUM] <= 5:
-                        counter = counter + detailed_job_report[row][GROSS_FG_QTY_COL_NUM]
-                    elif assumed_name == crew and detailed_job_report[row][ELAPSED_HOURS_COL_NUM] > EXCESSIVE_THRESHOLD:
-                        append_element_in_array(excessive_num_rows, row)
-                    elif assumed_name == crew and detailed_job_report[row][ELAPSED_HOURS_COL_NUM] < 0:
-                        append_element_in_array(negative_num_rows, row)
+    return counter
+
+
+# function for adding a value in the detailed job report to the counter if the assumed name from the name-assuming
+# algorithm matches the crew being analyzed and the elapsed hours is above zero and below the threshold
+# otherwise, the row is appended to its respective list of erroneous rows
+# arguments: the detailed job report, the row being analyzed, the name assumed by the name-assuming algorithm,
+# the crew being analyzed, the counter variable, the list of rows with negative elapsed hours,
+# the list of rows with excessive elapsed hours and whether we are incrementing on the total feeds or not
+# returns the new updated counter value
+def update_counter(detailed_job_report, row, assumed_name, crew, counter, negative_num_rows, excessive_num_rows, is_total_feeds):
+    if assumed_name == crew and 0 <= detailed_job_report[row][ELAPSED_HOURS_COL_NUM] <= EXCESSIVE_THRESHOLD:
+        if is_total_feeds:
+            counter = counter + detailed_job_report[row][GROSS_FG_QTY_COL_NUM]
+        else:
+            counter = counter + detailed_job_report[row][ELAPSED_HOURS_COL_NUM]
+    elif assumed_name == crew and detailed_job_report[row][ELAPSED_HOURS_COL_NUM] > EXCESSIVE_THRESHOLD:
+        append_element_in_array(excessive_num_rows, row)
+    elif assumed_name == crew and detailed_job_report[row][ELAPSED_HOURS_COL_NUM] < 0:
+        append_element_in_array(negative_num_rows, row)
 
     return counter
 
@@ -877,15 +887,15 @@ def calculate_average_feeds_by_shift(feeds_per_day_array, len_feeds_per_day_arra
 
     # calculate average feeds per day for each shift
     for index in range(3):
-        average_for_shift = 0
+        total_for_shift = 0
         denominator = 0
         for row in range(len_feeds_per_day_array - 1):
             if feeds_per_day_array[row + 1][index + 1] != 0:
-                average_for_shift = average_for_shift + feeds_per_day_array[row + 1][index + 1]
+                total_for_shift = total_for_shift + feeds_per_day_array[row + 1][index + 1]
                 denominator = denominator + 1
 
         if denominator != 0:
-            resulting_average_table[index + 1][1] = average_for_shift / denominator
+            resulting_average_table[index + 1][1] = total_for_shift / denominator
         else:
             resulting_average_table[index + 1][1] = "N/A"
 
@@ -920,15 +930,15 @@ def calculate_average_feeds_by_crew(feeds_per_day_array, len_feeds_per_day_array
 
     # calculate average feeds per day for each crew
     for index in range(len(list_of_crews)):
-        average_for_crew = 0
+        total_for_crew = 0
         denominator = 0
         for row in range(len_feeds_per_day_array - 1):
             if feeds_per_day_array[row + 1][index + 1] != 0:
-                average_for_crew = average_for_crew + feeds_per_day_array[row + 1][index + 1]
+                total_for_crew = total_for_crew + feeds_per_day_array[row + 1][index + 1]
                 denominator = denominator + 1
 
         if denominator != 0:
-            resulting_average_table[index + 1][1] = average_for_crew / denominator
+            resulting_average_table[index + 1][1] = total_for_crew / denominator
         else:
             resulting_average_table[index + 1][1] = "N/A"
 
@@ -1090,10 +1100,13 @@ def calculate_ODT_by_crew(charge_code_array, detailed_job_report, start_date_num
         crew_ODT_by_charge_code_array[index + 1][1] = elapsed_hours_for_crew
 
     print_ODT_by_crew_for_charge_code(crew_ODT_by_charge_code_array, crews_list)
+
     if use_algo and len(rows_with_no_name) > 0:
         if yes_or_no(3):
-            print()
+            print("\n")
             print_rows_with_no_name(rows_with_no_name)
+            print("---------------------------------------------")
+
     if yes_or_no(2):
         write_to_excel(crew_ODT_by_charge_code_array, len(crew_ODT_by_charge_code_array))
 
@@ -1226,35 +1239,6 @@ def print_order_type_array(array_to_print, num_cols):
     print()
 
 
-# function for obtaining a "yes" or "no" command from the user
-# called in any instance where a yes/no answer is required from the user
-# arguments: an option integer variable to dictate what phrase we are asking the user
-# returns true or false depending on the user's decision + includes error checking
-def yes_or_no(option):
-    choice = ""
-
-    while True:
-        if option == 1: # asking the user if they would like to use AI
-            choice = input("Warning: gaps found in Employee Name column. Use AI to compute (y/n)? ")
-        elif option == 2: # asking if the user would like to write to Excel
-            choice = input("Would you like to write this data to Excel (y/n)? ")
-        elif option == 3: # asking if the user would like to see additional information
-            choice = input("Would you like to see a breakdown of all rows with potential machine errors (y/n)? ")
-        elif option == 4: # asking if the user would like to analyze a specific charge code
-            choice = input("Would you like to calculate the ODT by operator for a specific charge code (y/n)? ")
-        elif option == 5: # asking if the user would like to remove holidays
-            choice = input("Would you like to remove holidays and days off from the table (y/n)? ")
-        elif option == 6: # asking if the user would like to calculate the average feeds per day
-            choice = input("Would you like to calculate the average feeds per day (y/n)? ")
-
-        if choice == "y" or choice == "Y":
-            return True
-        elif choice == "n" or choice == "N":
-            return False
-        else:
-            print("Error. Please try again.")
-
-
 # function for displaying both the list of rows where no crew name could be attributed by the AI,
 # the list of rows with negative elapsed hours and the list of excessive elapsed hours
 # arguments: whether the algorithm was used, the list of rows with no names,
@@ -1267,20 +1251,20 @@ def display_additional_info(algorithm_used, rows_with_no_name, negative_num_rows
         sorting_algorithm(rows_with_no_name)
         print_rows_with_no_name(rows_with_no_name)
         if len(negative_num_rows) <= 0 and len(excessive_num_rows) <= 0 and len(rows_with_no_name) > 0:
-            print("-------------------------------------------------------------")
+            print("---------------------------------------------")
 
     # print list of rows with negative elapsed hours
     if len(negative_num_rows) > 0:
         sorting_algorithm(negative_num_rows)
         if len(rows_with_no_name) > 0:
-            print("-------------------------------------------------------------")
+            print("---------------------------------------------")
         print_wrong_nums_list(len(negative_num_rows), negative_num_rows, 1)
 
     # print list of rows with excessive elapsed hours
     if len(excessive_num_rows) > 0:
         sorting_algorithm(excessive_num_rows)
         if len(rows_with_no_name) > 0 and len(negative_num_rows) == 0:
-            print("-------------------------------------------------------------")
+            print("---------------------------------------------")
         print_wrong_nums_list(len(excessive_num_rows), excessive_num_rows, 2)
 
 

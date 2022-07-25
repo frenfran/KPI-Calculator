@@ -1385,20 +1385,12 @@ def display_ODT(detailed_job_report, user_option, start_date, end_date):
             for row in range(ROWS):
                 if start_date_num <= int(str(detailed_job_report[row][WORK_DATE_COL_NUM])[0:4] + str(detailed_job_report[row][WORK_DATE_COL_NUM])[5:7] + str(detailed_job_report[row][WORK_DATE_COL_NUM])[8:10]) <= end_date_num:
                     if str(detailed_job_report[row][EMPLOYEE_NAME_COL_NUM]) == crew:
-                        if str(detailed_job_report[row][DOWNTIME_COL_NUM]) != "Closed Downtime" and str(detailed_job_report[row][DOWNTIME_COL_NUM]) != "Setup" and str(detailed_job_report[row][DOWNTIME_COL_NUM]) != "Run" and 0 <= detailed_job_report[row][ELAPSED_HOURS_COL_NUM] <= EXCESSIVE_THRESHOLD:
+                        if str(detailed_job_report[row][DOWNTIME_COL_NUM]) == "Open Downtime" and 0 <= detailed_job_report[row][ELAPSED_HOURS_COL_NUM] <= EXCESSIVE_THRESHOLD:
                             ODT = ODT + detailed_job_report[row][ELAPSED_HOURS_COL_NUM]
-<<<<<<< HEAD
-<<<<<<< Updated upstream
-                        elif str(detailed_job_report[row][DOWNTIME_COL_NUM]) == "Open Downtime" and detailed_job_report[row][ELAPSED_HOURS_COL_NUM] > EXCESSIVE_THRESHOLD:
-=======
-                        if str(detailed_job_report[row][DOWNTIME_COL_NUM]) == "Open Downtime" and detailed_job_report[row][ELAPSED_HOURS_COL_NUM] > EXCESSIVE_THRESHOLD:
->>>>>>> Stashed changes
-=======
-                        if str(detailed_job_report[row][DOWNTIME_COL_NUM]) != "Closed Downtime" and str(detailed_job_report[row][DOWNTIME_COL_NUM]) != "Setup" and str(detailed_job_report[row][DOWNTIME_COL_NUM]) != "Run" and detailed_job_report[row][ELAPSED_HOURS_COL_NUM] > EXCESSIVE_THRESHOLD:
->>>>>>> 017569e3a0017700b83efb0893da947e9f52aa74
-                            append_element_in_array(excessive_num_rows, row)
-                        elif str(detailed_job_report[row][DOWNTIME_COL_NUM]) != "Closed Downtime" and str(detailed_job_report[row][DOWNTIME_COL_NUM]) != "Setup" and str(detailed_job_report[row][DOWNTIME_COL_NUM]) != "Run" and detailed_job_report[row][ELAPSED_HOURS_COL_NUM] < 0:
+                        elif str(detailed_job_report[row][DOWNTIME_COL_NUM]) == "Open Downtime" and detailed_job_report[row][ELAPSED_HOURS_COL_NUM] < 0:
                             append_element_in_array(negative_num_rows, row)
+                        elif str(detailed_job_report[row][DOWNTIME_COL_NUM]) == "Open Downtime" and detailed_job_report[row][ELAPSED_HOURS_COL_NUM] > EXCESSIVE_THRESHOLD:
+                            append_element_in_array(excessive_num_rows, row)
 
             if use_algo:
                 ODT = name_filling_algorithm(detailed_job_report, ODT, crew, start_date_num, end_date_num, rows_with_no_name, negative_num_rows, excessive_num_rows, 2)

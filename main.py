@@ -181,7 +181,7 @@ def name_filling_algorithm(detailed_job_report, counter, crew, start_date_num, e
                     assumed_name = assume_name(detailed_job_report, empty_name_rows, row)
                     counter = update_counter(detailed_job_report, row, assumed_name, crew, counter, negative_num_rows, excessive_num_rows, False)
             elif option == 2: # increment on ODT
-                if detailed_job_report[row][DOWNTIME_COL_NUM] == "Open Downtime" and str(detailed_job_report[row][EMPLOYEE_NAME_COL_NUM]) == "nan":
+                if str(detailed_job_report[row][DOWNTIME_COL_NUM]) == "Open Downtime" and str(detailed_job_report[row][EMPLOYEE_NAME_COL_NUM]) == "nan":
                     assumed_name = assume_name(detailed_job_report, empty_name_rows, row)
                     counter = update_counter(detailed_job_report, row, assumed_name, crew, counter, negative_num_rows, excessive_num_rows, False)
             elif option == 3: # increment on total setup hours
@@ -1293,10 +1293,11 @@ def display_ODT(detailed_job_report, user_option, start_date, end_date):
         counter = 1
 
         for shift in range(3):
-            # calculate total machine hours for specific shift
             total_machine_hours = 0
+            ODT = 0
             for row in range(ROWS):
                 if start_date_num <= int(str(detailed_job_report[row][WORK_DATE_COL_NUM])[0:4] + str(detailed_job_report[row][WORK_DATE_COL_NUM])[5:7] + str(detailed_job_report[row][WORK_DATE_COL_NUM])[8:10]) <= end_date_num:
+                    # calculate total machine hours for specific shift
                     if detailed_job_report[row][DOWNTIME_COL_NUM] == "Run" and str(detailed_job_report[row][SHIFT_COL_NUM]) == str(shift + 1) and 0 <= detailed_job_report[row][ELAPSED_HOURS_COL_NUM] <= EXCESSIVE_THRESHOLD:
                         total_machine_hours = total_machine_hours + detailed_job_report[row][ELAPSED_HOURS_COL_NUM]
                     elif detailed_job_report[row][DOWNTIME_COL_NUM] == "Run" and str(detailed_job_report[row][SHIFT_COL_NUM]) == str(shift + 1) and detailed_job_report[row][ELAPSED_HOURS_COL_NUM] > EXCESSIVE_THRESHOLD:
@@ -1304,10 +1305,7 @@ def display_ODT(detailed_job_report, user_option, start_date, end_date):
                     elif detailed_job_report[row][DOWNTIME_COL_NUM] == "Run" and str(detailed_job_report[row][SHIFT_COL_NUM]) == str(shift + 1) and detailed_job_report[row][ELAPSED_HOURS_COL_NUM] < 0:
                         append_element_in_array(negative_num_rows, row)
 
-            # calculate total open downtime for specific shift
-            ODT = 0
-            for row in range(ROWS):
-                if start_date_num <= int(str(detailed_job_report[row][WORK_DATE_COL_NUM])[0:4] + str(detailed_job_report[row][WORK_DATE_COL_NUM])[5:7] + str(detailed_job_report[row][WORK_DATE_COL_NUM])[8:10]) <= end_date_num:
+                    # calculate total open downtime for specific shift
                     if detailed_job_report[row][DOWNTIME_COL_NUM] == "Open Downtime" and str(detailed_job_report[row][SHIFT_COL_NUM]) == str(shift + 1) and 0 <= detailed_job_report[row][ELAPSED_HOURS_COL_NUM] <= EXCESSIVE_THRESHOLD:
                         ODT = ODT + detailed_job_report[row][ELAPSED_HOURS_COL_NUM]
                     elif detailed_job_report[row][DOWNTIME_COL_NUM] == "Open Downtime" and str(detailed_job_report[row][SHIFT_COL_NUM]) == str(shift + 1) and detailed_job_report[row][ELAPSED_HOURS_COL_NUM] > EXCESSIVE_THRESHOLD:
@@ -1324,7 +1322,11 @@ def display_ODT(detailed_job_report, user_option, start_date, end_date):
                 print(" |")
 
                 ODT_by_shift_array[counter][0], ODT_by_shift_array[counter][1] = shift + 1, result
-                counter = counter + 1
+            else:
+                print("|   N/A   |")
+                ODT_by_shift_array[counter][0], ODT_by_shift_array[counter][1] = shift + 1, "N/A"
+
+            counter = counter + 1
 
         print("-------------------")
 
@@ -1357,11 +1359,12 @@ def display_ODT(detailed_job_report, user_option, start_date, end_date):
         longest_name_len = print_crew_header(crews_list, 1)
 
         for crew in crews_list:
-            # calculate total machine hours for specific crew
             total_machine_hours = 0
+            ODT = 0
             for row in range(ROWS):
                 if start_date_num <= int(str(detailed_job_report[row][WORK_DATE_COL_NUM])[0:4] + str(detailed_job_report[row][WORK_DATE_COL_NUM])[5:7] + str(detailed_job_report[row][WORK_DATE_COL_NUM])[8:10]) <= end_date_num:
                     if str(detailed_job_report[row][EMPLOYEE_NAME_COL_NUM]) == crew:
+                        # calculate total machine hours for specific crew
                         if str(detailed_job_report[row][DOWNTIME_COL_NUM]) == "Run" and 0 <= detailed_job_report[row][ELAPSED_HOURS_COL_NUM] <= EXCESSIVE_THRESHOLD:
                             total_machine_hours = total_machine_hours + detailed_job_report[row][ELAPSED_HOURS_COL_NUM]
                         elif str(detailed_job_report[row][DOWNTIME_COL_NUM]) == "Run" and detailed_job_report[row][ELAPSED_HOURS_COL_NUM] > EXCESSIVE_THRESHOLD:
@@ -1369,33 +1372,26 @@ def display_ODT(detailed_job_report, user_option, start_date, end_date):
                         elif str(detailed_job_report[row][DOWNTIME_COL_NUM]) == "Run" and detailed_job_report[row][ELAPSED_HOURS_COL_NUM] < 0:
                             append_element_in_array(negative_num_rows, row)
 
-            if use_algo:
-                total_machine_hours = name_filling_algorithm(detailed_job_report, total_machine_hours, crew, start_date_num, end_date_num, rows_with_no_name, negative_num_rows, excessive_num_rows, 1)
-
-            # calculate total open downtime for specific crew
-            ODT = 0
-            for row in range(ROWS):
-                if start_date_num <= int(str(detailed_job_report[row][WORK_DATE_COL_NUM])[0:4] + str(detailed_job_report[row][WORK_DATE_COL_NUM])[5:7] + str(detailed_job_report[row][WORK_DATE_COL_NUM])[8:10]) <= end_date_num:
-                    if str(detailed_job_report[row][EMPLOYEE_NAME_COL_NUM]) == crew:
+                        # calculate total ODT for specific crew
                         if str(detailed_job_report[row][DOWNTIME_COL_NUM]) == "Open Downtime" and 0 <= detailed_job_report[row][ELAPSED_HOURS_COL_NUM] <= EXCESSIVE_THRESHOLD:
                             ODT = ODT + detailed_job_report[row][ELAPSED_HOURS_COL_NUM]
-                        elif str(detailed_job_report[row][DOWNTIME_COL_NUM]) == "Open Downtime" and detailed_job_report[row][ELAPSED_HOURS_COL_NUM] < 0:
-                            append_element_in_array(negative_num_rows, row)
                         elif str(detailed_job_report[row][DOWNTIME_COL_NUM]) == "Open Downtime" and detailed_job_report[row][ELAPSED_HOURS_COL_NUM] > EXCESSIVE_THRESHOLD:
                             append_element_in_array(excessive_num_rows, row)
+                        elif str(detailed_job_report[row][DOWNTIME_COL_NUM]) == "Open Downtime" and detailed_job_report[row][ELAPSED_HOURS_COL_NUM] < 0:
+                            append_element_in_array(negative_num_rows, row)
 
             if use_algo:
+                total_machine_hours = name_filling_algorithm(detailed_job_report, total_machine_hours, crew, start_date_num, end_date_num, rows_with_no_name, negative_num_rows, excessive_num_rows, 1)
                 ODT = name_filling_algorithm(detailed_job_report, ODT, crew, start_date_num, end_date_num, rows_with_no_name, negative_num_rows, excessive_num_rows, 2)
 
             # add total run time with total ODT for total_machine_hours
             total_machine_hours = total_machine_hours + ODT
 
-            # print(str(ODT) + " " + str(total_machine_hours))
-            result = 0
             if total_machine_hours > 0:
-                result = (ODT/total_machine_hours) * 100
+                ODT_by_crew_array[counter][0], ODT_by_crew_array[counter][1] = crew, (ODT/total_machine_hours) * 100
+            else:
+                ODT_by_crew_array[counter][0], ODT_by_crew_array[counter][1] = crew, "N/A"
 
-            ODT_by_crew_array[counter][0], ODT_by_crew_array[counter][1] = crew, result
             counter = counter + 1
 
         print_rest_of_table(ODT_by_crew_array, longest_name_len, 1)

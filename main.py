@@ -1176,7 +1176,7 @@ def print_ODT_by_crew_for_charge_code(crew_ODT_by_charge_code_array, list_of_cre
 
 
 # function to keep adding unique orders to the unique orders list and to keep incrementing on the total quantity
-# increments for either the number of colors or the number of ups
+# used when computing the average order quantity for a given date frame
 # arguments: the detailed job report, the row being parsed, the total quantity so far
 # and the list of unique orders so far
 # returns the new total quantity
@@ -1864,6 +1864,7 @@ def display_order_type(detailed_job_report, option, start_date_num, end_date_num
             print(total_quantity / len(unique_orders))
         else:
             print("N/A")
+            
     else: # any other option means user wants total orders by the # of colors/ups
         # first find the largest number of items in the detailed job report (either the # of colors or ups)
         largest_num_items = 0

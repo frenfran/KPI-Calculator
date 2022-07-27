@@ -952,7 +952,7 @@ def calculate_average_feeds_by_crew(feeds_per_day_array, len_feeds_per_day_array
         if resulting_average_table[index + 1][1] != "N/A":
             resulting_average_table[index + 1][2] = ((highest_average - resulting_average_table[index + 1][1]) / highest_average) * 100
         else:
-            resulting_average_table[index + 1][2] = "N/A"
+            resulting_average_table[index + 1][2] == "N/A"
 
     print_average_feeds_by_crew(resulting_average_table, list_of_crews)
     if yes_or_no(2):

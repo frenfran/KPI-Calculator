@@ -945,14 +945,15 @@ def calculate_average_feeds_by_crew(feeds_per_day_array, len_feeds_per_day_array
     # calculate opportunity for each crew
     highest_average = 0 # first calculate the highest average to set as the datum
     for index in range(len(list_of_crews)):
-        if resulting_average_table[index + 1][1] > highest_average:
-            highest_average = resulting_average_table[index + 1][1]
+        if resulting_average_table[index + 1][1] != "N/A":
+            if resulting_average_table[index + 1][1] > highest_average:
+                highest_average = resulting_average_table[index + 1][1]
 
     for index in range(len(list_of_crews)):
         if resulting_average_table[index + 1][1] != "N/A":
             resulting_average_table[index + 1][2] = ((highest_average - resulting_average_table[index + 1][1]) / highest_average) * 100
         else:
-            resulting_average_table[index + 1][2] == "N/A"
+            resulting_average_table[index + 1][2] = "N/A"
 
     print_average_feeds_by_crew(resulting_average_table, list_of_crews)
     if yes_or_no(2):

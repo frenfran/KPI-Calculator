@@ -153,7 +153,7 @@ def obtain_second_date_string(detailed_job_report_array, first_date_string):
     second_date_string = ""
     error = True
     while error:
-        print("Enter the second date: ", end="")
+        print("Enter the second date (YYYY/MM/DD): ", end="")
         second_date_string = obtain_date_string(detailed_job_report_array)
 
         if int(second_date_string[5:7]) < int(first_date_string[5:7]) or int(second_date_string[8:10]) < int(first_date_string[8:10]):
@@ -1009,14 +1009,16 @@ def print_average_feeds_by_crew(average_array, list_of_crews):
     # find the longest average feeds per day
     longest_average_feeds_len = 0
     for row in range(len(average_array) - 1):
-        if average_array[row + 1][1] > longest_average_feeds_len:
-            longest_average_feeds_len = average_array[row + 1][1]
+        if average_array[row + 1][1] != "N/A":
+            if average_array[row + 1][1] > longest_average_feeds_len:
+                longest_average_feeds_len = average_array[row +1][1]
 
     # find the longest opportunity
     longest_opportunity_len = 0
     for row in range(len(average_array) - 1):
-        if average_array[row + 1][2] > longest_opportunity_len:
-            longest_opportunity_len = average_array[row + 1][2]
+        if average_array[row + 1][2] != "N/A":
+            if average_array[row + 1][2] > longest_opportunity_len:
+                longest_opportunity_len = average_array[row + 1][2]
 
     # print header
     longest_crew_name = print_crew_header(list_of_crews, 4)
@@ -1199,7 +1201,7 @@ def incrementing_algo(detailed_job_report, row, total_quantity, unique_orders_li
 # arguments: the array to print and the maximum number of colors/ups found in the detailed job report
 # returns nothing
 def print_order_type_array(array_to_print, num_cols):
-    for dash in range(len(array_to_print[0][0]) + 8 * (num_cols + 1) + 4):
+    for dash in range(len(array_to_print[0][0]) + 8 * (num_cols - 1) + 4):
         print("-", end="")
     print()
 
@@ -1207,7 +1209,7 @@ def print_order_type_array(array_to_print, num_cols):
     print(array_to_print[0][0], end="")
     print(" |", end="")
 
-    for num in range(num_cols + 1):
+    for num in range(num_cols - 1):
         print("   " + str(array_to_print[0][num + 1]), end="")
         if array_to_print[0][num + 1] < 10:
             print("   |", end="")
@@ -1215,7 +1217,7 @@ def print_order_type_array(array_to_print, num_cols):
             print("  |", end="")
     print()
 
-    for dash in range(len(array_to_print[0][0]) + 8 * (num_cols + 1) + 4):
+    for dash in range(len(array_to_print[0][0]) + 8 * (num_cols - 1) + 4):
         print("-", end="")
     print()
 
@@ -1229,7 +1231,7 @@ def print_order_type_array(array_to_print, num_cols):
         print(" ", end="")
     print(" |", end="")
 
-    for col in range(num_cols + 1):
+    for col in range(num_cols - 1):
         print(" ", end="")
         if len(str(array_to_print[1][col + 1])) > 5:
             print_digit_long(array_to_print[1][col + 1], 5)
@@ -1239,7 +1241,7 @@ def print_order_type_array(array_to_print, num_cols):
 
     print()
 
-    for dash in range(len(array_to_print[0][0]) + 8 * (num_cols + 1) + 4):
+    for dash in range(len(array_to_print[0][0]) + 8 * (num_cols - 1) + 4):
         print("-", end="")
     print()
 
@@ -1864,7 +1866,7 @@ def display_order_type(detailed_job_report, option, start_date_num, end_date_num
             print(total_quantity / len(unique_orders))
         else:
             print("N/A")
-            
+
     else: # any other option means user wants total orders by the # of colors/ups
         # first find the largest number of items in the detailed job report (either the # of colors or ups)
         largest_num_items = 0
@@ -1879,12 +1881,13 @@ def display_order_type(detailed_job_report, option, start_date_num, end_date_num
                         largest_num_items = int(detailed_job_report[row][NUM_UPS_COL_NUM])
 
         # create resulting array for printing/writing
-        resulting_array = [[0 for x in range(largest_num_items + 2)] for y in range(2)]
+        resulting_array = np.array([[0 for x in range(largest_num_items + 2)] for y in range(2)], dtype='object')
         if option == 2:
             resulting_array[0][0], resulting_array[1][0] = NUM_COLORS_LABEL, TOTAL_ORDERS_LABEL
         else:
             resulting_array[0][0], resulting_array[1][0] = NUM_UPS_LABEL, TOTAL_ORDERS_LABEL
 
+        counter = 1
         for num_items in range(largest_num_items + 1):
             unique_orders = []  # array to keep track of unique orders
             for row in range(ROWS):
@@ -1896,10 +1899,20 @@ def display_order_type(detailed_job_report, option, start_date_num, end_date_num
                         if detailed_job_report[row][NUM_UPS_COL_NUM] == num_items:
                             append_element_in_array(unique_orders, detailed_job_report[row][ORDER_NUM_COL_NUM])
 
-            resulting_array[0][num_items + 1] = num_items
-            resulting_array[1][num_items + 1] = len(unique_orders)
+            if len(unique_orders) > 0:
+                resulting_array[0][counter] = num_items
+                resulting_array[1][counter] = len(unique_orders)
+                counter = counter + 1
 
-        print_order_type_array(resulting_array, largest_num_items)
+        print_order_type_array(resulting_array, counter)
+
+        # remove unnecessary columns
+        for col in range(largest_num_items - counter + 2):
+            resulting_array = np.delete(resulting_array, counter, axis=1)
+        # reconvert all numbers back to integers
+        for row in range(2):
+            for col in range(counter - 1):
+                resulting_array[row][col + 1] = int(resulting_array[row][col + 1])
 
         if yes_or_no(2):
             write_to_excel(resulting_array, 2)
@@ -2000,7 +2013,7 @@ while not user_done:
     # calculating open down time percentage
     #######################################
     if user_input == 1:
-        print("\nEnter the first date: ", end="")
+        print("\nEnter the first date (YYYY/MM/DD): ", end="")
         first_date_string = obtain_date_string(djr_array)
         second_date_string = obtain_second_date_string(djr_array, first_date_string)
 
@@ -2020,7 +2033,7 @@ while not user_done:
     #########################
     elif user_input == 2:
         # obtain date frame from user
-        print("Enter the first date: ", end="")
+        print("Enter the first date (YYYY/MM/DD): ", end="")
         first_date_string = obtain_date_string(djr_array)
         second_date_string = obtain_second_date_string(djr_array, first_date_string)
 
@@ -2041,7 +2054,7 @@ while not user_done:
     ################################
     elif user_input == 3:
         # obtain date frame from user
-        print("Enter the first date: ", end="")
+        print("Enter the first date (YYYY/MM/DD): ", end="")
         first_date_string = obtain_date_string(djr_array)
         second_date_string = obtain_second_date_string(djr_array, first_date_string)
 
@@ -2062,7 +2075,7 @@ while not user_done:
     #############################
     elif user_input == 4:
         # obtain date frame from user
-        print("Enter the first date: ", end="")
+        print("Enter the first date (YYYY/MM/DD): ", end="")
         first_date_string = obtain_date_string(djr_array)
         second_date_string = obtain_second_date_string(djr_array, first_date_string)
 
@@ -2083,7 +2096,7 @@ while not user_done:
     #######################
     elif user_input == 5:
         # obtain date frame from user
-        print("Enter the first date: ", end="")
+        print("Enter the first date (YYYY/MM/DD): ", end="")
         first_date_string = obtain_date_string(djr_array)
         second_date_string = obtain_second_date_string(djr_array, first_date_string)
 

@@ -1800,28 +1800,6 @@ def display_feeds_per_day(detailed_job_report, user_choice, start_date_num, end_
                             feeds_calculated_by_AI = name_filling_algorithm(detailed_job_report, feeds_calculated_by_AI, crews_list[crew_index], row_djr, empty_name_rows, negative_num_rows, excessive_num_rows, 4)
                             resulting_table[row_table + 1][crew_index + 1] = resulting_table[row_table + 1][crew_index + 1] + feeds_calculated_by_AI
 
-        """
-        # generate rest of table
-        for row_table in range(len(resulting_table) - 1):
-            resulting_table[row_table + 1][0] = convert_date_int_to_string(start_date_num + row_table)
-            for row_djr in range(ROWS):
-                if str(start_date_num + row_table) == str(detailed_job_report[row_djr][WORK_DATE_COL_NUM])[0:4] + str(detailed_job_report[row_djr][WORK_DATE_COL_NUM])[5:7] + str(detailed_job_report[row_djr][WORK_DATE_COL_NUM])[8:10]:
-                    if str(detailed_job_report[row_djr][EMPLOYEE_NAME_COL_NUM]) != "nan":
-                        for crew_counter in range(len(crews_list)):
-                            if detailed_job_report[row_djr][EMPLOYEE_NAME_COL_NUM] == crews_list[crew_counter]:
-                                if 0 <= detailed_job_report[row_djr][ELAPSED_HOURS_COL_NUM] <= EXCESSIVE_THRESHOLD:
-                                    resulting_table[row_table + 1][crew_counter + 1] = resulting_table[row_table + 1][crew_counter + 1] + detailed_job_report[row_djr][GROSS_FG_QTY_COL_NUM]
-                                elif detailed_job_report[row_djr][ELAPSED_HOURS_COL_NUM] > EXCESSIVE_THRESHOLD:
-                                    append_element_in_array(excessive_num_rows, row_djr)
-                                elif detailed_job_report[row_djr][ELAPSED_HOURS_COL_NUM] < 0:
-                                    append_element_in_array(negative_num_rows, row_djr)
-                    if str(detailed_job_report[row_djr][EMPLOYEE_NAME_COL_NUM]) == "nan" and use_algo:
-                        for crew_index in range(len(crews_list)):
-                            feeds_calculated_by_AI = 0
-                            feeds_calculated_by_AI = name_filling_algorithm(detailed_job_report, feeds_calculated_by_AI, crews_list[crew_index], row_djr, empty_name_rows, negative_num_rows, excessive_num_rows, 4)
-                            resulting_table[row_table + 1][crew_index + 1] = resulting_table[row_table + 1][crew_index + 1] + feeds_calculated_by_AI
-        """
-
         table_length = len(resulting_table)
 
         if yes_or_no(5):
@@ -2015,7 +1993,7 @@ def display_average_run_speed(detailed_job_report, option, start_date_num, end_d
                         elif detailed_job_report[row][ELAPSED_HOURS_COL_NUM] < 0:
                             append_element_in_array(negative_num_rows, row)
 
-                    elif use_algo:
+                    elif use_algo and detailed_job_report[row][CHARGE_CODE_COL_NUM] == "RUN":
                         total_feeds = name_filling_algorithm(detailed_job_report, total_feeds, crew, row, rows_with_no_name, negative_num_rows, excessive_num_rows, 4)
                         total_run_hours = name_filling_algorithm(detailed_job_report, total_run_hours, crew, row, rows_with_no_name, negative_num_rows, excessive_num_rows, 1)
 

@@ -1778,7 +1778,6 @@ def display_feeds_per_day(detailed_job_report, user_choice, start_date_num, end_
         for col in range(len(crews_list)):
             resulting_table[0][col + 1] = crews_list[col]
 
-
         # generate rest of table
         for row_table in range(len(resulting_table) - 1):
             resulting_table[row_table + 1][0] = convert_date_int_to_string(start_date_num + row_table)

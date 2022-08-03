@@ -7,21 +7,57 @@ from sys import exit
 # helper functions
 ##################
 
+# function for printing all machines found within a detailed job report
+# prints each machine name (as found in the detailed job report) along with an associated number
+# arguments: the list of all machines found within the detailed job report
+# returns nothing
+def print_list_of_machines(machines_list):
+    # find length of longest machine name
+    longest_machine_name_length = 0
+    for item in machines_list:
+        if len(item) > longest_machine_name_length:
+            longest_machine_name_length = len(item)
+
+    print("\nList of machines in the detailed job report:")
+
+    for dashes in range(longest_machine_name_length + 11):
+        print("-", end="")
+    print()
+
+    for machine_num in range(len(machines_list)):
+        print("| (" + str(machine_num + 1) + ")", end="")
+        if machine_num < 9:
+            print(" ", end="")
+        print(" - ", end="")
+        for spaces in range(int((longest_machine_name_length - len(machines_list[machine_num])) / 2)):
+            print(" ", end="")
+        print(machines_list[machine_num], end="")
+        for spaces in range(int((longest_machine_name_length - len(machines_list[machine_num])) / 2)):
+            print(" ", end="")
+        if len(machines_list[machine_num]) % 2 != 0:
+            print(" ", end="")
+        print(" |")
+
+    for dashes in range(longest_machine_name_length + 11):
+        print("-", end="")
+    print()
+
+
 # function to print all possible instructions and receive input from the user
 # function also performs error checking to ensure user's input is valid
 # arguments: none
 # returns nothing
 def obtain_instruction():
     print("\nWhat would you like to do?")
-    print("-------------------------------------------")
-    print("| 1 - calculate open down time percentage |")
-    print("| 2 - calculate total feeds               |")
-    print("| 3 - calculate average setup time        |")
-    print("| 4 - break down feeds per day            |")
-    print("| 5 - analyze order type                  |")
-    print("| 6 - calculate average run speed         |")
-    print("| 7 - exit                                |")
-    print("-------------------------------------------")
+    print("------------------------------------")
+    print("| 1 - calculate open down time     |")
+    print("| 2 - calculate total feeds        |")
+    print("| 3 - calculate average setup time |")
+    print("| 4 - break down feeds per day     |")
+    print("| 5 - analyze order type           |")
+    print("| 6 - calculate average run speed  |")
+    print("| 7 - exit                         |")
+    print("------------------------------------")
 
     user_error = True
     user_input = ""
@@ -176,22 +212,23 @@ def obtain_second_date_string(detailed_job_report_array, first_date_string):
 # and an int value (either 1, 2, 3 or 4) to determine which variable to increment
 # returns new value of the counter variable
 def name_filling_algorithm(detailed_job_report, counter, crew, row, empty_name_rows, negative_num_rows, excessive_num_rows, option):
-    if option == 1: # increment on total machine hours
-        if detailed_job_report[row][DOWNTIME_COL_NUM] == "Run" and str(detailed_job_report[row][EMPLOYEE_NAME_COL_NUM]) == "nan":
-            assumed_name = assume_name(detailed_job_report, empty_name_rows, row)
-            counter = update_counter(detailed_job_report, row, assumed_name, crew, counter, negative_num_rows, excessive_num_rows, False)
-    elif option == 2: # increment on ODT
-        if str(detailed_job_report[row][DOWNTIME_COL_NUM]) == "Open Downtime" and str(detailed_job_report[row][EMPLOYEE_NAME_COL_NUM]) == "nan":
-            assumed_name = assume_name(detailed_job_report, empty_name_rows, row)
-            counter = update_counter(detailed_job_report, row, assumed_name, crew, counter, negative_num_rows, excessive_num_rows, False)
-    elif option == 3: # increment on total setup hours
-        if detailed_job_report[row][DOWNTIME_COL_NUM] == "Setup" and str(detailed_job_report[row][EMPLOYEE_NAME_COL_NUM]) == "nan":
-            assumed_name = assume_name(detailed_job_report, empty_name_rows, row)
-            counter = update_counter(detailed_job_report, row, assumed_name, crew, counter, negative_num_rows, excessive_num_rows, False)
-    else: # increment on total feeds
-        if str(detailed_job_report[row][EMPLOYEE_NAME_COL_NUM]) == "nan":
-            assumed_name = assume_name(detailed_job_report, empty_name_rows, row)
-            counter = update_counter(detailed_job_report, row, assumed_name, crew, counter, negative_num_rows, excessive_num_rows, True)
+    if detailed_job_report[row][MACHINE_COL_NUM] == MACHINE:
+        if option == 1: # increment on total machine hours
+            if detailed_job_report[row][DOWNTIME_COL_NUM] == "Run" and str(detailed_job_report[row][EMPLOYEE_NAME_COL_NUM]) == "nan":
+                assumed_name = assume_name(detailed_job_report, empty_name_rows, row)
+                counter = update_counter(detailed_job_report, row, assumed_name, crew, counter, negative_num_rows, excessive_num_rows, False)
+        elif option == 2: # increment on ODT
+            if detailed_job_report[row][DOWNTIME_COL_NUM] == "Open Downtime" and str(detailed_job_report[row][EMPLOYEE_NAME_COL_NUM]) == "nan":
+                assumed_name = assume_name(detailed_job_report, empty_name_rows, row)
+                counter = update_counter(detailed_job_report, row, assumed_name, crew, counter, negative_num_rows, excessive_num_rows, False)
+        elif option == 3: # increment on total setup hours
+            if detailed_job_report[row][DOWNTIME_COL_NUM] == "Setup" and str(detailed_job_report[row][EMPLOYEE_NAME_COL_NUM]) == "nan":
+                assumed_name = assume_name(detailed_job_report, empty_name_rows, row)
+                counter = update_counter(detailed_job_report, row, assumed_name, crew, counter, negative_num_rows, excessive_num_rows, False)
+        else: # increment on total feeds
+            if str(detailed_job_report[row][EMPLOYEE_NAME_COL_NUM]) == "nan":
+                assumed_name = assume_name(detailed_job_report, empty_name_rows, row)
+                counter = update_counter(detailed_job_report, row, assumed_name, crew, counter, negative_num_rows, excessive_num_rows, True)
 
     return counter
 
@@ -283,27 +320,31 @@ def generate_crews_list(detailed_job_report, start_date_num, end_date_num, crews
     last_row = 0
     for row in range(ROWS): # determine which row to start from
         if start_date_num == int(str(detailed_job_report[row][WORK_DATE_COL_NUM])[0:4] + str(detailed_job_report[row][WORK_DATE_COL_NUM])[5:7] + str(detailed_job_report[row][WORK_DATE_COL_NUM])[8:10]):
-            first_row = row
-            break
+            if detailed_job_report[row][MACHINE_COL_NUM] == MACHINE:
+                first_row = row
+                break
     for row in range(first_row, ROWS): # determine which row to end at
         if end_date_num == int(str(detailed_job_report[row][WORK_DATE_COL_NUM])[0:4] + str(detailed_job_report[row][WORK_DATE_COL_NUM])[5:7] + str(detailed_job_report[row][WORK_DATE_COL_NUM])[8:10]):
-            last_row = row
+            if detailed_job_report[row][MACHINE_COL_NUM] == MACHINE:
+                last_row = row
 
     for row in range(ROWS): # must parse the entire detailed job report still in case dates within the date frame are dispersed throughout the spreadsheet
         if start_date_num <= int(str(detailed_job_report[row][WORK_DATE_COL_NUM])[0:4] + str(detailed_job_report[row][WORK_DATE_COL_NUM])[5:7] + str(detailed_job_report[row][WORK_DATE_COL_NUM])[8:10]) <= end_date_num:
-            if str(detailed_job_report[row][EMPLOYEE_NAME_COL_NUM]) != "nan":
-                append_element_in_array(crews_list, str(detailed_job_report[row][EMPLOYEE_NAME_COL_NUM]))
+            if detailed_job_report[row][MACHINE_COL_NUM] == MACHINE:
+                if str(detailed_job_report[row][EMPLOYEE_NAME_COL_NUM]) != "nan":
+                    append_element_in_array(crews_list, str(detailed_job_report[row][EMPLOYEE_NAME_COL_NUM]))
 
     # add crew members if first or last row contain empty cells for "Employee Name" column and user wishes to use AI
     if use_algo:
-        if str(detailed_job_report[first_row][EMPLOYEE_NAME_COL_NUM]) == "nan": # if first row has blank employee name
-            assumed_name = assume_name(detailed_job_report, rows_with_no_name, first_row)
-            if assumed_name != "nan":
-                append_element_in_array(crews_list, assumed_name)
-        if str(detailed_job_report[last_row][EMPLOYEE_NAME_COL_NUM]) == "nan": # if last row has blank employee name
-            assumed_name = assume_name(detailed_job_report, rows_with_no_name, last_row)
-            if assumed_name != "nan":
-                append_element_in_array(crews_list, assumed_name)
+        if detailed_job_report[row][MACHINE_COL_NUM] == MACHINE:
+            if str(detailed_job_report[first_row][EMPLOYEE_NAME_COL_NUM]) == "nan": # if first row has blank employee name
+                assumed_name = assume_name(detailed_job_report, rows_with_no_name, first_row)
+                if assumed_name != "nan":
+                    append_element_in_array(crews_list, assumed_name)
+            if str(detailed_job_report[last_row][EMPLOYEE_NAME_COL_NUM]) == "nan": # if last row has blank employee name
+                assumed_name = assume_name(detailed_job_report, rows_with_no_name, last_row)
+                if assumed_name != "nan":
+                    append_element_in_array(crews_list, assumed_name)
 
 
 # function for printing all the rows in which AI was unable to attribute a name
@@ -341,13 +382,16 @@ def assume_name(detailed_job_report, empty_name_rows, row):
     iterator = -1
     while keep_going:
         if row + iterator > 0:
-            if detailed_job_report[row + iterator][SHIFT_COL_NUM] == shift_num and str(detailed_job_report[row + iterator][EMPLOYEE_NAME_COL_NUM]) != "nan" and int(str(detailed_job_report[row][WORK_DATE_COL_NUM])[0:4] + str(detailed_job_report[row][WORK_DATE_COL_NUM])[5:7] + str(detailed_job_report[row][WORK_DATE_COL_NUM])[8:10]) - int(str(detailed_job_report[row + iterator][WORK_DATE_COL_NUM])[0:4] + str(detailed_job_report[row + iterator][WORK_DATE_COL_NUM])[5:7] + str(detailed_job_report[row + iterator][WORK_DATE_COL_NUM])[8:10]) < 2:
-                assumed_name = str(detailed_job_report[row + iterator][EMPLOYEE_NAME_COL_NUM])
-                keep_going = False
-            elif detailed_job_report[row + iterator][SHIFT_COL_NUM] == shift_num and str(detailed_job_report[row + iterator][EMPLOYEE_NAME_COL_NUM]) == "nan" and int(str(detailed_job_report[row + iterator][WORK_DATE_COL_NUM])[0:4] + str(detailed_job_report[row + iterator][WORK_DATE_COL_NUM])[5:7] + str(detailed_job_report[row + iterator][WORK_DATE_COL_NUM])[8:10]) - int(str(detailed_job_report[row + iterator - 1][WORK_DATE_COL_NUM])[0:4] + str(detailed_job_report[row + iterator - 1][WORK_DATE_COL_NUM])[5:7] + str(detailed_job_report[row + iterator - 1][WORK_DATE_COL_NUM])[8:10]) < 2:
-                iterator = iterator - 1
+            if detailed_job_report[row + iterator][MACHINE_COL_NUM] == MACHINE:
+                if detailed_job_report[row + iterator][SHIFT_COL_NUM] == shift_num and str(detailed_job_report[row + iterator][EMPLOYEE_NAME_COL_NUM]) != "nan" and int(str(detailed_job_report[row][WORK_DATE_COL_NUM])[0:4] + str(detailed_job_report[row][WORK_DATE_COL_NUM])[5:7] + str(detailed_job_report[row][WORK_DATE_COL_NUM])[8:10]) - int(str(detailed_job_report[row + iterator][WORK_DATE_COL_NUM])[0:4] + str(detailed_job_report[row + iterator][WORK_DATE_COL_NUM])[5:7] + str(detailed_job_report[row + iterator][WORK_DATE_COL_NUM])[8:10]) < 2:
+                    assumed_name = str(detailed_job_report[row + iterator][EMPLOYEE_NAME_COL_NUM])
+                    keep_going = False
+                elif detailed_job_report[row + iterator][SHIFT_COL_NUM] == shift_num and str(detailed_job_report[row + iterator][EMPLOYEE_NAME_COL_NUM]) == "nan" and int(str(detailed_job_report[row + iterator][WORK_DATE_COL_NUM])[0:4] + str(detailed_job_report[row + iterator][WORK_DATE_COL_NUM])[5:7] + str(detailed_job_report[row + iterator][WORK_DATE_COL_NUM])[8:10]) - int(str(detailed_job_report[row + iterator - 1][WORK_DATE_COL_NUM])[0:4] + str(detailed_job_report[row + iterator - 1][WORK_DATE_COL_NUM])[5:7] + str(detailed_job_report[row + iterator - 1][WORK_DATE_COL_NUM])[8:10]) < 2:
+                    iterator = iterator - 1
+                else:
+                    keep_going = False
             else:
-                keep_going = False
+                iterator = iterator - 1
         else:
             keep_going = False
 
@@ -356,20 +400,23 @@ def assume_name(detailed_job_report, empty_name_rows, row):
         iterator = 1
         while keep_going:
             if row + iterator < ROWS:
-                if detailed_job_report[row + iterator][SHIFT_COL_NUM] == shift_num and str(detailed_job_report[row + iterator][EMPLOYEE_NAME_COL_NUM]) != "nan" and int(str(detailed_job_report[row + iterator][WORK_DATE_COL_NUM])[0:4] + str(detailed_job_report[row + iterator][WORK_DATE_COL_NUM])[5:7] + str(detailed_job_report[row + iterator][WORK_DATE_COL_NUM])[8:10]) - int(str(detailed_job_report[row][WORK_DATE_COL_NUM])[0:4] + str(detailed_job_report[row][WORK_DATE_COL_NUM])[5:7] + str(detailed_job_report[row][WORK_DATE_COL_NUM])[8:10]) < 2:
-                    assumed_name = str(detailed_job_report[row + iterator][EMPLOYEE_NAME_COL_NUM])
-                    keep_going = False
-                elif detailed_job_report[row + iterator][SHIFT_COL_NUM] == shift_num and str(detailed_job_report[row + iterator][EMPLOYEE_NAME_COL_NUM]) == "nan"  and int(str(detailed_job_report[row + iterator][WORK_DATE_COL_NUM])[0:4] + str(detailed_job_report[row + iterator][WORK_DATE_COL_NUM])[5:7] + str(detailed_job_report[row + iterator][WORK_DATE_COL_NUM])[8:10]) - int(str(detailed_job_report[row + iterator - 1][WORK_DATE_COL_NUM])[0:4] + str(detailed_job_report[row + iterator - 1][WORK_DATE_COL_NUM])[5:7] + str(detailed_job_report[row + iterator - 1][WORK_DATE_COL_NUM])[8:10]) < 2:
-                    iterator = iterator + 1
-                else:
-                    keep_going = False
-                    already_included = False
-                    for item in empty_name_rows:
-                        if row == item:
-                            already_included = True
+                if detailed_job_report[row + iterator][MACHINE_COL_NUM] == MACHINE:
+                    if detailed_job_report[row + iterator][SHIFT_COL_NUM] == shift_num and str(detailed_job_report[row + iterator][EMPLOYEE_NAME_COL_NUM]) != "nan" and int(str(detailed_job_report[row + iterator][WORK_DATE_COL_NUM])[0:4] + str(detailed_job_report[row + iterator][WORK_DATE_COL_NUM])[5:7] + str(detailed_job_report[row + iterator][WORK_DATE_COL_NUM])[8:10]) - int(str(detailed_job_report[row][WORK_DATE_COL_NUM])[0:4] + str(detailed_job_report[row][WORK_DATE_COL_NUM])[5:7] + str(detailed_job_report[row][WORK_DATE_COL_NUM])[8:10]) < 2:
+                        assumed_name = str(detailed_job_report[row + iterator][EMPLOYEE_NAME_COL_NUM])
+                        keep_going = False
+                    elif detailed_job_report[row + iterator][SHIFT_COL_NUM] == shift_num and str(detailed_job_report[row + iterator][EMPLOYEE_NAME_COL_NUM]) == "nan"  and int(str(detailed_job_report[row + iterator][WORK_DATE_COL_NUM])[0:4] + str(detailed_job_report[row + iterator][WORK_DATE_COL_NUM])[5:7] + str(detailed_job_report[row + iterator][WORK_DATE_COL_NUM])[8:10]) - int(str(detailed_job_report[row + iterator - 1][WORK_DATE_COL_NUM])[0:4] + str(detailed_job_report[row + iterator - 1][WORK_DATE_COL_NUM])[5:7] + str(detailed_job_report[row + iterator - 1][WORK_DATE_COL_NUM])[8:10]) < 2:
+                        iterator = iterator + 1
+                    else:
+                        keep_going = False
+                        already_included = False
+                        for item in empty_name_rows:
+                            if row == item:
+                                already_included = True
 
-                    if not already_included:
-                        empty_name_rows.append(row)
+                        if not already_included:
+                            empty_name_rows.append(row)
+                else:
+                    iterator = iterator + 1
             else:
                 keep_going = False
 
@@ -606,7 +653,7 @@ def print_crew_header(list_of_crew_members, option):
 # the length of the longest crew name
 # and an option (int) which reflects whether the function should print
 # ODT (by crew or by charge code), total feeds or average setup time
-# 1 = ODT by crew, 2 = ODT by charge code, 3 = total feeds, 4 = average setup time
+# 1 = ODT by crew, 2 = ODT by charge code, 3 = total feeds, 4 = average setup time, 5 = average run speed
 # returns nothing
 def print_rest_of_table(array, longest_name_length, option):
     # first, find data with longest number of digits
@@ -924,8 +971,9 @@ def calculate_average_feeds_by_shift(feeds_per_day_array, len_feeds_per_day_arra
     # calculate opportunity for each shift
     highest_average = 0  # first calculate the highest average to set as the datum
     for index in range(3):
-        if resulting_average_table[index + 1][1] > highest_average:
-            highest_average = resulting_average_table[index + 1][1]
+        if resulting_average_table[index + 1][1] != "N/A":
+            if resulting_average_table[index + 1][1] > highest_average:
+                highest_average = resulting_average_table[index + 1][1]
 
     for index in range(3):
         if resulting_average_table[index + 1][1] != "N/A":
@@ -989,14 +1037,16 @@ def print_average_feeds_by_shift(average_array):
     # find the longest average feeds per day
     longest_average_feeds_len = 0
     for row in range(len(average_array) - 1):
-        if average_array[row + 1][1] > longest_average_feeds_len:
-            longest_average_feeds_len = average_array[row + 1][1]
+        if average_array[row + 1][1] != "N/A":
+            if average_array[row + 1][1] > longest_average_feeds_len:
+                longest_average_feeds_len = average_array[row + 1][1]
 
     # find the longest opportunity
     longest_opportunity_len = 0
     for row in range(len(average_array) - 1):
-        if average_array[row + 1][2] > longest_opportunity_len:
-            longest_opportunity_len = average_array[row + 1][2]
+        if average_array[row + 1][2] != "N/A":
+            if average_array[row + 1][2] > longest_opportunity_len:
+                longest_opportunity_len = average_array[row + 1][2]
 
     # print header
     print("---------------------------------------------------")
@@ -1099,40 +1149,43 @@ def calculate_ODT_by_crew(charge_code_array, detailed_job_report, start_date_num
     crews_list = []
     generate_crews_list(detailed_job_report, start_date_num, end_date_num, crews_list, rows_with_no_name, use_algo)
 
-    crew_ODT_by_charge_code_array = [[0 for x in range(2)] for y in range(len(crews_list) + 1)]
-    crew_ODT_by_charge_code_array[0][0], crew_ODT_by_charge_code_array[0][1] = CREW_LABEL, (charge_code + " (hours elapsed)")
+    if len(crews_list) != 0:
+        crew_ODT_by_charge_code_array = [[0 for x in range(2)] for y in range(len(crews_list) + 1)]
+        crew_ODT_by_charge_code_array[0][0], crew_ODT_by_charge_code_array[0][1] = CREW_LABEL, (charge_code + " (hours elapsed)")
 
-    for index in range(len(crews_list)): # write all crew names to resulting table
-        crew_ODT_by_charge_code_array[index + 1][0] = crews_list[index]
+        for index in range(len(crews_list)): # write all crew names to resulting table
+            crew_ODT_by_charge_code_array[index + 1][0] = crews_list[index]
 
-    for index in range(len(crews_list)): # compute ODT elapsed hours for each crew member based on charge code
-        elapsed_hours_for_crew = 0
-        for row in range(len(detailed_job_report)):
-            if detailed_job_report[row][CHARGE_CODE_COL_NUM] == charge_code:
-                if start_date_num <= int(str(detailed_job_report[row][WORK_DATE_COL_NUM])[0:4] + str(detailed_job_report[row][WORK_DATE_COL_NUM])[5:7] + str(detailed_job_report[row][WORK_DATE_COL_NUM])[8:10]) <= end_date_num:
-                    if crews_list[index] == detailed_job_report[row][EMPLOYEE_NAME_COL_NUM]:
-                        if 0 <= detailed_job_report[row][ELAPSED_HOURS_COL_NUM] <= EXCESSIVE_THRESHOLD:
-                            elapsed_hours_for_crew = elapsed_hours_for_crew + detailed_job_report[row][ELAPSED_HOURS_COL_NUM]
-
-                    elif use_algo and str(detailed_job_report[row][EMPLOYEE_NAME_COL_NUM]) == "nan":
-                        if assume_name(detailed_job_report, rows_with_no_name, row) == crews_list[index]:
+        for index in range(len(crews_list)): # compute ODT elapsed hours for each crew member based on charge code
+            elapsed_hours_for_crew = 0
+            for row in range(len(detailed_job_report)):
+                if detailed_job_report[row][MACHINE_COL_NUM] == MACHINE and detailed_job_report[row][CHARGE_CODE_COL_NUM] == charge_code:
+                    if start_date_num <= int(str(detailed_job_report[row][WORK_DATE_COL_NUM])[0:4] + str(detailed_job_report[row][WORK_DATE_COL_NUM])[5:7] + str(detailed_job_report[row][WORK_DATE_COL_NUM])[8:10]) <= end_date_num:
+                        if crews_list[index] == detailed_job_report[row][EMPLOYEE_NAME_COL_NUM]:
                             if 0 <= detailed_job_report[row][ELAPSED_HOURS_COL_NUM] <= EXCESSIVE_THRESHOLD:
                                 elapsed_hours_for_crew = elapsed_hours_for_crew + detailed_job_report[row][ELAPSED_HOURS_COL_NUM]
-                        if assume_name(detailed_job_report, rows_with_no_name, row) == "nan":
-                            append_element_in_array(rows_with_no_name, row)
 
-        crew_ODT_by_charge_code_array[index + 1][1] = elapsed_hours_for_crew
+                        elif use_algo and str(detailed_job_report[row][EMPLOYEE_NAME_COL_NUM]) == "nan":
+                            if assume_name(detailed_job_report, rows_with_no_name, row) == crews_list[index]:
+                                if 0 <= detailed_job_report[row][ELAPSED_HOURS_COL_NUM] <= EXCESSIVE_THRESHOLD:
+                                    elapsed_hours_for_crew = elapsed_hours_for_crew + detailed_job_report[row][ELAPSED_HOURS_COL_NUM]
+                            if assume_name(detailed_job_report, rows_with_no_name, row) == "nan":
+                                append_element_in_array(rows_with_no_name, row)
 
-    print_ODT_by_crew_for_charge_code(crew_ODT_by_charge_code_array, crews_list)
+            crew_ODT_by_charge_code_array[index + 1][1] = elapsed_hours_for_crew
 
-    if use_algo and len(rows_with_no_name) > 0:
-        if yes_or_no(3):
-            print("\n")
-            print_rows_with_no_name(rows_with_no_name)
-            print("---------------------------------------------")
+        print_ODT_by_crew_for_charge_code(crew_ODT_by_charge_code_array, crews_list)
 
-    if yes_or_no(2):
-        write_to_excel(crew_ODT_by_charge_code_array, len(crew_ODT_by_charge_code_array))
+        if use_algo and len(rows_with_no_name) > 0:
+            if yes_or_no(3):
+                print("\n")
+                print_rows_with_no_name(rows_with_no_name)
+                print("---------------------------------------------")
+
+        if yes_or_no(2):
+            write_to_excel(crew_ODT_by_charge_code_array, len(crew_ODT_by_charge_code_array))
+    else:
+        print("There is nothing to show here")
 
 
 # function for printing the resulting array for the ODT by crew according to a specific charge code
@@ -1320,21 +1373,22 @@ def display_ODT(detailed_job_report, user_option, start_date, end_date):
             ODT = 0
             for row in range(ROWS):
                 if start_date_num <= int(str(detailed_job_report[row][WORK_DATE_COL_NUM])[0:4] + str(detailed_job_report[row][WORK_DATE_COL_NUM])[5:7] + str(detailed_job_report[row][WORK_DATE_COL_NUM])[8:10]) <= end_date_num:
-                    # calculate total machine hours for specific shift
-                    if detailed_job_report[row][DOWNTIME_COL_NUM] == "Run" and str(detailed_job_report[row][SHIFT_COL_NUM]) == str(shift + 1) and 0 <= detailed_job_report[row][ELAPSED_HOURS_COL_NUM] <= EXCESSIVE_THRESHOLD:
-                        total_machine_hours = total_machine_hours + detailed_job_report[row][ELAPSED_HOURS_COL_NUM]
-                    elif detailed_job_report[row][DOWNTIME_COL_NUM] == "Run" and str(detailed_job_report[row][SHIFT_COL_NUM]) == str(shift + 1) and detailed_job_report[row][ELAPSED_HOURS_COL_NUM] > EXCESSIVE_THRESHOLD:
-                        append_element_in_array(excessive_num_rows, row)
-                    elif detailed_job_report[row][DOWNTIME_COL_NUM] == "Run" and str(detailed_job_report[row][SHIFT_COL_NUM]) == str(shift + 1) and detailed_job_report[row][ELAPSED_HOURS_COL_NUM] < 0:
-                        append_element_in_array(negative_num_rows, row)
+                    if detailed_job_report[row][MACHINE_COL_NUM] == MACHINE:
+                        # calculate total machine hours for specific shift
+                        if detailed_job_report[row][DOWNTIME_COL_NUM] == "Run" and str(detailed_job_report[row][SHIFT_COL_NUM]) == str(shift + 1) and 0 <= detailed_job_report[row][ELAPSED_HOURS_COL_NUM] <= EXCESSIVE_THRESHOLD:
+                            total_machine_hours = total_machine_hours + detailed_job_report[row][ELAPSED_HOURS_COL_NUM]
+                        elif detailed_job_report[row][DOWNTIME_COL_NUM] == "Run" and str(detailed_job_report[row][SHIFT_COL_NUM]) == str(shift + 1) and detailed_job_report[row][ELAPSED_HOURS_COL_NUM] > EXCESSIVE_THRESHOLD:
+                            append_element_in_array(excessive_num_rows, row)
+                        elif detailed_job_report[row][DOWNTIME_COL_NUM] == "Run" and str(detailed_job_report[row][SHIFT_COL_NUM]) == str(shift + 1) and detailed_job_report[row][ELAPSED_HOURS_COL_NUM] < 0:
+                            append_element_in_array(negative_num_rows, row)
 
-                    # calculate total open downtime for specific shift
-                    if detailed_job_report[row][DOWNTIME_COL_NUM] == "Open Downtime" and str(detailed_job_report[row][SHIFT_COL_NUM]) == str(shift + 1) and 0 <= detailed_job_report[row][ELAPSED_HOURS_COL_NUM] <= EXCESSIVE_THRESHOLD:
-                        ODT = ODT + detailed_job_report[row][ELAPSED_HOURS_COL_NUM]
-                    elif detailed_job_report[row][DOWNTIME_COL_NUM] == "Open Downtime" and str(detailed_job_report[row][SHIFT_COL_NUM]) == str(shift + 1) and detailed_job_report[row][ELAPSED_HOURS_COL_NUM] > EXCESSIVE_THRESHOLD:
-                        append_element_in_array(excessive_num_rows, row)
-                    elif detailed_job_report[row][DOWNTIME_COL_NUM] == "Open Downtime" and str(detailed_job_report[row][SHIFT_COL_NUM]) == str(shift + 1) and detailed_job_report[row][ELAPSED_HOURS_COL_NUM] < 0:
-                        append_element_in_array(negative_num_rows, row)
+                        # calculate total open downtime for specific shift
+                        if detailed_job_report[row][DOWNTIME_COL_NUM] == "Open Downtime" and str(detailed_job_report[row][SHIFT_COL_NUM]) == str(shift + 1) and 0 <= detailed_job_report[row][ELAPSED_HOURS_COL_NUM] <= EXCESSIVE_THRESHOLD:
+                            ODT = ODT + detailed_job_report[row][ELAPSED_HOURS_COL_NUM]
+                        elif detailed_job_report[row][DOWNTIME_COL_NUM] == "Open Downtime" and str(detailed_job_report[row][SHIFT_COL_NUM]) == str(shift + 1) and detailed_job_report[row][ELAPSED_HOURS_COL_NUM] > EXCESSIVE_THRESHOLD:
+                            append_element_in_array(excessive_num_rows, row)
+                        elif detailed_job_report[row][DOWNTIME_COL_NUM] == "Open Downtime" and str(detailed_job_report[row][SHIFT_COL_NUM]) == str(shift + 1) and detailed_job_report[row][ELAPSED_HOURS_COL_NUM] < 0:
+                            append_element_in_array(negative_num_rows, row)
 
             total_machine_hours = total_machine_hours + ODT
 
@@ -1349,7 +1403,7 @@ def display_ODT(detailed_job_report, user_option, start_date, end_date):
 
                 ODT_by_shift_array[shift + 1][0], ODT_by_shift_array[shift + 1][1] = shift + 1, result
             else:
-                print("|   N/A   |")
+                print("  N/A   |")
                 ODT_by_shift_array[shift + 1][0], ODT_by_shift_array[shift + 1][1] = shift + 1, "N/A"
 
         print("-------------------")
@@ -1375,121 +1429,131 @@ def display_ODT(detailed_job_report, user_option, start_date, end_date):
         crews_list = []
         generate_crews_list(detailed_job_report, start_date_num, end_date_num, crews_list, rows_with_no_name, use_algo)
 
-        # create & initialize array to hold data in case user wants to write data to an Excel spreadsheet
-        ODT_by_crew_array = [[0 for x in range(2)] for y in range(len(crews_list) + 1)]
-        ODT_by_crew_array[0][0], ODT_by_crew_array[0][1] = "Crew", "ODT %"
+        if len(crews_list) != 0:
+            # create & initialize array to hold data in case user wants to write data to an Excel spreadsheet
+            ODT_by_crew_array = [[0 for x in range(2)] for y in range(len(crews_list) + 1)]
+            ODT_by_crew_array[0][0], ODT_by_crew_array[0][1] = "Crew", "ODT %"
 
-        longest_name_len = print_crew_header(crews_list, 1)
+            longest_name_len = print_crew_header(crews_list, 1)
 
-        counter = 1
-        for crew in crews_list:
-            total_machine_hours = 0
-            ODT = 0
-            for row in range(ROWS):
-                if start_date_num <= int(str(detailed_job_report[row][WORK_DATE_COL_NUM])[0:4] + str(detailed_job_report[row][WORK_DATE_COL_NUM])[5:7] + str(detailed_job_report[row][WORK_DATE_COL_NUM])[8:10]) <= end_date_num:
-                    if str(detailed_job_report[row][EMPLOYEE_NAME_COL_NUM]) == crew:
-                        # calculate total machine hours for specific crew
-                        if str(detailed_job_report[row][DOWNTIME_COL_NUM]) == "Run" and 0 <= detailed_job_report[row][ELAPSED_HOURS_COL_NUM] <= EXCESSIVE_THRESHOLD:
-                            total_machine_hours = total_machine_hours + detailed_job_report[row][ELAPSED_HOURS_COL_NUM]
-                        elif str(detailed_job_report[row][DOWNTIME_COL_NUM]) == "Run" and detailed_job_report[row][ELAPSED_HOURS_COL_NUM] > EXCESSIVE_THRESHOLD:
-                            append_element_in_array(excessive_num_rows, row)
-                        elif str(detailed_job_report[row][DOWNTIME_COL_NUM]) == "Run" and detailed_job_report[row][ELAPSED_HOURS_COL_NUM] < 0:
-                            append_element_in_array(negative_num_rows, row)
+            counter = 1
+            for crew in crews_list:
+                total_machine_hours = 0
+                ODT = 0
+                for row in range(ROWS):
+                    if start_date_num <= int(str(detailed_job_report[row][WORK_DATE_COL_NUM])[0:4] + str(detailed_job_report[row][WORK_DATE_COL_NUM])[5:7] + str(detailed_job_report[row][WORK_DATE_COL_NUM])[8:10]) <= end_date_num:
+                        if detailed_job_report[row][MACHINE_COL_NUM] == MACHINE:
+                            if str(detailed_job_report[row][EMPLOYEE_NAME_COL_NUM]) == crew:
+                                # calculate total machine hours for specific crew
+                                if str(detailed_job_report[row][DOWNTIME_COL_NUM]) == "Run" and 0 <= detailed_job_report[row][ELAPSED_HOURS_COL_NUM] <= EXCESSIVE_THRESHOLD:
+                                    total_machine_hours = total_machine_hours + detailed_job_report[row][ELAPSED_HOURS_COL_NUM]
+                                elif str(detailed_job_report[row][DOWNTIME_COL_NUM]) == "Run" and detailed_job_report[row][ELAPSED_HOURS_COL_NUM] > EXCESSIVE_THRESHOLD:
+                                    append_element_in_array(excessive_num_rows, row)
+                                elif str(detailed_job_report[row][DOWNTIME_COL_NUM]) == "Run" and detailed_job_report[row][ELAPSED_HOURS_COL_NUM] < 0:
+                                    append_element_in_array(negative_num_rows, row)
 
-                        # calculate total ODT for specific crew
-                        if str(detailed_job_report[row][DOWNTIME_COL_NUM]) == "Open Downtime" and 0 <= detailed_job_report[row][ELAPSED_HOURS_COL_NUM] <= EXCESSIVE_THRESHOLD:
-                            ODT = ODT + detailed_job_report[row][ELAPSED_HOURS_COL_NUM]
-                        elif str(detailed_job_report[row][DOWNTIME_COL_NUM]) == "Open Downtime" and detailed_job_report[row][ELAPSED_HOURS_COL_NUM] > EXCESSIVE_THRESHOLD:
-                            append_element_in_array(excessive_num_rows, row)
-                        elif str(detailed_job_report[row][DOWNTIME_COL_NUM]) == "Open Downtime" and detailed_job_report[row][ELAPSED_HOURS_COL_NUM] < 0:
-                            append_element_in_array(negative_num_rows, row)
+                                # calculate total ODT for specific crew
+                                if str(detailed_job_report[row][DOWNTIME_COL_NUM]) == "Open Downtime" and 0 <= detailed_job_report[row][ELAPSED_HOURS_COL_NUM] <= EXCESSIVE_THRESHOLD:
+                                    ODT = ODT + detailed_job_report[row][ELAPSED_HOURS_COL_NUM]
+                                elif str(detailed_job_report[row][DOWNTIME_COL_NUM]) == "Open Downtime" and detailed_job_report[row][ELAPSED_HOURS_COL_NUM] > EXCESSIVE_THRESHOLD:
+                                    append_element_in_array(excessive_num_rows, row)
+                                elif str(detailed_job_report[row][DOWNTIME_COL_NUM]) == "Open Downtime" and detailed_job_report[row][ELAPSED_HOURS_COL_NUM] < 0:
+                                    append_element_in_array(negative_num_rows, row)
 
-                    elif use_algo:
-                        total_machine_hours = name_filling_algorithm(detailed_job_report, total_machine_hours, crew, row, rows_with_no_name, negative_num_rows, excessive_num_rows, 1)
-                        ODT = name_filling_algorithm(detailed_job_report, ODT, crew, row, rows_with_no_name, negative_num_rows, excessive_num_rows, 2)
+                            elif use_algo:
+                                total_machine_hours = name_filling_algorithm(detailed_job_report, total_machine_hours, crew, row, rows_with_no_name, negative_num_rows, excessive_num_rows, 1)
+                                ODT = name_filling_algorithm(detailed_job_report, ODT, crew, row, rows_with_no_name, negative_num_rows, excessive_num_rows, 2)
 
-            # add total run time with total ODT for total_machine_hours
-            total_machine_hours = total_machine_hours + ODT
+                # add total run time with total ODT for total_machine_hours
+                total_machine_hours = total_machine_hours + ODT
 
-            if total_machine_hours > 0:
-                ODT_by_crew_array[counter][0], ODT_by_crew_array[counter][1] = crew, (ODT/total_machine_hours) * 100
-            else:
-                ODT_by_crew_array[counter][0], ODT_by_crew_array[counter][1] = crew, "N/A"
+                if total_machine_hours > 0:
+                    ODT_by_crew_array[counter][0], ODT_by_crew_array[counter][1] = crew, (ODT/total_machine_hours) * 100
+                else:
+                    ODT_by_crew_array[counter][0], ODT_by_crew_array[counter][1] = crew, "N/A"
 
-            counter = counter + 1
+                counter = counter + 1
 
-        print_rest_of_table(ODT_by_crew_array, longest_name_len, 1)
+            print_rest_of_table(ODT_by_crew_array, longest_name_len, 1)
 
-        if len(rows_with_no_name) > 0 or len(negative_num_rows) > 0 or len(excessive_num_rows) > 0:
-            if yes_or_no(3):
-                display_additional_info(use_algo, rows_with_no_name, negative_num_rows, excessive_num_rows)
+            if len(rows_with_no_name) > 0 or len(negative_num_rows) > 0 or len(excessive_num_rows) > 0:
+                if yes_or_no(3):
+                    display_additional_info(use_algo, rows_with_no_name, negative_num_rows, excessive_num_rows)
 
-        if yes_or_no(2):
-            write_to_excel(ODT_by_crew_array, len(ODT_by_crew_array))
+            if yes_or_no(2):
+                write_to_excel(ODT_by_crew_array, len(ODT_by_crew_array))
+        else:
+            print("There is nothing to show here")
 
     else: # user wants Pareto chart
         # create list of charge codes
         charge_code_list = []
-        for row in range(ROWS):
-            alreadyIncluded = False
+        for row_iterator in range(ROWS):
+            if detailed_job_report[row_iterator][MACHINE_COL_NUM] == MACHINE:
+                already_included = False
+                for charge_code in charge_code_list:
+                    if detailed_job_report[row_iterator][CHARGE_CODE_COL_NUM] == charge_code:
+                        already_included = True
+                        break
+
+                if not already_included and detailed_job_report[row_iterator][CHARGE_CODE_COL_NUM] != "RUN" and detailed_job_report[row_iterator][CHARGE_CODE_COL_NUM] != "SET UP":
+                    charge_code_list.append(detailed_job_report[row_iterator][CHARGE_CODE_COL_NUM])
+
+        if len(charge_code_list) != 0:
+            # temporary dictionary to contain each charge code and their corresponding ODT
+            charge_code_dict = {}
             for charge_code in charge_code_list:
-                if detailed_job_report[row][CHARGE_CODE_COL_NUM] == charge_code:
-                    alreadyIncluded = True
-                    break
+                # calculate total open downtime for specific charge code
+                ODT = 0
+                for row_num in range(ROWS):
+                    if start_date_num <= int(str(detailed_job_report[row_num][WORK_DATE_COL_NUM])[0:4] + str(detailed_job_report[row_num][WORK_DATE_COL_NUM])[5:7] + str(detailed_job_report[row_num][WORK_DATE_COL_NUM])[8:10]) <= end_date_num:
+                        if detailed_job_report[row_num][MACHINE_COL_NUM] == MACHINE:
+                            if detailed_job_report[row_num][CHARGE_CODE_COL_NUM] == charge_code and 0 <= detailed_job_report[row_num][ELAPSED_HOURS_COL_NUM] <= EXCESSIVE_THRESHOLD:
+                                ODT = ODT + detailed_job_report[row_num][ELAPSED_HOURS_COL_NUM]
+                            elif detailed_job_report[row_num][CHARGE_CODE_COL_NUM] == charge_code and detailed_job_report[row_num][ELAPSED_HOURS_COL_NUM] < 0:
+                                append_element_in_array(negative_num_rows, row_num)
+                            elif detailed_job_report[row_num][CHARGE_CODE_COL_NUM] == charge_code and detailed_job_report[row_num][ELAPSED_HOURS_COL_NUM] > EXCESSIVE_THRESHOLD:
+                                append_element_in_array(excessive_num_rows, row_num)
 
-            if not alreadyIncluded and detailed_job_report[row][CHARGE_CODE_COL_NUM] != "RUN" and detailed_job_report[row][CHARGE_CODE_COL_NUM] != "SET UP":
-                charge_code_list.append(detailed_job_report[row][CHARGE_CODE_COL_NUM])
+                charge_code_dict[charge_code] = ODT
 
-        # temporary dictionary to contain each charge code and their corresponding ODT
-        charge_code_dict = {}
-        for charge_code in charge_code_list:
-            # calculate total open downtime for specific charge code
-            ODT = 0
-            for row in range(ROWS):
-                if start_date_num <= int(str(detailed_job_report[row][WORK_DATE_COL_NUM])[0:4] + str(detailed_job_report[row][WORK_DATE_COL_NUM])[5:7] + str(detailed_job_report[row][WORK_DATE_COL_NUM])[8:10]) <= end_date_num:
-                    if detailed_job_report[row][CHARGE_CODE_COL_NUM] == charge_code and 0 <= detailed_job_report[row][ELAPSED_HOURS_COL_NUM] <= EXCESSIVE_THRESHOLD:
-                        ODT = ODT + detailed_job_report[row][ELAPSED_HOURS_COL_NUM]
-                    elif detailed_job_report[row][CHARGE_CODE_COL_NUM] == charge_code and detailed_job_report[row][ELAPSED_HOURS_COL_NUM] < 0:
-                        append_element_in_array(negative_num_rows, row)
-                    elif detailed_job_report[row][CHARGE_CODE_COL_NUM] == charge_code and detailed_job_report[row][ELAPSED_HOURS_COL_NUM] > EXCESSIVE_THRESHOLD:
-                        append_element_in_array(excessive_num_rows, row)
-
-            charge_code_dict[charge_code] = ODT
-
-        num_rows = 0
-        for key in charge_code_dict.keys():
-            if charge_code_dict[key] > 0:
-                num_rows = num_rows + 1
-
-        charge_code_array = [[0 for x in range(2)] for y in range(num_rows + 1)]
-        charge_code_array[0][0], charge_code_array[0][1] = "Charge Code", "ODT (hours)"
-
-        # sort charge_code_array from largest ODT to smallest
-        counter = 1
-        while len(charge_code_dict) > 0:
-            largest_ODT_key = list(charge_code_dict.keys())[0]
+            num_rows = 0
             for key in charge_code_dict.keys():
-                if charge_code_dict[key] > charge_code_dict[largest_ODT_key]:
-                    largest_ODT_key = key
+                if charge_code_dict[key] > 0:
+                    num_rows = num_rows + 1
 
-            if charge_code_dict[largest_ODT_key] > 0:
-                charge_code_array[counter][0], charge_code_array[counter][1] = largest_ODT_key, charge_code_dict[largest_ODT_key]
+            charge_code_array = [[0 for x in range(2)] for y in range(num_rows + 1)]
+            charge_code_array[0][0], charge_code_array[0][1] = "Charge Code", "ODT (hours)"
 
-            charge_code_dict.pop(largest_ODT_key)
-            counter = counter + 1
+            # sort charge_code_array from largest ODT to smallest
+            counter = 1
+            while len(charge_code_dict) > 0:
+                largest_ODT_key = list(charge_code_dict.keys())[0]
+                for key in charge_code_dict.keys():
+                    if charge_code_dict[key] > charge_code_dict[largest_ODT_key]:
+                        largest_ODT_key = key
 
-        longest_charge_code_len = print_charge_code_header(charge_code_array)
-        print_rest_of_table(charge_code_array, longest_charge_code_len, 2)
+                if charge_code_dict[largest_ODT_key] > 0:
+                    charge_code_array[counter][0], charge_code_array[counter][1] = largest_ODT_key, charge_code_dict[largest_ODT_key]
 
-        if len(negative_num_rows) > 0 or len(excessive_num_rows) > 0:
-            if yes_or_no(3):
-                print_incorrect_hours(negative_num_rows, excessive_num_rows)
+                charge_code_dict.pop(largest_ODT_key)
+                counter = counter + 1
 
-        if yes_or_no(2):
-            write_to_excel(charge_code_array, len(charge_code_array))
+            longest_charge_code_len = print_charge_code_header(charge_code_array)
+            print_rest_of_table(charge_code_array, longest_charge_code_len, 2)
 
-        if yes_or_no(4):
-            calculate_ODT_by_crew(charge_code_array, detailed_job_report, start_date_num, end_date_num, negative_num_rows, excessive_num_rows)
+            if len(negative_num_rows) > 0 or len(excessive_num_rows) > 0:
+                if yes_or_no(3):
+                    print_incorrect_hours(negative_num_rows, excessive_num_rows)
+
+            if yes_or_no(2):
+                write_to_excel(charge_code_array, len(charge_code_array))
+
+
+            if yes_or_no(4):
+                calculate_ODT_by_crew(charge_code_array, detailed_job_report, start_date_num, end_date_num, negative_num_rows, excessive_num_rows)
+        else:
+            print("There is nothing to show here")
 
 
 # function to display total feeds either by shift or by crew
@@ -1514,12 +1578,13 @@ def display_total_feeds(detailed_job_report, user_choice, start_date_num, end_da
             total_feeds = 0
             for row in range(ROWS):
                 if start_date_num <= int(str(detailed_job_report[row][WORK_DATE_COL_NUM])[0:4] + str(detailed_job_report[row][WORK_DATE_COL_NUM])[5:7] + str(detailed_job_report[row][WORK_DATE_COL_NUM])[8:10]) <= end_date_num:
-                    if detailed_job_report[row][SHIFT_COL_NUM] == shift + 1 and 0 <= detailed_job_report[row][ELAPSED_HOURS_COL_NUM] <= EXCESSIVE_THRESHOLD:
-                        total_feeds = total_feeds + detailed_job_report[row][GROSS_FG_QTY_COL_NUM]
-                    elif detailed_job_report[row][SHIFT_COL_NUM] == shift + 1 and detailed_job_report[row][ELAPSED_HOURS_COL_NUM] < 0:
-                        append_element_in_array(negative_num_rows, row)
-                    elif detailed_job_report[row][SHIFT_COL_NUM] == shift + 1 and detailed_job_report[row][ELAPSED_HOURS_COL_NUM] > EXCESSIVE_THRESHOLD:
-                        append_element_in_array(excessive_num_rows, row)
+                    if detailed_job_report[row][MACHINE_COL_NUM] == MACHINE:
+                        if detailed_job_report[row][SHIFT_COL_NUM] == shift + 1 and 0 <= detailed_job_report[row][ELAPSED_HOURS_COL_NUM] <= EXCESSIVE_THRESHOLD:
+                            total_feeds = total_feeds + detailed_job_report[row][GROSS_FG_QTY_COL_NUM]
+                        elif detailed_job_report[row][SHIFT_COL_NUM] == shift + 1 and detailed_job_report[row][ELAPSED_HOURS_COL_NUM] < 0:
+                            append_element_in_array(negative_num_rows, row)
+                        elif detailed_job_report[row][SHIFT_COL_NUM] == shift + 1 and detailed_job_report[row][ELAPSED_HOURS_COL_NUM] > EXCESSIVE_THRESHOLD:
+                            append_element_in_array(excessive_num_rows, row)
 
             if total_feeds > 0:
                 total_feeds_by_shift_array[shift_counter][0], total_feeds_by_shift_array[shift_counter][1] = shift + 1, total_feeds
@@ -1566,36 +1631,40 @@ def display_total_feeds(detailed_job_report, user_choice, start_date_num, end_da
         generate_crews_list(detailed_job_report, start_date_num, end_date_num, crews_list, empty_name_rows, use_algo)
         longest_name_len = print_crew_header(crews_list, 2)
 
-        total_feeds_by_crew_array = [[0 for x in range(2)] for y in range(len(crews_list) + 1)]
-        total_feeds_by_crew_array[0][0], total_feeds_by_crew_array[0][1] = "Crew", "Total Feeds"
+        if len(crews_list) != 0:
+            total_feeds_by_crew_array = [[0 for x in range(2)] for y in range(len(crews_list) + 1)]
+            total_feeds_by_crew_array[0][0], total_feeds_by_crew_array[0][1] = "Crew", "Total Feeds"
 
-        counter = 1
-        for crew in crews_list:
-            total_feeds = 0
-            for row in range(ROWS):
-                if start_date_num <= int(str(detailed_job_report[row][WORK_DATE_COL_NUM])[0:4] + str(detailed_job_report[row][WORK_DATE_COL_NUM])[5:7] + str(detailed_job_report[row][WORK_DATE_COL_NUM])[8:10]) <= end_date_num:
-                    if str(detailed_job_report[row][EMPLOYEE_NAME_COL_NUM]) == crew:
-                        if 0 <= detailed_job_report[row][ELAPSED_HOURS_COL_NUM] <= EXCESSIVE_THRESHOLD:
-                            total_feeds = total_feeds + detailed_job_report[row][GROSS_FG_QTY_COL_NUM]
-                        elif detailed_job_report[row][ELAPSED_HOURS_COL_NUM] < 0:
-                            append_element_in_array(negative_num_rows, row)
-                        elif detailed_job_report[row][ELAPSED_HOURS_COL_NUM] > EXCESSIVE_THRESHOLD:
-                            append_element_in_array(excessive_num_rows, row)
+            counter = 1
+            for crew in crews_list:
+                total_feeds = 0
+                for row in range(ROWS):
+                    if start_date_num <= int(str(detailed_job_report[row][WORK_DATE_COL_NUM])[0:4] + str(detailed_job_report[row][WORK_DATE_COL_NUM])[5:7] + str(detailed_job_report[row][WORK_DATE_COL_NUM])[8:10]) <= end_date_num:
+                        if detailed_job_report[row][MACHINE_COL_NUM] == MACHINE:
+                            if str(detailed_job_report[row][EMPLOYEE_NAME_COL_NUM]) == crew:
+                                if 0 <= detailed_job_report[row][ELAPSED_HOURS_COL_NUM] <= EXCESSIVE_THRESHOLD:
+                                    total_feeds = total_feeds + detailed_job_report[row][GROSS_FG_QTY_COL_NUM]
+                                elif detailed_job_report[row][ELAPSED_HOURS_COL_NUM] < 0:
+                                    append_element_in_array(negative_num_rows, row)
+                                elif detailed_job_report[row][ELAPSED_HOURS_COL_NUM] > EXCESSIVE_THRESHOLD:
+                                    append_element_in_array(excessive_num_rows, row)
 
-                    elif use_algo:
-                        total_feeds = name_filling_algorithm(detailed_job_report, total_feeds, crew, row, empty_name_rows, negative_num_rows, excessive_num_rows, 4)
+                            elif use_algo:
+                                total_feeds = name_filling_algorithm(detailed_job_report, total_feeds, crew, row, empty_name_rows, negative_num_rows, excessive_num_rows, 4)
 
-            total_feeds_by_crew_array[counter][0], total_feeds_by_crew_array[counter][1] = crew, total_feeds
-            counter = counter + 1
+                total_feeds_by_crew_array[counter][0], total_feeds_by_crew_array[counter][1] = crew, total_feeds
+                counter = counter + 1
 
-        print_rest_of_table(total_feeds_by_crew_array, longest_name_len, 3)
+            print_rest_of_table(total_feeds_by_crew_array, longest_name_len, 3)
 
-        if len(empty_name_rows) > 0 or len(negative_num_rows) > 0 or len(excessive_num_rows) > 0:
-            if yes_or_no(3):
-                display_additional_info(use_algo, empty_name_rows, negative_num_rows, excessive_num_rows)
+            if len(empty_name_rows) > 0 or len(negative_num_rows) > 0 or len(excessive_num_rows) > 0:
+                if yes_or_no(3):
+                    display_additional_info(use_algo, empty_name_rows, negative_num_rows, excessive_num_rows)
 
-        if yes_or_no(2):
-            write_to_excel(total_feeds_by_crew_array, len(total_feeds_by_crew_array))
+            if yes_or_no(2):
+                write_to_excel(total_feeds_by_crew_array, len(total_feeds_by_crew_array))
+        else:
+            print("There is nothing to show here")
 
 
 # function to display average setup time either by shift or by crew
@@ -1614,14 +1683,14 @@ def display_average_setup_time(detailed_job_report, user_choice, start_date_num,
         for elapsed_hours in range(ROWS):
             if detailed_job_report[elapsed_hours][DOWNTIME_COL_NUM] == "Setup":
                 if start_date_num <= int(str(detailed_job_report[elapsed_hours][WORK_DATE_COL_NUM])[0:4] + str(detailed_job_report[elapsed_hours][WORK_DATE_COL_NUM])[5:7] + str(detailed_job_report[elapsed_hours][WORK_DATE_COL_NUM])[8:10]) <= end_date_num:
-                    # error checking for negative times
-                    if detailed_job_report[elapsed_hours][ELAPSED_HOURS_COL_NUM] < 0:
-                        append_element_in_array(negative_num_rows, elapsed_hours)
-                    elif detailed_job_report[elapsed_hours][ELAPSED_HOURS_COL_NUM] > EXCESSIVE_THRESHOLD:
-                        append_element_in_array(excessive_num_rows, elapsed_hours)
-                    else:
-                        total_elapsed_hours = total_elapsed_hours + detailed_job_report[elapsed_hours][ELAPSED_HOURS_COL_NUM]
-                        append_element_in_array(unique_orders_list, detailed_job_report[elapsed_hours][ORDER_NUM_COL_NUM])
+                    if detailed_job_report[elapsed_hours][MACHINE_COL_NUM] == MACHINE:
+                        if detailed_job_report[elapsed_hours][ELAPSED_HOURS_COL_NUM] < 0:
+                            append_element_in_array(negative_num_rows, elapsed_hours)
+                        elif detailed_job_report[elapsed_hours][ELAPSED_HOURS_COL_NUM] > EXCESSIVE_THRESHOLD:
+                            append_element_in_array(excessive_num_rows, elapsed_hours)
+                        else:
+                            total_elapsed_hours = total_elapsed_hours + detailed_job_report[elapsed_hours][ELAPSED_HOURS_COL_NUM]
+                            append_element_in_array(unique_orders_list, detailed_job_report[elapsed_hours][ORDER_NUM_COL_NUM])
 
         print("\nTotal Elapsed Hours: " + str(total_elapsed_hours))
         print("Total Unique Orders: " + str(len(unique_orders_list)))
@@ -1647,59 +1716,60 @@ def display_average_setup_time(detailed_job_report, user_choice, start_date_num,
         rows_with_no_name = []
 
         crews_list = []
-        # create list of crews
         generate_crews_list(djr_array, start_date_num, end_date_num, crews_list, rows_with_no_name, use_algo)
 
-        longest_name_len = print_crew_header(crews_list, 3)
+        if len(crews_list) != 0:
+            longest_name_len = print_crew_header(crews_list, 3)
 
-        # create and initialize array to write to Excel
-        average_setup_time_by_crew_array = [[0 for x in range(2)] for y in range(len(crews_list) + 1)]
-        average_setup_time_by_crew_array[0][0], average_setup_time_by_crew_array[0][1] = "Crew", "Average Setup Time"
+            average_setup_time_by_crew_array = [[0 for x in range(2)] for y in range(len(crews_list) + 1)]
+            average_setup_time_by_crew_array[0][0], average_setup_time_by_crew_array[0][1] = "Crew", "Average Setup Time"
 
-        counter = 1
-        for crew in crews_list:
-            total_elapsed_hours = 0  # counter for total elapsed hours
-            unique_orders_list = []  # list to track all unique orders
-            total_unique_orders = 0
+            counter = 1
+            for crew in crews_list:
+                total_elapsed_hours = 0  # counter for total elapsed hours
+                unique_orders_list = []  # list to track all unique orders
 
-            for elapsed_hours in range(ROWS):
-                if detailed_job_report[elapsed_hours][DOWNTIME_COL_NUM] == "Setup":
-                    if start_date_num <= int(str(detailed_job_report[elapsed_hours][WORK_DATE_COL_NUM])[0:4] + str(detailed_job_report[elapsed_hours][WORK_DATE_COL_NUM])[5:7] + str(detailed_job_report[elapsed_hours][WORK_DATE_COL_NUM])[8:10]) <= end_date_num:
-                        if detailed_job_report[elapsed_hours][EMPLOYEE_NAME_COL_NUM] == crew:
-                            if detailed_job_report[elapsed_hours][ELAPSED_HOURS_COL_NUM] < 0:
-                                append_element_in_array(negative_num_rows, elapsed_hours)
-                            elif detailed_job_report[elapsed_hours][ELAPSED_HOURS_COL_NUM] > EXCESSIVE_THRESHOLD:
-                                append_element_in_array(excessive_num_rows, elapsed_hours)
-                            elif 0 <= detailed_job_report[elapsed_hours][ELAPSED_HOURS_COL_NUM] <= EXCESSIVE_THRESHOLD:
-                                total_elapsed_hours = total_elapsed_hours + detailed_job_report[elapsed_hours][ELAPSED_HOURS_COL_NUM] # increment elapsed hours
-                                append_element_in_array(unique_orders_list, detailed_job_report[elapsed_hours][ORDER_NUM_COL_NUM]) # append order if unique
-                        elif use_algo:
-                            # increment elapsed hours
-                            total_elapsed_hours = name_filling_algorithm(detailed_job_report, total_elapsed_hours, crew, elapsed_hours, rows_with_no_name, negative_num_rows, excessive_num_rows, 3)
+                for elapsed_hours in range(ROWS):
+                    if detailed_job_report[elapsed_hours][DOWNTIME_COL_NUM] == "Setup":
+                        if start_date_num <= int(str(detailed_job_report[elapsed_hours][WORK_DATE_COL_NUM])[0:4] + str(detailed_job_report[elapsed_hours][WORK_DATE_COL_NUM])[5:7] + str(detailed_job_report[elapsed_hours][WORK_DATE_COL_NUM])[8:10]) <= end_date_num:
+                            if detailed_job_report[elapsed_hours][MACHINE_COL_NUM] == MACHINE:
+                                if detailed_job_report[elapsed_hours][EMPLOYEE_NAME_COL_NUM] == crew:
+                                    if detailed_job_report[elapsed_hours][ELAPSED_HOURS_COL_NUM] < 0:
+                                        append_element_in_array(negative_num_rows, elapsed_hours)
+                                    elif detailed_job_report[elapsed_hours][ELAPSED_HOURS_COL_NUM] > EXCESSIVE_THRESHOLD:
+                                        append_element_in_array(excessive_num_rows, elapsed_hours)
+                                    elif 0 <= detailed_job_report[elapsed_hours][ELAPSED_HOURS_COL_NUM] <= EXCESSIVE_THRESHOLD:
+                                        total_elapsed_hours = total_elapsed_hours + detailed_job_report[elapsed_hours][ELAPSED_HOURS_COL_NUM] # increment elapsed hours
+                                        append_element_in_array(unique_orders_list, detailed_job_report[elapsed_hours][ORDER_NUM_COL_NUM]) # append order if unique
+                                elif use_algo:
+                                    # increment elapsed hours
+                                    total_elapsed_hours = name_filling_algorithm(detailed_job_report, total_elapsed_hours, crew, elapsed_hours, rows_with_no_name, negative_num_rows, excessive_num_rows, 3)
 
-                            # append order if unique
-                            if str(detailed_job_report[elapsed_hours][EMPLOYEE_NAME_COL_NUM]) == "nan":
-                                if assume_name(djr_array, rows_with_no_name, elapsed_hours) == crew:
-                                    append_element_in_array(unique_orders_list, detailed_job_report[elapsed_hours][ORDER_NUM_COL_NUM])
+                                    # append order if unique
+                                    if str(detailed_job_report[elapsed_hours][EMPLOYEE_NAME_COL_NUM]) == "nan":
+                                        if assume_name(djr_array, rows_with_no_name, elapsed_hours) == crew:
+                                            append_element_in_array(unique_orders_list, detailed_job_report[elapsed_hours][ORDER_NUM_COL_NUM])
 
-            # final calculation
-            total_unique_orders = len(unique_orders_list)
-            if total_unique_orders != 0:
-                # print(str(total_elapsed_hours) + " " + str(total_unique_orders))
-                average_setup_time = (total_elapsed_hours / total_unique_orders) * 60
-                average_setup_time_by_crew_array[counter][0], average_setup_time_by_crew_array[counter][1] = crew, average_setup_time
-            else:
-                average_setup_time_by_crew_array[counter][0], average_setup_time_by_crew_array[counter][1] = crew, "N/A"
-            counter = counter + 1
+                # final calculation
+                total_unique_orders = len(unique_orders_list)
+                if total_unique_orders != 0:
+                    # print(str(total_elapsed_hours) + " " + str(total_unique_orders))
+                    average_setup_time = (total_elapsed_hours / total_unique_orders) * 60
+                    average_setup_time_by_crew_array[counter][0], average_setup_time_by_crew_array[counter][1] = crew, average_setup_time
+                else:
+                    average_setup_time_by_crew_array[counter][0], average_setup_time_by_crew_array[counter][1] = crew, "N/A"
+                counter = counter + 1
 
-        print_rest_of_table(average_setup_time_by_crew_array, longest_name_len, 4)
+            print_rest_of_table(average_setup_time_by_crew_array, longest_name_len, 4)
 
-        if len(rows_with_no_name) > 0 or len(negative_num_rows) > 0 or len(excessive_num_rows) > 0:
-            if yes_or_no(3):
-                display_additional_info(use_algo, rows_with_no_name, negative_num_rows, excessive_num_rows)
+            if len(rows_with_no_name) > 0 or len(negative_num_rows) > 0 or len(excessive_num_rows) > 0:
+                if yes_or_no(3):
+                    display_additional_info(use_algo, rows_with_no_name, negative_num_rows, excessive_num_rows)
 
-        if yes_or_no(2):
-            write_to_excel(average_setup_time_by_crew_array, len(average_setup_time_by_crew_array))
+            if yes_or_no(2):
+                write_to_excel(average_setup_time_by_crew_array, len(average_setup_time_by_crew_array))
+        else:
+            print("There is nothing to show here")
 
 
 # function to display chart for feeds per day either by shift or by crew
@@ -1721,13 +1791,14 @@ def display_feeds_per_day(detailed_job_report, user_choice, start_date_num, end_
             resulting_table[row_table + 1][0] = convert_date_int_to_string(start_date_num + row_table)
             for row_djr in range(ROWS):
                 if str(start_date_num + row_table) == str(detailed_job_report[row_djr][WORK_DATE_COL_NUM])[0:4] + str(detailed_job_report[row_djr][WORK_DATE_COL_NUM])[5:7] + str(detailed_job_report[row_djr][WORK_DATE_COL_NUM])[8:10]:
-                    for shift in range(3):
-                        if detailed_job_report[row_djr][SHIFT_COL_NUM] == shift + 1 and 0 <= detailed_job_report[row_djr][ELAPSED_HOURS_COL_NUM] <= EXCESSIVE_THRESHOLD:
-                            resulting_table[row_table + 1][shift + 1] = resulting_table[row_table + 1][shift + 1] + detailed_job_report[row_djr][GROSS_FG_QTY_COL_NUM]
-                        elif detailed_job_report[row_djr][SHIFT_COL_NUM] == shift + 1 and detailed_job_report[row_djr][ELAPSED_HOURS_COL_NUM] > EXCESSIVE_THRESHOLD:
-                            append_element_in_array(excessive_num_rows, row_djr)
-                        elif detailed_job_report[row_djr][SHIFT_COL_NUM] == shift + 1 and detailed_job_report[row_djr][ELAPSED_HOURS_COL_NUM] < 0:
-                            append_element_in_array(negative_num_rows, row_djr)
+                    if detailed_job_report[row_djr][MACHINE_COL_NUM] == MACHINE:
+                        for shift in range(3):
+                            if detailed_job_report[row_djr][SHIFT_COL_NUM] == shift + 1 and 0 <= detailed_job_report[row_djr][ELAPSED_HOURS_COL_NUM] <= EXCESSIVE_THRESHOLD:
+                                resulting_table[row_table + 1][shift + 1] = resulting_table[row_table + 1][shift + 1] + detailed_job_report[row_djr][GROSS_FG_QTY_COL_NUM]
+                            elif detailed_job_report[row_djr][SHIFT_COL_NUM] == shift + 1 and detailed_job_report[row_djr][ELAPSED_HOURS_COL_NUM] > EXCESSIVE_THRESHOLD:
+                                append_element_in_array(excessive_num_rows, row_djr)
+                            elif detailed_job_report[row_djr][SHIFT_COL_NUM] == shift + 1 and detailed_job_report[row_djr][ELAPSED_HOURS_COL_NUM] < 0:
+                                append_element_in_array(negative_num_rows, row_djr)
 
         table_length = len(resulting_table)
 
@@ -1772,62 +1843,67 @@ def display_feeds_per_day(detailed_job_report, user_choice, start_date_num, end_
         crews_list = []
         generate_crews_list(detailed_job_report, start_date_num, end_date_num, crews_list, empty_name_rows, use_algo)
 
-        # create header for resulting table
-        resulting_table = [[0 for x in range(len(crews_list) + 1)] for y in range(int(end_date_num - start_date_num + 2))]
-        resulting_table[0][0] = "Work Date"
-        for col in range(len(crews_list)):
-            resulting_table[0][col + 1] = crews_list[col]
+        if len(crews_list) != 0:
+            # create header for resulting table
+            resulting_table = [[0 for x in range(len(crews_list) + 1)] for y in range(int(end_date_num - start_date_num + 2))]
+            resulting_table[0][0] = "Work Date"
+            for col in range(len(crews_list)):
+                resulting_table[0][col + 1] = crews_list[col]
 
-        # generate rest of table
-        for row_table in range(len(resulting_table) - 1):
-            resulting_table[row_table + 1][0] = convert_date_int_to_string(start_date_num + row_table)
-        for row_djr in range(ROWS):
+            # generate rest of table
             for row_table in range(len(resulting_table) - 1):
-                if str(start_date_num + row_table) == str(detailed_job_report[row_djr][WORK_DATE_COL_NUM])[0:4] + str(detailed_job_report[row_djr][WORK_DATE_COL_NUM])[5:7] + str(detailed_job_report[row_djr][WORK_DATE_COL_NUM])[8:10]:
-                    if str(detailed_job_report[row_djr][EMPLOYEE_NAME_COL_NUM]) != "nan":
-                        for crew_counter in range(len(crews_list)):
-                            if detailed_job_report[row_djr][EMPLOYEE_NAME_COL_NUM] == crews_list[crew_counter]:
-                                if 0 <= detailed_job_report[row_djr][ELAPSED_HOURS_COL_NUM] <= EXCESSIVE_THRESHOLD:
-                                    resulting_table[row_table + 1][crew_counter + 1] = resulting_table[row_table + 1][crew_counter + 1] + detailed_job_report[row_djr][GROSS_FG_QTY_COL_NUM]
-                                elif detailed_job_report[row_djr][ELAPSED_HOURS_COL_NUM] > EXCESSIVE_THRESHOLD:
-                                    append_element_in_array(excessive_num_rows, row_djr)
-                                elif detailed_job_report[row_djr][ELAPSED_HOURS_COL_NUM] < 0:
-                                    append_element_in_array(negative_num_rows, row_djr)
-                    if str(detailed_job_report[row_djr][EMPLOYEE_NAME_COL_NUM]) == "nan" and use_algo:
-                        for crew_index in range(len(crews_list)):
-                            feeds_calculated_by_AI = 0
-                            feeds_calculated_by_AI = name_filling_algorithm(detailed_job_report, feeds_calculated_by_AI, crews_list[crew_index], row_djr, empty_name_rows, negative_num_rows, excessive_num_rows, 4)
-                            resulting_table[row_table + 1][crew_index + 1] = resulting_table[row_table + 1][crew_index + 1] + feeds_calculated_by_AI
+                resulting_table[row_table + 1][0] = convert_date_int_to_string(start_date_num + row_table)
+            for row_djr in range(ROWS):
+                if detailed_job_report[row_djr][MACHINE_COL_NUM] == MACHINE:
+                    for row_table in range(len(resulting_table) - 1):
+                        if str(start_date_num + row_table) == str(detailed_job_report[row_djr][WORK_DATE_COL_NUM])[0:4] + str(detailed_job_report[row_djr][WORK_DATE_COL_NUM])[5:7] + str(detailed_job_report[row_djr][WORK_DATE_COL_NUM])[8:10]:
+                            if str(detailed_job_report[row_djr][EMPLOYEE_NAME_COL_NUM]) != "nan":
+                                for crew_counter in range(len(crews_list)):
+                                    if detailed_job_report[row_djr][EMPLOYEE_NAME_COL_NUM] == crews_list[crew_counter]:
+                                        if 0 <= detailed_job_report[row_djr][ELAPSED_HOURS_COL_NUM] <= EXCESSIVE_THRESHOLD:
+                                            resulting_table[row_table + 1][crew_counter + 1] = resulting_table[row_table + 1][crew_counter + 1] + detailed_job_report[row_djr][GROSS_FG_QTY_COL_NUM]
+                                        elif detailed_job_report[row_djr][ELAPSED_HOURS_COL_NUM] > EXCESSIVE_THRESHOLD:
+                                            append_element_in_array(excessive_num_rows, row_djr)
+                                        elif detailed_job_report[row_djr][ELAPSED_HOURS_COL_NUM] < 0:
+                                            append_element_in_array(negative_num_rows, row_djr)
+                            if str(detailed_job_report[row_djr][EMPLOYEE_NAME_COL_NUM]) == "nan" and use_algo:
+                                for crew_index in range(len(crews_list)):
+                                    feeds_calculated_by_AI = 0
+                                    feeds_calculated_by_AI = name_filling_algorithm(detailed_job_report, feeds_calculated_by_AI, crews_list[crew_index], row_djr, empty_name_rows, negative_num_rows, excessive_num_rows, 4)
+                                    resulting_table[row_table + 1][crew_index + 1] = resulting_table[row_table + 1][crew_index + 1] + feeds_calculated_by_AI
 
-        table_length = len(resulting_table)
+            table_length = len(resulting_table)
 
-        if yes_or_no(5):
-            # delete unnecessary rows
-            location = 1
-            for row_table in range(len(resulting_table) - 1):
-                all_zero = True
-                for col in range(len(crews_list)):
-                    if resulting_table[row_table + 1][col + 1] > 0:
-                        all_zero = False
-                if not all_zero:
-                    for col in range(len(crews_list) + 1):
-                        resulting_table[location][col] = resulting_table[row_table + 1][col]
+            if yes_or_no(5):
+                # delete unnecessary rows
+                location = 1
+                for row_table in range(len(resulting_table) - 1):
+                    all_zero = True
+                    for col in range(len(crews_list)):
+                        if resulting_table[row_table + 1][col + 1] > 0:
+                            all_zero = False
+                    if not all_zero:
+                        for col in range(len(crews_list) + 1):
+                            resulting_table[location][col] = resulting_table[row_table + 1][col]
 
-                    location = location + 1
+                        location = location + 1
 
-            table_length = location
+                table_length = location
 
-        print_feeds_per_day_by_crew(resulting_table, table_length, crews_list)
+            print_feeds_per_day_by_crew(resulting_table, table_length, crews_list)
 
-        if len(empty_name_rows) > 0 or len(negative_num_rows) > 0 or len(excessive_num_rows) > 0:
-            if yes_or_no(3):
-                display_additional_info(use_algo, empty_name_rows, negative_num_rows, excessive_num_rows)
+            if len(empty_name_rows) > 0 or len(negative_num_rows) > 0 or len(excessive_num_rows) > 0:
+                if yes_or_no(3):
+                    display_additional_info(use_algo, empty_name_rows, negative_num_rows, excessive_num_rows)
 
-        if yes_or_no(2):
-            write_to_excel(resulting_table, table_length)
+            if yes_or_no(2):
+                write_to_excel(resulting_table, table_length)
 
-        if yes_or_no(6):
-            calculate_average_feeds_by_crew(resulting_table, table_length, crews_list)
+            if yes_or_no(6):
+                calculate_average_feeds_by_crew(resulting_table, table_length, crews_list)
+
+        else:
+            print("There is nothing to show here")
 
 
 # function to display the average order size, or the total number of jobs by # of colors or ups
@@ -1843,7 +1919,8 @@ def display_order_type(detailed_job_report, option, start_date_num, end_date_num
         # sum all unique orders + total feed quantity
         for row in range(ROWS):
             if start_date_num <= int(str(detailed_job_report[row][WORK_DATE_COL_NUM])[0:4] + str(detailed_job_report[row][WORK_DATE_COL_NUM])[5:7] + str(detailed_job_report[row][WORK_DATE_COL_NUM])[8:10]) <= end_date_num:
-                total_quantity = incrementing_algo(detailed_job_report, row, total_quantity, unique_orders)
+                if detailed_job_report[row][MACHINE_COL_NUM] == MACHINE:
+                    total_quantity = incrementing_algo(detailed_job_report, row, total_quantity, unique_orders)
 
         print("\nTotal Order Quantity: " + str(total_quantity))
         print("Total Unique Orders: " + str(len(unique_orders)))
@@ -1857,14 +1934,15 @@ def display_order_type(detailed_job_report, option, start_date_num, end_date_num
         # first find the largest number of items in the detailed job report (either the # of colors or ups)
         largest_num_items = 0
         for row in range(ROWS):
-            if option == 2: # find the largest number of colors used
-                if str(detailed_job_report[row][NUM_COLORS_COL_NUM]) != "nan":
-                    if detailed_job_report[row][NUM_COLORS_COL_NUM] > largest_num_items:
-                        largest_num_items = int(detailed_job_report[row][NUM_COLORS_COL_NUM])
-            else: # find the largest number of ups used
-                if str(detailed_job_report[row][NUM_UPS_COL_NUM]) != "nan":
-                    if detailed_job_report[row][NUM_UPS_COL_NUM] > largest_num_items:
-                        largest_num_items = int(detailed_job_report[row][NUM_UPS_COL_NUM])
+            if detailed_job_report[row][MACHINE_COL_NUM] == MACHINE:
+                if option == 2: # find the largest number of colors used
+                    if str(detailed_job_report[row][NUM_COLORS_COL_NUM]) != "nan":
+                        if detailed_job_report[row][NUM_COLORS_COL_NUM] > largest_num_items:
+                            largest_num_items = int(detailed_job_report[row][NUM_COLORS_COL_NUM])
+                else: # find the largest number of ups used
+                    if str(detailed_job_report[row][NUM_UPS_COL_NUM]) != "nan":
+                        if detailed_job_report[row][NUM_UPS_COL_NUM] > largest_num_items:
+                            largest_num_items = int(detailed_job_report[row][NUM_UPS_COL_NUM])
 
         # create resulting array for printing/writing
         resulting_array = np.array([[0 for x in range(largest_num_items + 2)] for y in range(2)], dtype='object')
@@ -1878,12 +1956,13 @@ def display_order_type(detailed_job_report, option, start_date_num, end_date_num
             unique_orders = []  # array to keep track of unique orders
             for row in range(ROWS):
                 if start_date_num <= int(str(detailed_job_report[row][WORK_DATE_COL_NUM])[0:4] + str(detailed_job_report[row][WORK_DATE_COL_NUM])[5:7] + str(detailed_job_report[row][WORK_DATE_COL_NUM])[8:10]) <= end_date_num:
-                    if option == 2: # user wants jobs by number of colors
-                        if detailed_job_report[row][NUM_COLORS_COL_NUM] == num_items:
-                            append_element_in_array(unique_orders, detailed_job_report[row][ORDER_NUM_COL_NUM])
-                    else: # user wants jobs by number of ups
-                        if detailed_job_report[row][NUM_UPS_COL_NUM] == num_items:
-                            append_element_in_array(unique_orders, detailed_job_report[row][ORDER_NUM_COL_NUM])
+                    if detailed_job_report[row][MACHINE_COL_NUM] == MACHINE:
+                        if option == 2: # user wants jobs by number of colors
+                            if detailed_job_report[row][NUM_COLORS_COL_NUM] == num_items:
+                                append_element_in_array(unique_orders, detailed_job_report[row][ORDER_NUM_COL_NUM])
+                        else: # user wants jobs by number of ups
+                            if detailed_job_report[row][NUM_UPS_COL_NUM] == num_items:
+                                append_element_in_array(unique_orders, detailed_job_report[row][ORDER_NUM_COL_NUM])
 
             if len(unique_orders) > 0:
                 resulting_array[0][counter] = num_items
@@ -1923,13 +2002,14 @@ def display_average_run_speed(detailed_job_report, option, start_date_num, end_d
             for row in range(ROWS):
                 if start_date_num <= int(str(detailed_job_report[row][WORK_DATE_COL_NUM])[0:4] + str(detailed_job_report[row][WORK_DATE_COL_NUM])[5:7] + str(detailed_job_report[row][WORK_DATE_COL_NUM])[8:10]) <= end_date_num:
                     if str(detailed_job_report[row][SHIFT_COL_NUM]) == str(shift + 1) and detailed_job_report[row][CHARGE_CODE_COL_NUM] == "RUN": # calculate total run elapsed hours for specific shift
-                        if 0 <= detailed_job_report[row][ELAPSED_HOURS_COL_NUM] <= EXCESSIVE_THRESHOLD:
-                            total_feeds = total_feeds + detailed_job_report[row][GROSS_FG_QTY_COL_NUM]
-                            total_run_hours = total_run_hours + detailed_job_report[row][ELAPSED_HOURS_COL_NUM]
-                        elif detailed_job_report[row][ELAPSED_HOURS_COL_NUM] > EXCESSIVE_THRESHOLD:
-                            append_element_in_array(excessive_num_rows, row)
-                        elif detailed_job_report[row][ELAPSED_HOURS_COL_NUM] < 0:
-                            append_element_in_array(negative_num_rows, row)
+                        if detailed_job_report[row][MACHINE_COL_NUM] == MACHINE:
+                            if 0 <= detailed_job_report[row][ELAPSED_HOURS_COL_NUM] <= EXCESSIVE_THRESHOLD:
+                                total_feeds = total_feeds + detailed_job_report[row][GROSS_FG_QTY_COL_NUM]
+                                total_run_hours = total_run_hours + detailed_job_report[row][ELAPSED_HOURS_COL_NUM]
+                            elif detailed_job_report[row][ELAPSED_HOURS_COL_NUM] > EXCESSIVE_THRESHOLD:
+                                append_element_in_array(excessive_num_rows, row)
+                            elif detailed_job_report[row][ELAPSED_HOURS_COL_NUM] < 0:
+                                append_element_in_array(negative_num_rows, row)
 
             print("|   " + str(shift + 1) + "   | ", end="")
             if total_run_hours != 0:
@@ -1972,48 +2052,52 @@ def display_average_run_speed(detailed_job_report, option, start_date_num, end_d
         crews_list = []
         generate_crews_list(detailed_job_report, start_date_num, end_date_num, crews_list, rows_with_no_name, use_algo)
 
-        average_run_speed_by_crew_array = [[0 for x in range(2)] for y in range(len(crews_list) + 1)]
-        average_run_speed_by_crew_array[0][0], average_run_speed_by_crew_array[0][1] = CREW_LABEL, AVERAGE_RUN_SPEED_LABEL
+        if len(crews_list) != 0:
+            average_run_speed_by_crew_array = [[0 for x in range(2)] for y in range(len(crews_list) + 1)]
+            average_run_speed_by_crew_array[0][0], average_run_speed_by_crew_array[0][1] = CREW_LABEL, AVERAGE_RUN_SPEED_LABEL
 
-        longest_name_len = print_crew_header(crews_list, 5)
+            longest_name_len = print_crew_header(crews_list, 5)
 
-        crew_counter = 1
-        for crew in crews_list:
-            total_feeds = 0
-            total_run_hours = 0
-            for row in range(ROWS):
-                if start_date_num <= int(str(detailed_job_report[row][WORK_DATE_COL_NUM])[0:4] + str(detailed_job_report[row][WORK_DATE_COL_NUM])[5:7] + str(detailed_job_report[row][WORK_DATE_COL_NUM])[8:10]) <= end_date_num:
-                    if str(detailed_job_report[row][EMPLOYEE_NAME_COL_NUM]) == crew and detailed_job_report[row][CHARGE_CODE_COL_NUM] == "RUN":
-                        if 0 <= detailed_job_report[row][ELAPSED_HOURS_COL_NUM] <= EXCESSIVE_THRESHOLD:
-                            total_feeds = total_feeds + detailed_job_report[row][GROSS_FG_QTY_COL_NUM]
-                            total_run_hours = total_run_hours + detailed_job_report[row][ELAPSED_HOURS_COL_NUM]
-                        elif detailed_job_report[row][ELAPSED_HOURS_COL_NUM] > EXCESSIVE_THRESHOLD:
-                            append_element_in_array(excessive_num_rows, row)
-                        elif detailed_job_report[row][ELAPSED_HOURS_COL_NUM] < 0:
-                            append_element_in_array(negative_num_rows, row)
+            crew_counter = 1
+            for crew in crews_list:
+                total_feeds = 0
+                total_run_hours = 0
+                for row in range(ROWS):
+                    if start_date_num <= int(str(detailed_job_report[row][WORK_DATE_COL_NUM])[0:4] + str(detailed_job_report[row][WORK_DATE_COL_NUM])[5:7] + str(detailed_job_report[row][WORK_DATE_COL_NUM])[8:10]) <= end_date_num:
+                        if str(detailed_job_report[row][EMPLOYEE_NAME_COL_NUM]) == crew and detailed_job_report[row][CHARGE_CODE_COL_NUM] == "RUN":
+                            if detailed_job_report[row][MACHINE_COL_NUM] == MACHINE:
+                                if 0 <= detailed_job_report[row][ELAPSED_HOURS_COL_NUM] <= EXCESSIVE_THRESHOLD:
+                                    total_feeds = total_feeds + detailed_job_report[row][GROSS_FG_QTY_COL_NUM]
+                                    total_run_hours = total_run_hours + detailed_job_report[row][ELAPSED_HOURS_COL_NUM]
+                                elif detailed_job_report[row][ELAPSED_HOURS_COL_NUM] > EXCESSIVE_THRESHOLD:
+                                    append_element_in_array(excessive_num_rows, row)
+                                elif detailed_job_report[row][ELAPSED_HOURS_COL_NUM] < 0:
+                                    append_element_in_array(negative_num_rows, row)
 
-                    elif use_algo and detailed_job_report[row][CHARGE_CODE_COL_NUM] == "RUN":
-                        total_feeds = name_filling_algorithm(detailed_job_report, total_feeds, crew, row, rows_with_no_name, negative_num_rows, excessive_num_rows, 4)
-                        total_run_hours = name_filling_algorithm(detailed_job_report, total_run_hours, crew, row, rows_with_no_name, negative_num_rows, excessive_num_rows, 1)
+                        elif use_algo and detailed_job_report[row][CHARGE_CODE_COL_NUM] == "RUN":
+                            total_feeds = name_filling_algorithm(detailed_job_report, total_feeds, crew, row, rows_with_no_name, negative_num_rows, excessive_num_rows, 4)
+                            total_run_hours = name_filling_algorithm(detailed_job_report, total_run_hours, crew, row, rows_with_no_name, negative_num_rows, excessive_num_rows, 1)
 
-            if total_run_hours > 0:
-                average_run_speed_by_crew_array[crew_counter][0], average_run_speed_by_crew_array[crew_counter][1] = crew, total_feeds / total_run_hours
-            else:
-                average_run_speed_by_crew_array[crew_counter][0], average_run_speed_by_crew_array[crew_counter][1] = crew, "N/A"
+                if total_run_hours > 0:
+                    average_run_speed_by_crew_array[crew_counter][0], average_run_speed_by_crew_array[crew_counter][1] = crew, total_feeds / total_run_hours
+                else:
+                    average_run_speed_by_crew_array[crew_counter][0], average_run_speed_by_crew_array[crew_counter][1] = crew, "N/A"
 
-            crew_counter = crew_counter + 1
+                crew_counter = crew_counter + 1
 
-        print_rest_of_table(average_run_speed_by_crew_array, longest_name_len, 5)
+            print_rest_of_table(average_run_speed_by_crew_array, longest_name_len, 5)
 
-        if len(rows_with_no_name) > 0 or len(negative_num_rows) > 0 or len(excessive_num_rows) > 0:
-            if yes_or_no(3):
-                display_additional_info(use_algo, rows_with_no_name, negative_num_rows, excessive_num_rows)
+            if len(rows_with_no_name) > 0 or len(negative_num_rows) > 0 or len(excessive_num_rows) > 0:
+                if yes_or_no(3):
+                    display_additional_info(use_algo, rows_with_no_name, negative_num_rows, excessive_num_rows)
 
-        if yes_or_no(2):
-            write_to_excel(average_run_speed_by_crew_array, len(average_run_speed_by_crew_array))
+            if yes_or_no(2):
+                write_to_excel(average_run_speed_by_crew_array, len(average_run_speed_by_crew_array))
+        else:
+            print("There is nothing to show here")
 
 ###################################
-# obtaining the Detailed Job Report
+# obtaining the detailed job report
 ###################################
 djr_array = [] # initialize detailed job report array
 user_error = True
@@ -2067,6 +2151,7 @@ while user_error: # obtaining the Detailed Job Report (.xlsx) spreadsheet by nam
 # global variables
 ##################
 ROWS, COLUMNS = djr_array.shape
+MACHINE = ""
 
 CHARGE_CODE_COL_NUM = 0
 ELAPSED_HOURS_COL_NUM = 3
@@ -2075,6 +2160,7 @@ SHIFT_COL_NUM = 5
 ORDER_NUM_COL_NUM = 8
 ORDER_QTY_COL_NUM = 9
 GROSS_FG_QTY_COL_NUM = 15
+MACHINE_COL_NUM = 18
 NUM_UPS_COL_NUM = 19
 EMPLOYEE_NAME_COL_NUM = 26
 DOWNTIME_COL_NUM = 28
@@ -2097,6 +2183,27 @@ AVERAGE_ORDER_QTY_LABEL = "Average Order Quantity"
 AVERAGE_RUN_SPEED_LABEL = "Average Run Speed (feeds/hour)"
 
 EXCESSIVE_THRESHOLD = 5
+
+
+##################################
+# obtaining the machine to analyze
+##################################
+list_of_machines = [] # initialize list of all possible machines within the detailed job report
+for row in range(ROWS):
+    append_element_in_array(list_of_machines, djr_array[row][MACHINE_COL_NUM])
+
+print_list_of_machines(list_of_machines)
+
+user_error = True
+while user_error:
+    machine_selection = input("Enter the number associated to the machine you would like to analyze: ")
+
+    if 1 <= int(machine_selection) <= len(list_of_machines):
+        MACHINE = list_of_machines[int(machine_selection) - 1]
+        user_error = False
+    else:
+        print("Error. Please try again.")
+
 
 user_done = False
 while not user_done:

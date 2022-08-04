@@ -203,6 +203,18 @@ def obtain_second_date_string(detailed_job_report_array, first_date_string):
     return second_date_string
 
 
+# function to check for gaps in the Employee Name column for a given date frame
+# arguments: the detailed job report, the start date as an int and the end date as an int
+# returns true or false depending on whether gaps were found or not
+def check_for_gaps_in_data(detailed_job_report, start_date_num, end_date_num):
+    for row in range(ROWS):
+        if start_date_num <= int(str(detailed_job_report[row][WORK_DATE_COL_NUM])[0:4] + str(djr_array[row][WORK_DATE_COL_NUM])[5:7] + str(detailed_job_report[row][WORK_DATE_COL_NUM])[8:10]) <= end_date_num:
+            if str(detailed_job_report[row][EMPLOYEE_NAME_COL_NUM]) == "nan":
+                return True
+
+    return False
+
+
 # algorithm to continue incrementing a counter variable
 # (either total machine hours, ODT, total setup time or total feeds)
 # when a missing name occurs in the employee name column
@@ -231,141 +243,6 @@ def name_filling_algorithm(detailed_job_report, counter, crew, row, empty_name_r
                 counter = update_counter(detailed_job_report, row, assumed_name, crew, counter, negative_num_rows, excessive_num_rows, True)
 
     return counter
-
-
-# function for adding a value in the detailed job report to the counter if the assumed name from the name-assuming
-# algorithm matches the crew being analyzed and the elapsed hours is above zero and below the threshold
-# otherwise, the row is appended to its respective list of erroneous rows
-# arguments: the detailed job report, the row being analyzed, the name assumed by the name-assuming algorithm,
-# the crew being analyzed, the counter variable, the list of rows with negative elapsed hours,
-# the list of rows with excessive elapsed hours and whether we are incrementing on the total feeds or not
-# returns the new updated counter value
-def update_counter(detailed_job_report, row, assumed_name, crew, counter, negative_num_rows, excessive_num_rows, is_total_feeds):
-    if assumed_name == crew and 0 <= detailed_job_report[row][ELAPSED_HOURS_COL_NUM] <= EXCESSIVE_THRESHOLD:
-        if is_total_feeds:
-            counter = counter + detailed_job_report[row][GROSS_FG_QTY_COL_NUM]
-        else:
-            counter = counter + detailed_job_report[row][ELAPSED_HOURS_COL_NUM]
-    elif assumed_name == crew and detailed_job_report[row][ELAPSED_HOURS_COL_NUM] > EXCESSIVE_THRESHOLD:
-        append_element_in_array(excessive_num_rows, row)
-    elif assumed_name == crew and detailed_job_report[row][ELAPSED_HOURS_COL_NUM] < 0:
-        append_element_in_array(negative_num_rows, row)
-
-    return counter
-
-
-# sorting algorithm
-# arguments: takes a single one-dimension array
-# and sorts its values from smallest to largest
-# returns nothing
-def sorting_algorithm(array):
-    for i in range(len(array) - 1, 0, -1):
-        for j in range(0, i):
-            if array[j] > array[i]:
-                temp = array[j]
-                array[j] = array[i]
-                array[i] = temp
-
-
-# function to print all incorrect numbers in a given list
-# arguments: the number of numbers in an array, the array itself
-# and an option to indicate what sort of wrong numbers we are printing
-# 1 = negative elapsed hours and 2 = excessive elapsed hours
-# returns nothing
-def print_wrong_nums_list(num_numbers, wrong_nums_list, option):
-    if option == 1:
-        print("Row(s) with negative elapsed hours:\n")
-    else:
-        print("Row(s) with excessive elapsed hours (greater than " + str(EXCESSIVE_THRESHOLD) + "):\n")
-
-    counter = 0
-    for row in range(num_numbers):
-        print(wrong_nums_list[row] + 2, end=" ")
-        counter = counter + 1
-
-        if counter > 15:
-            print("")
-            counter = 0
-
-    if counter != 0:
-        print()
-    print("\nThese row(s) were omitted from calculations")
-    print("---------------------------------------------")
-
-
-# function for printing both the list of rows with negative elapsed hours
-# and the list of rows with excessive elapsed hours
-# arguments: the list of rows with negative elapsed hours and
-# the list of rows with excessive elapsed hours
-# used in all situations except when user requests information by crew
-# returns nothing
-def print_incorrect_hours(negative_num_rows, excessive_num_rows):
-    print("\n")
-
-    if len(negative_num_rows) > 0:
-        sorting_algorithm(negative_num_rows)
-        print_wrong_nums_list(len(negative_num_rows), negative_num_rows, 1)
-
-    if len(excessive_num_rows) > 0:
-        sorting_algorithm(excessive_num_rows)
-        print_wrong_nums_list(len(excessive_num_rows), excessive_num_rows, 2)
-
-
-# function to create array of unique crew members
-# arguments: the detailed job report array, the start date as an integer,
-# the end date as an integer and the empty list of crew members
-# returns nothing
-def generate_crews_list(detailed_job_report, start_date_num, end_date_num, crews_list, rows_with_no_name, use_algo):
-    first_row = 0
-    last_row = 0
-    for row in range(ROWS): # determine which row to start from
-        if start_date_num == int(str(detailed_job_report[row][WORK_DATE_COL_NUM])[0:4] + str(detailed_job_report[row][WORK_DATE_COL_NUM])[5:7] + str(detailed_job_report[row][WORK_DATE_COL_NUM])[8:10]):
-            if detailed_job_report[row][MACHINE_COL_NUM] == MACHINE:
-                first_row = row
-                break
-    for row in range(first_row, ROWS): # determine which row to end at
-        if end_date_num == int(str(detailed_job_report[row][WORK_DATE_COL_NUM])[0:4] + str(detailed_job_report[row][WORK_DATE_COL_NUM])[5:7] + str(detailed_job_report[row][WORK_DATE_COL_NUM])[8:10]):
-            if detailed_job_report[row][MACHINE_COL_NUM] == MACHINE:
-                last_row = row
-
-    for row in range(ROWS): # must parse the entire detailed job report still in case dates within the date frame are dispersed throughout the spreadsheet
-        if start_date_num <= int(str(detailed_job_report[row][WORK_DATE_COL_NUM])[0:4] + str(detailed_job_report[row][WORK_DATE_COL_NUM])[5:7] + str(detailed_job_report[row][WORK_DATE_COL_NUM])[8:10]) <= end_date_num:
-            if detailed_job_report[row][MACHINE_COL_NUM] == MACHINE:
-                if str(detailed_job_report[row][EMPLOYEE_NAME_COL_NUM]) != "nan":
-                    append_element_in_array(crews_list, str(detailed_job_report[row][EMPLOYEE_NAME_COL_NUM]))
-
-    # add crew members if first or last row contain empty cells for "Employee Name" column and user wishes to use AI
-    if use_algo:
-        if detailed_job_report[row][MACHINE_COL_NUM] == MACHINE:
-            if str(detailed_job_report[first_row][EMPLOYEE_NAME_COL_NUM]) == "nan": # if first row has blank employee name
-                assumed_name = assume_name(detailed_job_report, rows_with_no_name, first_row)
-                if assumed_name != "nan":
-                    append_element_in_array(crews_list, assumed_name)
-            if str(detailed_job_report[last_row][EMPLOYEE_NAME_COL_NUM]) == "nan": # if last row has blank employee name
-                assumed_name = assume_name(detailed_job_report, rows_with_no_name, last_row)
-                if assumed_name != "nan":
-                    append_element_in_array(crews_list, assumed_name)
-
-
-# function for printing all the rows in which AI was unable to attribute a name
-# arguments: the completed list of rows with no name
-# returns nothing
-def print_rows_with_no_name(rows_with_no_name):
-    if len(rows_with_no_name) > 0:
-        print("AI was unable to attribute names to the following row(s) due to insufficient information:\n")
-        counter = 0
-        for item in rows_with_no_name:
-            counter = counter + 1
-
-            if counter < 19:
-                print(str(item + 2) + " ", end="")
-            else:
-                print(str(item + 2) + " ")
-                counter = 0
-
-        if counter != 0:
-            print("")
-        print("\nThese row(s) were omitted from calculations")
 
 
 # function to assume name to a particular empty Employee Name cell
@@ -421,6 +298,76 @@ def assume_name(detailed_job_report, empty_name_rows, row):
                 keep_going = False
 
     return assumed_name
+
+
+# function for adding a value in the detailed job report to the counter if the assumed name from the name-assuming
+# algorithm matches the crew being analyzed and the elapsed hours is above zero and below the threshold
+# otherwise, the row is appended to its respective list of erroneous rows
+# arguments: the detailed job report, the row being analyzed, the name assumed by the name-assuming algorithm,
+# the crew being analyzed, the counter variable, the list of rows with negative elapsed hours,
+# the list of rows with excessive elapsed hours and whether we are incrementing on the total feeds or not
+# returns the new updated counter value
+def update_counter(detailed_job_report, row, assumed_name, crew, counter, negative_num_rows, excessive_num_rows, is_total_feeds):
+    if assumed_name == crew and 0 <= detailed_job_report[row][ELAPSED_HOURS_COL_NUM] <= EXCESSIVE_THRESHOLD:
+        if is_total_feeds:
+            counter = counter + detailed_job_report[row][GROSS_FG_QTY_COL_NUM]
+        else:
+            counter = counter + detailed_job_report[row][ELAPSED_HOURS_COL_NUM]
+    elif assumed_name == crew and detailed_job_report[row][ELAPSED_HOURS_COL_NUM] > EXCESSIVE_THRESHOLD:
+        append_element_in_array(excessive_num_rows, row)
+    elif assumed_name == crew and detailed_job_report[row][ELAPSED_HOURS_COL_NUM] < 0:
+        append_element_in_array(negative_num_rows, row)
+
+    return counter
+
+
+# sorting algorithm
+# arguments: takes a single one-dimension array
+# and sorts its values from smallest to largest
+# returns nothing
+def sorting_algorithm(array):
+    for i in range(len(array) - 1, 0, -1):
+        for j in range(0, i):
+            if array[j] > array[i]:
+                temp = array[j]
+                array[j] = array[i]
+                array[i] = temp
+
+
+# function to create array of unique crew members
+# arguments: the detailed job report array, the start date as an integer,
+# the end date as an integer and the empty list of crew members
+# returns nothing
+def generate_crews_list(detailed_job_report, start_date_num, end_date_num, crews_list, rows_with_no_name, use_algo):
+    first_row = 0
+    last_row = 0
+    for row in range(ROWS): # determine which row to start from
+        if start_date_num == int(str(detailed_job_report[row][WORK_DATE_COL_NUM])[0:4] + str(detailed_job_report[row][WORK_DATE_COL_NUM])[5:7] + str(detailed_job_report[row][WORK_DATE_COL_NUM])[8:10]):
+            if detailed_job_report[row][MACHINE_COL_NUM] == MACHINE:
+                first_row = row
+                break
+    for row in range(first_row, ROWS): # determine which row to end at
+        if end_date_num == int(str(detailed_job_report[row][WORK_DATE_COL_NUM])[0:4] + str(detailed_job_report[row][WORK_DATE_COL_NUM])[5:7] + str(detailed_job_report[row][WORK_DATE_COL_NUM])[8:10]):
+            if detailed_job_report[row][MACHINE_COL_NUM] == MACHINE:
+                last_row = row
+
+    for row in range(ROWS): # must parse the entire detailed job report still in case dates within the date frame are dispersed throughout the spreadsheet
+        if start_date_num <= int(str(detailed_job_report[row][WORK_DATE_COL_NUM])[0:4] + str(detailed_job_report[row][WORK_DATE_COL_NUM])[5:7] + str(detailed_job_report[row][WORK_DATE_COL_NUM])[8:10]) <= end_date_num:
+            if detailed_job_report[row][MACHINE_COL_NUM] == MACHINE:
+                if str(detailed_job_report[row][EMPLOYEE_NAME_COL_NUM]) != "nan":
+                    append_element_in_array(crews_list, str(detailed_job_report[row][EMPLOYEE_NAME_COL_NUM]))
+
+    # add crew members if first or last row contain empty cells for "Employee Name" column and user wishes to use AI
+    if use_algo:
+        if detailed_job_report[row][MACHINE_COL_NUM] == MACHINE:
+            if str(detailed_job_report[first_row][EMPLOYEE_NAME_COL_NUM]) == "nan": # if first row has blank employee name
+                assumed_name = assume_name(detailed_job_report, rows_with_no_name, first_row)
+                if assumed_name != "nan":
+                    append_element_in_array(crews_list, assumed_name)
+            if str(detailed_job_report[last_row][EMPLOYEE_NAME_COL_NUM]) == "nan": # if last row has blank employee name
+                assumed_name = assume_name(detailed_job_report, rows_with_no_name, last_row)
+                if assumed_name != "nan":
+                    append_element_in_array(crews_list, assumed_name)
 
 
 # function to append an element in an array
@@ -506,6 +453,71 @@ def write_to_excel(array, length_of_array):
     charge_code_dataframe = pd.DataFrame(array[0:length_of_array]) # convert array containing data into a dataframe
     charge_code_dataframe.to_excel(spreadsheet_name, index=False) # write dataframe to Excel spreadsheet
     print("Data successfully copied to spreadsheet.")
+
+
+# function to print all incorrect numbers in a given list
+# arguments: the number of numbers in an array, the array itself
+# and an option to indicate what sort of wrong numbers we are printing
+# 1 = negative elapsed hours and 2 = excessive elapsed hours
+# returns nothing
+def print_wrong_nums_list(num_numbers, wrong_nums_list, option):
+    if option == 1:
+        print("Row(s) with negative elapsed hours:\n")
+    else:
+        print("Row(s) with excessive elapsed hours (greater than " + str(EXCESSIVE_THRESHOLD) + "):\n")
+
+    counter = 0
+    for row in range(num_numbers):
+        print(wrong_nums_list[row] + 2, end=" ")
+        counter = counter + 1
+
+        if counter > 15:
+            print("")
+            counter = 0
+
+    if counter != 0:
+        print()
+    print("\nThese row(s) were omitted from calculations")
+    print("---------------------------------------------")
+
+
+# function for printing both the list of rows with negative elapsed hours
+# and the list of rows with excessive elapsed hours
+# arguments: the list of rows with negative elapsed hours and
+# the list of rows with excessive elapsed hours
+# used in all situations except when user requests information by crew
+# returns nothing
+def print_incorrect_hours(negative_num_rows, excessive_num_rows):
+    print("\n")
+
+    if len(negative_num_rows) > 0:
+        sorting_algorithm(negative_num_rows)
+        print_wrong_nums_list(len(negative_num_rows), negative_num_rows, 1)
+
+    if len(excessive_num_rows) > 0:
+        sorting_algorithm(excessive_num_rows)
+        print_wrong_nums_list(len(excessive_num_rows), excessive_num_rows, 2)
+
+
+# function for printing all the rows in which AI was unable to attribute a name
+# arguments: the completed list of rows with no name
+# returns nothing
+def print_rows_with_no_name(rows_with_no_name):
+    if len(rows_with_no_name) > 0:
+        print("AI was unable to attribute names to the following row(s) due to insufficient information:\n")
+        counter = 0
+        for item in rows_with_no_name:
+            counter = counter + 1
+
+            if counter < 19:
+                print(str(item + 2) + " ", end="")
+            else:
+                print(str(item + 2) + " ")
+                counter = 0
+
+        if counter != 0:
+            print("")
+        print("\nThese row(s) were omitted from calculations")
 
 
 # function to print a long number according to a specific number of digits
@@ -931,18 +943,6 @@ def print_dashes_by_crew(length_of_longest_number, length_of_longest_name, list_
         for dash in range(length_of_longest_name * len(list_of_crews)):
             print("-", end="")
     print()
-
-
-# function to check for gaps in the Employee Name column for a given date frame
-# arguments: the detailed job report, the start date as an int and the end date as an int
-# returns true or false depending on whether gaps were found or not
-def check_for_gaps_in_data(detailed_job_report, start_date_num, end_date_num):
-    for row in range(ROWS):
-        if start_date_num <= int(str(detailed_job_report[row][WORK_DATE_COL_NUM])[0:4] + str(djr_array[row][WORK_DATE_COL_NUM])[5:7] + str(detailed_job_report[row][WORK_DATE_COL_NUM])[8:10]) <= end_date_num:
-            if str(detailed_job_report[row][EMPLOYEE_NAME_COL_NUM]) == "nan":
-                return True
-
-    return False
 
 
 # function for calculating the average feeds by shift

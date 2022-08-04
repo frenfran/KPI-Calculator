@@ -1,2 +1,2 @@
 # KPI Calculator
- KPI Calculator for the Apstar Die-Cutter
+ Program to compute KPI calculations for all machines located at the Retail plant

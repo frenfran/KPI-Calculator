@@ -1138,13 +1138,13 @@ def print_average_feeds_by_shift(average_array):
     for row in range(len(average_array) - 1):
         print("|   " + str(row + 1) + "   |", end="")
 
-        if len(str(average_array[row + 1][1])) < len(AVERAGE_FEEDS_LABEL):
+        if len(str(average_array[row + 1][1])) <= len(AVERAGE_FEEDS_LABEL):
             print_digit_short(average_array[row + 1][1], len(AVERAGE_FEEDS_LABEL) + 1)
         else:
             print_digit_long(average_array[row + 1][1], len(AVERAGE_FEEDS_LABEL) - 1)
 
         print(" | ", end="")
-        if len(str(average_array[row + 1][2])) < len(OPPORTUNITY_LABEL):
+        if len(str(average_array[row + 1][2])) <= len(OPPORTUNITY_LABEL):
             print_digit_short(average_array[row + 1][2], len(OPPORTUNITY_LABEL))
         else:
             print_digit_long(average_array[row + 1][2], len(OPPORTUNITY_LABEL) - 1)
@@ -1182,13 +1182,13 @@ def print_average_feeds_by_crew(average_array, list_of_crews):
         print_column_element(average_array[row + 1][0], longest_crew_name)
         print(" | ", end="")
 
-        if len(str(average_array[row + 1][1])) < len(AVERAGE_FEEDS_LABEL):
+        if len(str(average_array[row + 1][1])) <= len(AVERAGE_FEEDS_LABEL):
             print_digit_short(average_array[row + 1][1], len(AVERAGE_FEEDS_LABEL))
         else:
             print_digit_long(average_array[row + 1][1], len(AVERAGE_FEEDS_LABEL) - 1)
 
         print(" | ", end="")
-        if len(str(average_array[row + 1][2])) < len(OPPORTUNITY_LABEL):
+        if len(str(average_array[row + 1][2])) <= len(OPPORTUNITY_LABEL):
             print_digit_short(average_array[row + 1][2], len(OPPORTUNITY_LABEL))
         else:
             print_digit_long(average_array[row + 1][2], len(OPPORTUNITY_LABEL) - 1)

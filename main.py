@@ -136,7 +136,7 @@ def obtain_instruction():
     print("| 4 - break down feeds per day     |")
     print("| 5 - analyze order type           |")
     print("| 6 - calculate average run speed  |")
-    print("| 8 - analyze something else       |")
+    print("| 8 - return to home page          |")
     print("| 9 - exit                         |")
     print("------------------------------------")
 

@@ -7,6 +7,86 @@ from sys import exit
 # helper functions
 ##################
 
+# function for obtaining the detailed job report from the user
+# arguments: none
+# returns the detailed job report as an array
+# includes error checking
+def obtain_detailed_job_report():
+    djr_array = []  # initialize detailed job report array
+    user_error = True
+    while user_error:  # obtaining the Detailed Job Report (.xlsx) spreadsheet by name from directory
+        choice = input(
+            "Enter (1) to enter the Detailed Job Report by name or (2) to enter the Detailed Job Report by path: ")
+        if choice == "1":
+            file_found = False
+            while not file_found:
+                djr_name = input("Enter the file name of the Detailed Job Report: ")
+                djr_name_split = djr_name.split(".")
+
+                try:
+                    contains_file_type = False
+                    if djr_name_split[len(djr_name_split) - 1] == "xlsx" and len(djr_name_split) > 1:
+                        contains_file_type = True
+
+                    if not contains_file_type:
+                        djr_name = djr_name + ".xlsx"
+
+                    djr_dataframe = pd.read_excel(djr_name, sheet_name='Sheet1')
+                    djr_array = djr_dataframe.to_numpy()  # convert data frame to an array
+
+                    file_found = True
+                    print("File found.")
+                except:
+                    print("Error: no such file found in current directory")
+                    print("Please try again")
+            user_error = False
+
+        elif choice == "2":  # obtaining the Detailed Job Report (.xlsx) spreadsheet by path
+            path = ""
+
+            file_found = False
+            while not file_found:
+                try:
+                    path = input("Paste the path to the Detailed Job Report here: ")
+
+                    djr_dataframe = pd.read_excel(path)
+                    djr_array = djr_dataframe.to_numpy()  # convert from dataframe to numpy array
+                    print("File found.")
+                    file_found = True
+                except:
+                    print("Error: no such file found")
+                    print("Please try again")
+            user_error = False
+
+        else:
+            print("Invalid option, please try again")
+
+    return djr_array
+
+
+# function for obtaining which machine for analysis from the user
+# arguments: the detailed job report array
+# returns the machine selected by the user
+# includes error checking
+def obtain_machine_to_analyze(detailed_job_report):
+    list_of_machines = []  # initialize list of all possible machines within the detailed job report
+    for row in range(ROWS):
+        append_element_in_array(list_of_machines, detailed_job_report[row][MACHINE_COL_NUM])
+
+    print_list_of_machines(list_of_machines)
+
+    while True:
+        machine_selection = input("Enter the number associated to the machine you would like to analyze: ")
+
+        try:
+            if 1 <= int(machine_selection) <= len(list_of_machines):
+                return list_of_machines[int(machine_selection) - 1]
+            else:
+                print("Invalid input. Please try again.")
+        except:
+            print("Error. Please try again.")
+
+
 # function for printing all machines found within a detailed job report
 # prints each machine name (as found in the detailed job report) along with an associated number
 # arguments: the list of all machines found within the detailed job report
@@ -56,14 +136,15 @@ def obtain_instruction():
     print("| 4 - break down feeds per day     |")
     print("| 5 - analyze order type           |")
     print("| 6 - calculate average run speed  |")
-    print("| 7 - exit                         |")
+    print("| 8 - analyze something else       |")
+    print("| 9 - exit                         |")
     print("------------------------------------")
 
     user_error = True
     user_input = ""
     while user_error:
         user_input = input("Enter the number associated to your command: ")
-        if user_input == "1" or user_input == "2" or user_input == "3" or user_input == "4" or user_input == "5" or user_input == "6" or user_input == "7":
+        if user_input == "1" or user_input == "2" or user_input == "3" or user_input == "4" or user_input == "5" or user_input == "6" or user_input == "7" or user_input == "8" or user_input == "9":
             user_error = False
         else:
             print("Error: please try again.")
@@ -359,7 +440,7 @@ def generate_crews_list(detailed_job_report, start_date_num, end_date_num, crews
 
     # add crew members if first or last row contain empty cells for "Employee Name" column and user wishes to use AI
     if use_algo:
-        if detailed_job_report[row][MACHINE_COL_NUM] == MACHINE:
+        if detailed_job_report[first_row][MACHINE_COL_NUM] == MACHINE:
             if str(detailed_job_report[first_row][EMPLOYEE_NAME_COL_NUM]) == "nan": # if first row has blank employee name
                 assumed_name = assume_name(detailed_job_report, rows_with_no_name, first_row)
                 if assumed_name != "nan":
@@ -1122,7 +1203,7 @@ def print_average_feeds_by_crew(average_array, list_of_crews):
 # arguments: the pareto chart array, the detailed job report, the start and end dates as integers,
 # the list of negative num rows and the list of excessive num rows
 # returns nothing
-def calculate_ODT_by_crew(charge_code_array, detailed_job_report, start_date_num, end_date_num, negative_num_rows, excessive_num_rows):
+def calculate_ODT_by_crew(charge_code_array, detailed_job_report, start_date_num, end_date_num):
     # obtain which charge code the user would like to analyze
     charge_code = ""
     charge_code_error = True
@@ -1551,7 +1632,7 @@ def display_ODT(detailed_job_report, user_option, start_date, end_date):
 
 
             if yes_or_no(4):
-                calculate_ODT_by_crew(charge_code_array, detailed_job_report, start_date_num, end_date_num, negative_num_rows, excessive_num_rows)
+                calculate_ODT_by_crew(charge_code_array, detailed_job_report, start_date_num, end_date_num)
         else:
             print("There is nothing to show here")
 
@@ -2096,61 +2177,12 @@ def display_average_run_speed(detailed_job_report, option, start_date_num, end_d
         else:
             print("There is nothing to show here")
 
-###################################
-# obtaining the detailed job report
-###################################
-djr_array = [] # initialize detailed job report array
-user_error = True
-while user_error: # obtaining the Detailed Job Report (.xlsx) spreadsheet by name from directory
-    choice = input("Enter (1) to enter the Detailed Job Report by name or (2) to enter the Detailed Job Report by path: ")
-    if choice == "1":
-        file_found = False
-        while not file_found:
-            djr_name = input("Enter the file name of the Detailed Job Report: ")
-            djr_name_split = djr_name.split(".")
-
-            try:
-                contains_file_type = False
-                if djr_name_split[len(djr_name_split) - 1] == "xlsx" and len(djr_name_split) > 1:
-                    contains_file_type = True
-
-                if not contains_file_type:
-                    djr_name = djr_name + ".xlsx"
-
-                djr_dataframe = pd.read_excel(djr_name, sheet_name='Sheet1')
-                djr_array = djr_dataframe.to_numpy()  # convert data frame to an array
-
-                file_found = True
-                print("File found.")
-            except:
-                print("Error: no such file found in current directory")
-                print("Please try again")
-        user_error = False
-
-    elif choice == "2": # obtaining the Detailed Job Report (.xlsx) spreadsheet by path
-        path = ""
-
-        file_found = False
-        while not file_found:
-            try:
-                path = input("Paste the path to the Detailed Job Report here: ")
-
-                djr_dataframe = pd.read_excel(path)
-                djr_array = djr_dataframe.to_numpy()  # convert from dataframe to numpy array
-                print("File found.")
-                file_found = True
-            except:
-                print("Error: no such file found")
-                print("Please try again")
-        user_error = False
-
-    else:
-        print("Invalid option, please try again")
 
 ##################
 # global variables
 ##################
-ROWS, COLUMNS = djr_array.shape
+ROWS = 0
+COLS = 0
 MACHINE = ""
 
 CHARGE_CODE_COL_NUM = 0
@@ -2184,29 +2216,19 @@ AVERAGE_RUN_SPEED_LABEL = "Average Run Speed (feeds/hour)"
 
 EXCESSIVE_THRESHOLD = 5
 
+######
+# main
+######
+preliminary_choices_made = False
+while True:
+    while not preliminary_choices_made:
+        # obtaining preliminary information from the user
+        djr_array = obtain_detailed_job_report()
+        ROWS, COLUMNS = djr_array.shape
+        MACHINE = obtain_machine_to_analyze(djr_array)
+        preliminary_choices_made = True
 
-##################################
-# obtaining the machine to analyze
-##################################
-list_of_machines = [] # initialize list of all possible machines within the detailed job report
-for row in range(ROWS):
-    append_element_in_array(list_of_machines, djr_array[row][MACHINE_COL_NUM])
-
-print_list_of_machines(list_of_machines)
-
-user_error = True
-while user_error:
-    machine_selection = input("Enter the number associated to the machine you would like to analyze: ")
-
-    if 1 <= int(machine_selection) <= len(list_of_machines):
-        MACHINE = list_of_machines[int(machine_selection) - 1]
-        user_error = False
-    else:
-        print("Error. Please try again.")
-
-
-user_done = False
-while not user_done:
+    # obtaining instruction from the user
     user_input = obtain_instruction()
     first_date_string = ""
     second_date_string = ""
@@ -2337,8 +2359,14 @@ while not user_done:
 
         display_average_run_speed(djr_array, user_choice, start_date_num, end_date_num)
 
+    ###############################################
+    # analyze different machine/detailed job report
+    ###############################################
+    elif user_input == 8:
+        preliminary_choices_made = False
+
     ######
     # exit
     ######
-    elif user_input == 7:
+    elif user_input == 9:
         exit()

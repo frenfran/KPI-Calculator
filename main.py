@@ -2110,7 +2110,6 @@ def display_average_run_speed(detailed_job_report, option, start_date_num, end_d
                 if len(AVERAGE_RUN_SPEED_LABEL) % 2 == 0:
                     print(" ", end="")
             print(" |")
-            print("------------------------------------------")
 
         if len(negative_num_rows) > 0 or len(excessive_num_rows) > 0:
             if yes_or_no(3):

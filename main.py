@@ -1888,7 +1888,7 @@ def display_daily_feeds(detailed_job_report, user_choice, start_date_num, end_da
     negative_num_rows = []
     excessive_num_rows = []
 
-    if user_choice == "1": # user wants average daily feeds for shifts/crews
+    if user_choice == "1": # user wants average daily feeds for all three shifts/crews
         total_feeds = 0
         unique_days = []
         for row in range(ROWS):
@@ -1922,9 +1922,10 @@ def display_daily_feeds(detailed_job_report, user_choice, start_date_num, end_da
         # generate rest of table
         for row_table in range(len(resulting_table) - 1):
             resulting_table[row_table + 1][0] = convert_date_int_to_string(start_date_num + row_table)
-            for row_djr in range(ROWS):
-                if str(start_date_num + row_table) == str(detailed_job_report[row_djr][WORK_DATE_COL_NUM])[0:4] + str(detailed_job_report[row_djr][WORK_DATE_COL_NUM])[5:7] + str(detailed_job_report[row_djr][WORK_DATE_COL_NUM])[8:10]:
-                    if detailed_job_report[row_djr][MACHINE_COL_NUM] == MACHINE:
+        for row_djr in range(ROWS):
+            if detailed_job_report[row_djr][MACHINE_COL_NUM] == MACHINE:
+                for row_table in range(len(resulting_table) - 1):
+                    if str(start_date_num + row_table) == str(detailed_job_report[row_djr][WORK_DATE_COL_NUM])[0:4] + str(detailed_job_report[row_djr][WORK_DATE_COL_NUM])[5:7] + str(detailed_job_report[row_djr][WORK_DATE_COL_NUM])[8:10]:
                         for shift in range(3):
                             if detailed_job_report[row_djr][SHIFT_COL_NUM] == shift + 1 and 0 <= detailed_job_report[row_djr][ELAPSED_HOURS_COL_NUM] <= EXCESSIVE_THRESHOLD:
                                 resulting_table[row_table + 1][shift + 1] = resulting_table[row_table + 1][shift + 1] + detailed_job_report[row_djr][GROSS_FG_QTY_COL_NUM]

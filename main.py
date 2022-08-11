@@ -161,19 +161,24 @@ def obtain_sub_instruction(option):
 
     while error:
         if option == 1:
-            choice = input("Enter (1) to calculate ODT by shift, (2) to calculate ODT by crew or (3) to produce Pareto chart: ")
+            choice = input("Enter (1) to calculate overall ODT for all shifts/crews, (2) to calculate ODT by shift, (3) to calculate ODT by crew or (4) to produce Pareto chart: ")
         elif option == 2:
             choice = input("Enter (1) to calculate total feeds by shift or (2) to total feeds by crew: ")
         elif option == 3:
             choice = input("Enter (1) to calculate general average setup time or (2) to calculate average setup time by crew: ")
         elif option == 4:
-            choice = input("Enter (1) to display feeds per day by shift or (2) to display feeds per day by crew: ")
+            choice = input("Enter (1) to calculate overall daily average feeds for all shifts/crews, (2) to display feeds per day by shift or (3) to display feeds per day by crew: ")
         elif option == 5:
             choice = input("Enter (1) to calculate the average order size, (2) to analyze jobs by the number of colors or (3) to analyze jobs by the number of ups: ")
         else:
             choice = input("Enter (1) to calculate the average run speed by shift or (2) to calculate the average run speed by crew: ")
 
-        if option == 1 or option == 5:
+        if option == 1:
+            if choice == "1" or choice == "2" or choice == "3" or choice == "4":
+                error = False
+            else:
+                print("Please try again.")
+        elif option == 4 or option == 5:
             if choice == "1" or choice == "2" or choice == "3":
                 error = False
             else:
@@ -1422,7 +1427,44 @@ def display_ODT(detailed_job_report, user_option, start_date, end_date):
     start_date_num = int(start_date[0:4] + start_date[5:7] + start_date[8:10])
     end_date_num = int(end_date[0:4] + end_date[5:7] + end_date[8:10])
 
-    if user_option == "1": # user wants ODT by shift
+    if user_option == "1": # user wants overall ODT for all shifts/crews
+        total_machine_hours = 0
+        total_ODT = 0
+
+        for row in range(ROWS):
+            if start_date_num <= int(str(detailed_job_report[row][WORK_DATE_COL_NUM])[0:4] + str(detailed_job_report[row][WORK_DATE_COL_NUM])[5:7] + str(detailed_job_report[row][WORK_DATE_COL_NUM])[8:10]) <= end_date_num:
+                if detailed_job_report[row][MACHINE_COL_NUM] == MACHINE:
+                    # calculate total machine hours for given date frame
+                    if detailed_job_report[row][DOWNTIME_COL_NUM] == "Run" and 0 <= detailed_job_report[row][ELAPSED_HOURS_COL_NUM] <= 5:
+                        total_machine_hours = total_machine_hours + detailed_job_report[row][ELAPSED_HOURS_COL_NUM]
+                    elif detailed_job_report[row][DOWNTIME_COL_NUM] == "Run" and detailed_job_report[row][ELAPSED_HOURS_COL_NUM] < 0:
+                        append_element_in_array(negative_num_rows, row)
+                    elif detailed_job_report[row][DOWNTIME_COL_NUM] == "Run" and detailed_job_report[row][ELAPSED_HOURS_COL_NUM] > 5:
+                        append_element_in_array(excessive_num_rows, row)
+
+                    # calculate total ODT hours for given date frame
+                    if detailed_job_report[row][DOWNTIME_COL_NUM] == "Open Downtime" and 0 <= detailed_job_report[row][ELAPSED_HOURS_COL_NUM] <= 5:
+                        total_ODT = total_ODT + detailed_job_report[row][ELAPSED_HOURS_COL_NUM]
+                    elif detailed_job_report[row][DOWNTIME_COL_NUM] == "Open Downtime" and detailed_job_report[row][ELAPSED_HOURS_COL_NUM] < 0:
+                        append_element_in_array(negative_num_rows, row)
+                    elif detailed_job_report[row][DOWNTIME_COL_NUM] == "Open Downtime" and detailed_job_report[row][ELAPSED_HOURS_COL_NUM] > 5:
+                        append_element_in_array(excessive_num_rows, row)
+
+        total_machine_hours = total_machine_hours + total_ODT
+
+        print("Total machine hours: " + str(total_machine_hours))
+        print("Total ODT hours: " + str(total_ODT))
+        if total_ODT != 0:
+            print("ODT %: " + str(total_ODT / total_machine_hours * 100))
+        else:
+            print("ODT%: N/A")
+
+        if len(negative_num_rows) > 0 or len(excessive_num_rows) > 0:
+            print()
+            if yes_or_no(3):
+                print_incorrect_hours(negative_num_rows, excessive_num_rows)
+
+    elif user_option == "2": # user wants ODT by shift
         print("-------------------")
         print("| Shift | ODT (%) |")
         print("-------------------")
@@ -1478,7 +1520,7 @@ def display_ODT(detailed_job_report, user_option, start_date, end_date):
         if yes_or_no(2):
             write_to_excel(ODT_by_shift_array, len(ODT_by_shift_array))
 
-    elif user_option == "2": # user wants ODT by crew
+    elif user_option == "3": # user wants ODT by crew
         # check if there are gaps in data
         gap_name = check_for_gaps_in_data(detailed_job_report, start_date_num, end_date_num)
 
@@ -1762,9 +1804,11 @@ def display_average_setup_time(detailed_job_report, user_choice, start_date_num,
         if len(unique_orders_list) != 0:
             average_setup_time = total_elapsed_hours / len(unique_orders_list)
             print("Average Setup Time: " + str(average_setup_time * 60) + " minutes")  # display average setup time in minutes
+        else:
+            print("Average Setup Time: N/A")
 
         if len(negative_num_rows) > 0 or len(excessive_num_rows) > 0:
-            print("\n")
+            print()
             if yes_or_no(3):
                 print_incorrect_hours(negative_num_rows, excessive_num_rows)
 
@@ -1840,11 +1884,37 @@ def display_average_setup_time(detailed_job_report, user_choice, start_date_num,
 # feeds per day by shift or by crew, the start date as an integer and
 # the end date as an integer
 # returns nothing
-def display_feeds_per_day(detailed_job_report, user_choice, start_date_num, end_date_num):
+def display_daily_feeds(detailed_job_report, user_choice, start_date_num, end_date_num):
     negative_num_rows = []
     excessive_num_rows = []
 
-    if user_choice == "1": # user wants to display feeds per day by shift
+    if user_choice == "1": # user wants average daily feeds for shifts/crews
+        total_feeds = 0
+        unique_days = []
+        for row in range(ROWS):
+            if str(start_date_num) <= str(detailed_job_report[row][WORK_DATE_COL_NUM])[0:4] + str(detailed_job_report[row][WORK_DATE_COL_NUM])[5:7] + str(detailed_job_report[row][WORK_DATE_COL_NUM])[8:10] <= str(end_date_num):
+                if detailed_job_report[row][MACHINE_COL_NUM] == MACHINE:
+                    if 0 <= detailed_job_report[row][ELAPSED_HOURS_COL_NUM] <= EXCESSIVE_THRESHOLD:
+                        total_feeds = total_feeds + detailed_job_report[row][GROSS_FG_QTY_COL_NUM]
+                        append_element_in_array(unique_days, detailed_job_report[row][WORK_DATE_COL_NUM])
+                    elif detailed_job_report[row][ELAPSED_HOURS_COL_NUM] < 0:
+                        append_element_in_array(negative_num_rows, row)
+                    elif detailed_job_report[row][ELAPSED_HOURS_COL_NUM] > EXCESSIVE_THRESHOLD:
+                        append_element_in_array(excessive_num_rows, row)
+
+        print("Total feeds: " + str(total_feeds))
+        print("Total work days: " + str(len(unique_days)))
+        if len(unique_days) != 0:
+            print("Average daily feeds for all shifts and crews: " + str(total_feeds / len(unique_days)))
+        else:
+            print("Average daily feeds for all shifts and crews unavailable for the given date frame.")
+
+        if len(negative_num_rows) > 0 or len(excessive_num_rows) > 0:
+            print()
+            if yes_or_no(3):
+                print_incorrect_hours(negative_num_rows, excessive_num_rows)
+
+    elif user_choice == "2": # user wants to display feeds per day by shift
         # create header for resulting table
         resulting_table = [[0 for x in range(4)] for y in range(int(end_date_num - start_date_num + 2))]
         resulting_table[0][0], resulting_table[0][1], resulting_table[0][2], resulting_table[0][3] = "Work Date", "Shift 1", "Shift 2", "Shift 3"
@@ -2225,8 +2295,10 @@ while True:
         user_choice = obtain_sub_instruction(1)
 
         if user_choice == "1":
-            print("\nOpen down time from " + first_date_string + " to " + second_date_string + " based on shift:")
+            print("\nOverall open down time for all shifts/crews from " + first_date_string + " to " + second_date_string + ":\n")
         elif user_choice == "2":
+            print("\nOpen down time from " + first_date_string + " to " + second_date_string + " based on shift:")
+        elif user_choice == "3":
             print("\nOpen down time from " + first_date_string + " to " + second_date_string + " based on crew:")
         else:
             print("\nPareto chart of open down time from " + first_date_string + " to " + second_date_string + ":")
@@ -2290,11 +2362,13 @@ while True:
         user_choice = obtain_sub_instruction(4)
 
         if user_choice == "1":
+            print("\nAverage daily feeds for all shifts/crew from " + first_date_string + " to " + second_date_string + ":\n")
+        elif user_choice == "2":
             print("\nFeeds per day by shift from " + first_date_string + " to " + second_date_string + ":")
         else:
             print("\nFeeds per day by crew from " + first_date_string + " to " + second_date_string + ":")
 
-        display_feeds_per_day(djr_array, user_choice, start_date_num, end_date_num)
+        display_daily_feeds(djr_array, user_choice, start_date_num, end_date_num)
 
     #######################
     # analyze by order type

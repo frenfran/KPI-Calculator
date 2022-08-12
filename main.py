@@ -677,7 +677,7 @@ def print_crew_header(list_of_crew_members, option):
             for dash in range(len(TOTAL_FEEDS_LABEL) + len(CREW_LABEL) + 7):
                 print("-", end="")
         elif option == 3:
-            for dash in range(len(AVERAGE_SETUP_TIME_LABEL) + len(TOTAL_NUMBER_OF_SETUPS_LABEL) + len(CREW_LABEL) + 7):
+            for dash in range(len(AVERAGE_SETUP_TIME_LABEL) + len(TOTAL_NUMBER_OF_SETUPS_LABEL) + len(CREW_LABEL) + 10):
                 print("-", end="")
         elif option == 4:
             for dash in range(len(AVERAGE_FEEDS_LABEL) + len(OPPORTUNITY_LABEL) + len(CREW_LABEL) + 10):

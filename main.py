@@ -1860,11 +1860,10 @@ def display_average_setup_time(detailed_job_report, user_choice, start_date_num,
                                             append_element_in_array(unique_orders_list, detailed_job_report[elapsed_hours][ORDER_NUM_COL_NUM])
 
                 # final calculation
-                total_unique_orders = len(unique_orders_list)
-                if total_unique_orders != 0:
+                if len(unique_orders_list) != 0:
                     # print(str(total_elapsed_hours) + " " + str(total_unique_orders))
-                    average_setup_time = total_elapsed_hours / total_unique_orders * 60
-                    average_setup_time_by_crew_array[counter][0], average_setup_time_by_crew_array[counter][1], average_setup_time_by_crew_array[counter][2] = crew, average_setup_time, total_unique_orders
+                    average_setup_time = total_elapsed_hours / len(unique_orders_list) * 60
+                    average_setup_time_by_crew_array[counter][0], average_setup_time_by_crew_array[counter][1], average_setup_time_by_crew_array[counter][2] = crew, average_setup_time, len(unique_orders_list)
                 else:
                     average_setup_time_by_crew_array[counter][0], average_setup_time_by_crew_array[counter][1], average_setup_time_by_crew_array[counter][2] = crew, "N/A", "N/A"
                 counter = counter + 1

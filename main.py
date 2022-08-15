@@ -642,183 +642,91 @@ def print_element_short(element, length_to_fill):
 
 
 # function to print the table header when user wishes to display info by crew
-# arguments: the list of crew members required for printing
-# and an option (int) which reflects whether the header should print
-# ODT, total feeds, average setup time or average feeds + opportunity
+# arguments: the array to print (so far), the list of crew members required for printing
+# and an option (int) which reflects if the resulting array consists of 2 or 3 columns
+# 1 = two columns and 2 = three columns
 # returns length of longest name
-def print_crew_header(list_of_crew_members, option):
+def print_crew_header(array_to_print, list_of_crew_members, option):
     # find length of longest name first
     longest_name_length = 0
     for crew in list_of_crew_members:
         if len(crew) > longest_name_length:
             longest_name_length = len(crew)
 
-    if longest_name_length > len(CREW_LABEL):
+    if longest_name_length > len(array_to_print[0][0]):
         if option == 1:
-            for dash in range(longest_name_length + len(ODT_LABEL_PERCENTAGE) + 7):
-                print("-", end="")
-        elif option == 2:
-            for dash in range(longest_name_length + len(TOTAL_FEEDS_LABEL) + 7):
-                print("-", end="")
-        elif option == 3:
-            for dash in range(longest_name_length + len(AVERAGE_SETUP_TIME_LABEL) + len(TOTAL_NUMBER_OF_SETUPS_LABEL) + 10):
-                print("-", end="")
-        elif option == 4:
-            for dash in range(longest_name_length + len(AVERAGE_FEEDS_LABEL) + len(OPPORTUNITY_LABEL) + 10):
+            for dash in range(longest_name_length + len(array_to_print[0][1]) + 7):
                 print("-", end="")
         else:
-            for dash in range(longest_name_length + len(AVERAGE_RUN_SPEED_LABEL) + 7):
+            for dash in range(longest_name_length + len(array_to_print[0][1]) + len(array_to_print[0][2]) + 10):
                 print("-", end="")
     else:
         if option == 1:
-            for dash in range(len(ODT_LABEL_PERCENTAGE) + len(CREW_LABEL) + 7):
-                print("-", end="")
-        elif option == 2:
-            for dash in range(len(TOTAL_FEEDS_LABEL) + len(CREW_LABEL) + 7):
-                print("-", end="")
-        elif option == 3:
-            for dash in range(len(AVERAGE_SETUP_TIME_LABEL) + len(TOTAL_NUMBER_OF_SETUPS_LABEL) + len(CREW_LABEL) + 10):
-                print("-", end="")
-        elif option == 4:
-            for dash in range(len(AVERAGE_FEEDS_LABEL) + len(OPPORTUNITY_LABEL) + len(CREW_LABEL) + 10):
+            for dash in range(len(array_to_print[0][0]) + len(array_to_print[0][1]) + 7):
                 print("-", end="")
         else:
-            for dash in range(len(AVERAGE_RUN_SPEED_LABEL)  + 7):
+            for dash in range(len(array_to_print[0][0]) + len(array_to_print[0][1]) + len(array_to_print[0][2]) + 10):
                 print("-", end="")
-
     print("\n| ", end="")
 
-    if longest_name_length > len(CREW_LABEL):
-        for space in range(int((longest_name_length - len(CREW_LABEL)) / 2)):
+    if longest_name_length > len(array_to_print[0][0]):
+        for space in range(int((longest_name_length - len(array_to_print[0][0])) / 2)):
             print(" ", end="")
-    print(CREW_LABEL, end="")
+    print(array_to_print[0][0], end="")
     if longest_name_length > 4:
-        for space in range(int((longest_name_length - len(CREW_LABEL)) / 2)):
+        for space in range(int((longest_name_length - len(array_to_print[0][0])) / 2)):
             print(" ", end="")
     if longest_name_length % 2 != 0:
         print(" ", end="")
 
     if option == 1:
-        print(" | " + ODT_LABEL_PERCENTAGE + " |")
-    elif option == 2:
-        print(" | " + TOTAL_FEEDS_LABEL + " |")
-    elif option == 3:
-        print(" | " + AVERAGE_SETUP_TIME_LABEL + " | " + TOTAL_NUMBER_OF_SETUPS_LABEL + " |")
-    elif option == 4:
-        print(" | " + AVERAGE_FEEDS_LABEL + " | " + OPPORTUNITY_LABEL + " |")
+        print(" | " + array_to_print[0][1] + " |")
     else:
-        print(" | " + AVERAGE_RUN_SPEED_LABEL + " |")
+        print(" | " + array_to_print[0][1] + " | " + array_to_print[0][2] + " |")
 
-    if longest_name_length > len(CREW_LABEL):
+    if longest_name_length > len(array_to_print[0][0]):
         if option == 1:
-            for dash in range(longest_name_length + len(ODT_LABEL_PERCENTAGE) + 7):
-                print("-", end="")
-        elif option == 2:
-            for dash in range(longest_name_length + len(TOTAL_FEEDS_LABEL) + 7):
-                print("-", end="")
-        elif option == 3:
-            for dash in range(longest_name_length + len(AVERAGE_SETUP_TIME_LABEL) + len(TOTAL_NUMBER_OF_SETUPS_LABEL) + 10):
-                print("-", end="")
-        elif option == 4:
-            for dash in range(longest_name_length + len(AVERAGE_FEEDS_LABEL) + len(OPPORTUNITY_LABEL) + 10):
+            for dash in range(longest_name_length + len(array_to_print[0][1]) + 7):
                 print("-", end="")
         else:
-            for dash in range(longest_name_length + len(AVERAGE_RUN_SPEED_LABEL) + 7):
+            for dash in range(longest_name_length + len(array_to_print[0][1]) + len(array_to_print[0][2]) + 10):
                 print("-", end="")
     else:
         if option == 1:
-            for dash in range(len(ODT_LABEL_PERCENTAGE) + len(CREW_LABEL) + 7):
-                print("-", end="")
-        elif option == 2:
-            for dash in range(len(TOTAL_FEEDS_LABEL) + len(CREW_LABEL) + 7):
-                print("-", end="")
-        elif option == 3:
-            for dash in range(len(AVERAGE_SETUP_TIME_LABEL) + len(TOTAL_NUMBER_OF_SETUPS_LABEL) + len(CREW_LABEL) + 10):
-                print("-", end="")
-        elif option == 4:
-            for dash in range(len(AVERAGE_FEEDS_LABEL) + len(OPPORTUNITY_LABEL) + len(CREW_LABEL) + 10):
+            for dash in range(len(array_to_print[0][0]) + len(array_to_print[0][1]) + 7):
                 print("-", end="")
         else:
-            for dash in range(len(AVERAGE_RUN_SPEED_LABEL) + 7):
+            for dash in range(len(array_to_print[0][0]) + len(array_to_print[0][1]) + len(array_to_print[0][2]) + 10):
                 print("-", end="")
-
     print()
 
     return longest_name_length
 
 
 # function to continue printing rest of table
-# arguments: the data array required for printing,
-# the length of the longest crew name
-# and an option (int) which reflects what the function should print
-# 1 = ODT by crew, 2 = ODT by charge code, 3 = total feeds, 4 = average setup time, 5 = average run speed,
-# 6 = ODT by crew for a specific charge code
+# arguments: the data array required for printing and the length of the longest crew name
 # returns nothing
-def print_rest_of_table(array, longest_name_length, option):
+def print_rest_of_table(array, longest_name_length):
     # first, find data with longest number of digits
     longest_number = 0
     for row in range(len(array) - 1):
-        if option == 3:
+        if str(array[row + 1][1]) != "N/A":
             if len(str(int(array[row + 1][1]))) > longest_number:
                 longest_number = len(str(int(array[row + 1][1])))
-        else:
-            if len(str(array[row + 1][1])) > longest_number:
-                longest_number = len(str(array[row + 1][1]))
 
     for row in range(len(array) - 1):
         print("| ", end="")
         print_element_short(array[row + 1][0], longest_name_length)
         print(" | ", end="")
-        if option == 1:
-            if len(str(array[row + 1][1])) < len(ODT_LABEL_PERCENTAGE):
-                print_element_short(str(array[row + 1][1]), len(ODT_LABEL_PERCENTAGE))
-            else:
-                print_element_long(str(array[row + 1][1]), len(ODT_LABEL_PERCENTAGE) - 1)
-        elif option == 2:
-            if len(str(array[row + 1][1])) < len(ODT_LABEL_HOURS):
-                print_element_short(str(array[row + 1][1]), len(ODT_LABEL_HOURS))
-            else:
-                print_element_long(str(array[row + 1][1]), len(ODT_LABEL_HOURS) - 1)
-        elif option == 3:
-            if len(str(int(array[row + 1][1]))) < len(TOTAL_FEEDS_LABEL):
-                print_element_short(str(array[row + 1][1]), len(TOTAL_FEEDS_LABEL))
-            else:
-                print_element_long(str(array[row + 1][1]), len(TOTAL_FEEDS_LABEL) - 1)
-        elif option == 4:
-            if len(str(array[row + 1][1])) < len(AVERAGE_SETUP_TIME_LABEL):
-                print_element_short(str(array[row + 1][1]), len(AVERAGE_SETUP_TIME_LABEL))
-            else:
-                print_element_long(str(array[row + 1][1]), len(AVERAGE_SETUP_TIME_LABEL) - 1)
-        elif option == 5:
-            if len(str(array[row + 1][1])) < len(AVERAGE_RUN_SPEED_LABEL):
-                print_element_short(str(array[row + 1][1]), len(AVERAGE_RUN_SPEED_LABEL))
-            else:
-                print_element_long(str(array[row + 1][1]), len(AVERAGE_RUN_SPEED_LABEL) - 1)
+
+        if len(str(array[row + 1][1])) < len(array[0][1]):
+            print_element_short(str(array[row + 1][1]), len(array[0][1]))
         else:
-            if len(str(array[row + 1][1])) < len(str(array[0][1])):
-                print_element_short(str(array[row + 1][1]), len(str(array[0][1])))
-            else:
-                print_element_long(str(array[row + 1][1]), len(str(array[0][1])) - 1)
+            print_element_long(str(array[row + 1][1]), len(array[0][1]) - 1)
         print(" |")
 
-    if option == 1:
-        for dash in range(longest_name_length + len(ODT_LABEL_PERCENTAGE) + 7):
-            print("-", end="")
-    elif option == 2:
-        for dash in range(longest_name_length + len(ODT_LABEL_HOURS) + 7):
-            print("-", end="")
-    elif option == 3:
-        for dash in range(longest_name_length + len(TOTAL_FEEDS_LABEL) + 7):
-            print("-", end="")
-    elif option == 4:
-        for dash in range(longest_name_length + len(AVERAGE_SETUP_TIME_LABEL) + 7):
-            print("-", end="")
-    elif option == 5:
-        for dash in range(longest_name_length + len(AVERAGE_RUN_SPEED_LABEL) + 7):
-            print("-", end="")
-    else:
-        for dash in range(longest_name_length + len(str(array[0][1])) + 7):
-            print("-", end="")
+    for dash in range(longest_name_length + len(array[0][1]) + 7):
+        print("-", end="")
     print()
 
 
@@ -826,7 +734,7 @@ def print_rest_of_table(array, longest_name_length, option):
 # arguments: the array to print, the list of all crews to include in the array and an option to dictate what to print
 # 1 = print the average feeds per day by crew and 2 = print the average setup time by crew
 # returns nothing
-def print_three_column_array_by_crew(array_to_print, list_of_crews, option):
+def print_three_column_array_by_crew(array_to_print, longest_name_len):
     # find the number with the most digits in the second and third columns
     longest_num_one = 0
     longest_num_two = 0
@@ -838,48 +746,26 @@ def print_three_column_array_by_crew(array_to_print, list_of_crews, option):
             if array_to_print[row + 1][2] > longest_num_two:
                 longest_num_two = array_to_print[row + 1][2]
 
-    # print header
-    if option == 1:
-        longest_crew_name = print_crew_header(list_of_crews, 4)
-    else:
-        longest_crew_name = print_crew_header(list_of_crews, 3)
-
     # print rest of table
     for row in range(len(array_to_print) - 1):
         print("| ", end="")
-        print_element_short(array_to_print[row + 1][0], longest_crew_name)
+        print_element_short(array_to_print[row + 1][0], longest_name_len)
         print(" | ", end="")
 
-        if option == 1:
-            if len(str(array_to_print[row + 1][1])) <= len(AVERAGE_FEEDS_LABEL):
-                print_element_short(str(array_to_print[row + 1][1]), len(AVERAGE_FEEDS_LABEL))
-            else:
-                print_element_long(str(array_to_print[row + 1][1]), len(AVERAGE_FEEDS_LABEL) - 1)
+        if len(str(array_to_print[row + 1][1])) <= len(array_to_print[0][1]):
+            print_element_short(str(array_to_print[row + 1][1]), len(array_to_print[0][1]))
         else:
-            if len(str(array_to_print[row + 1][1])) <= len(AVERAGE_SETUP_TIME_LABEL):
-                print_element_short(str(array_to_print[row + 1][1]), len(AVERAGE_SETUP_TIME_LABEL))
-            else:
-                print_element_long(str(array_to_print[row + 1][1]), len(AVERAGE_SETUP_TIME_LABEL) - 1)
+            print_element_long(str(array_to_print[row + 1][1]), len(array_to_print[0][1]) - 1)
 
         print(" | ", end="")
-        if option == 1:
-            if len(str(array_to_print[row + 1][2])) <= len(OPPORTUNITY_LABEL):
-                print_element_short(str(array_to_print[row + 1][2]), len(OPPORTUNITY_LABEL))
-            else:
-                print_element_long(str(array_to_print[row + 1][2]), len(OPPORTUNITY_LABEL) - 1)
+        if len(str(array_to_print[row + 1][2])) <= len(array_to_print[0][2]):
+            print_element_short(str(array_to_print[row + 1][2]), len(array_to_print[0][2]))
         else:
-            if len(str(array_to_print[row + 1][2])) <= len(TOTAL_NUMBER_OF_SETUPS_LABEL):
-                print_element_short(str(array_to_print[row + 1][2]), len(TOTAL_NUMBER_OF_SETUPS_LABEL))
-            else:
-                print_element_long(str(array_to_print[row + 1][2]), len(TOTAL_NUMBER_OF_SETUPS_LABEL) - 1)
+            print_element_long(str(array_to_print[row + 1][2]), len(array_to_print[0][2]) - 1)
         print(" |")
 
-    if option == 1:
-        for dash in range(longest_crew_name + len(AVERAGE_FEEDS_LABEL) + len(OPPORTUNITY_LABEL) + 10):
-            print("-", end="")
-    else:
-        for dash in range(longest_crew_name + len(AVERAGE_SETUP_TIME_LABEL) + len(TOTAL_NUMBER_OF_SETUPS_LABEL) + 10):
-            print("-", end="")
+    for dash in range(longest_name_len + len(array_to_print[0][1]) + len(array_to_print[0][2]) + 10):
+        print("-", end="")
     print()
 
 
@@ -893,31 +779,31 @@ def print_charge_code_header(pareto_array):
         if len(pareto_array[row][0]) > longest_charge_code_length:
             longest_charge_code_length = len(pareto_array[row][0])
 
-    if longest_charge_code_length > len(CHARGE_CODE_LABEL):
-        for dash in range(longest_charge_code_length + len(ODT_LABEL_HOURS) + 7):
+    if longest_charge_code_length > len(pareto_array[0][0]):
+        for dash in range(longest_charge_code_length + len(pareto_array[0][1]) + 7):
             print("-", end="")
     else:
-        for dash in range(len(CHARGE_CODE_LABEL) + len(ODT_LABEL_HOURS) + 7):
+        for dash in range(len(pareto_array[0][0]) + len(pareto_array[0][1]) + 7):
             print("-", end="")
 
     print("\n| ", end="")
-    if longest_charge_code_length > len(CHARGE_CODE_LABEL):
-        for space in range(int((longest_charge_code_length - len(CHARGE_CODE_LABEL)) / 2)):
+    if longest_charge_code_length > len(pareto_array[0][0]):
+        for space in range(int((longest_charge_code_length - len(pareto_array[0][1])) / 2)):
             print(" ", end="")
-    print(CHARGE_CODE_LABEL, end="")
-    if longest_charge_code_length > len(CHARGE_CODE_LABEL):
-        for space in range(int((longest_charge_code_length - len(CHARGE_CODE_LABEL)) / 2)):
+    print(pareto_array[0][0], end="")
+    if longest_charge_code_length > len(pareto_array[0][0]):
+        for space in range(int((longest_charge_code_length - len(pareto_array[0][0])) / 2)):
             print(" ", end="")
     if longest_charge_code_length % 2 == 0:
         print(" ", end="")
 
-    print(" | " + ODT_LABEL_HOURS + " |")
+    print(" | " + pareto_array[0][1] + " |")
 
-    if longest_charge_code_length > len(CHARGE_CODE_LABEL):
-        for dash in range(longest_charge_code_length + len(ODT_LABEL_HOURS) + 7):
+    if longest_charge_code_length > len(pareto_array[0][1]):
+        for dash in range(longest_charge_code_length + len(pareto_array[0][1]) + 7):
             print("-", end="")
     else:
-        for dash in range(len(CHARGE_CODE_LABEL) + len(ODT_LABEL_HOURS) + 7):
+        for dash in range(len(pareto_array[0][0]) + len(pareto_array[0][1]) + 7):
             print("-", end="")
 
     print()
@@ -976,10 +862,10 @@ def print_feeds_per_day_by_shift(feeds_per_day_array, length_of_table):
                 longest_number_len = len(str(feeds_per_day_array[row + 1][col + 1]))
 
     if longest_number_len > 7:
-        for dash in range(3 * longest_number_len + len(WORK_DATE_LABEL) + 13):
+        for dash in range(3 * longest_number_len + len(feeds_per_day_array[0][0]) + 13):
             print("-", end="")
     else:
-        for dash in range(len(WORK_DATE_LABEL) + (3 * 7) + 15):
+        for dash in range(len(feeds_per_day_array[0][0]) + (3 * 7) + 15):
             print("-", end="")
     print()
 
@@ -993,10 +879,10 @@ def print_feeds_per_day_by_shift(feeds_per_day_array, length_of_table):
     print()
 
     if longest_number_len > 7:
-        for dash in range(3 * longest_number_len + len(WORK_DATE_LABEL) + 13):
+        for dash in range(3 * longest_number_len + len(feeds_per_day_array[0][0]) + 13):
             print("-", end="")
     else:
-        for dash in range(len(WORK_DATE_LABEL) + (3 * 7) + 15):
+        for dash in range(len(feeds_per_day_array[0][0]) + (3 * 7) + 15):
             print("-", end="")
     print()
 
@@ -1013,10 +899,10 @@ def print_feeds_per_day_by_shift(feeds_per_day_array, length_of_table):
         print()
 
     if longest_number_len > 7:
-        for dash in range(3 * longest_number_len + len(WORK_DATE_LABEL) + 13):
+        for dash in range(3 * longest_number_len + len(feeds_per_day_array[0][0]) + 13):
             print("-", end="")
     else:
-        for dash in range(len(WORK_DATE_LABEL) + (3 * 7) + 15):
+        for dash in range(len(feeds_per_day_array[0][0]) + (3 * 7) + 15):
             print("-", end="")
     print()
 
@@ -1072,10 +958,10 @@ def print_feeds_per_day_by_crew(feeds_per_day_array, length_of_table, list_of_cr
 # returns nothing
 def print_dashes_by_crew(length_of_longest_number, length_of_longest_name, list_of_crews):
     if length_of_longest_number > length_of_longest_name:
-        for dash in range(len(list_of_crews) * length_of_longest_number + len(WORK_DATE_LABEL) + len(list_of_crews) * 3 + 6):
+        for dash in range(len(list_of_crews) * length_of_longest_number + len("Work Date") + len(list_of_crews) * 3 + 6):
             print("-", end="")
     else:
-        for dash in range(len(WORK_DATE_LABEL) + 3 * len(list_of_crews) + 6):
+        for dash in range(len("Work Date") + 3 * len(list_of_crews) + 6):
             print("-", end="")
         for dash in range(length_of_longest_name * len(list_of_crews)):
             print("-", end="")
@@ -1088,7 +974,7 @@ def print_dashes_by_crew(length_of_longest_number, length_of_longest_name, list_
 def calculate_average_feeds_by_shift(feeds_per_day_array, len_feeds_per_day_array):
     resulting_average_table = [[0 for i in range(3)] for j in range(4)]
 
-    resulting_average_table[0][0], resulting_average_table[0][1], resulting_average_table[0][2] = "Shift", AVERAGE_FEEDS_LABEL, OPPORTUNITY_LABEL
+    resulting_average_table[0][0], resulting_average_table[0][1], resulting_average_table[0][2] = "Shift", "Average Feeds per Day", "Opportunity (%)"
     resulting_average_table[1][0], resulting_average_table[2][0], resulting_average_table[3][0] = 1, 2, 3
 
     # calculate average feeds per day for each shift
@@ -1132,9 +1018,11 @@ def calculate_average_feeds_by_crew(feeds_per_day_array, len_feeds_per_day_array
     resulting_average_table = [[0 for i in range(3)] for j in range(len(list_of_crews) + 1)]
 
     # print header and crew names first
-    resulting_average_table[0][0], resulting_average_table[0][1], resulting_average_table[0][2] = CREW_LABEL, AVERAGE_FEEDS_LABEL, OPPORTUNITY_LABEL
+    resulting_average_table[0][0], resulting_average_table[0][1], resulting_average_table[0][2] = "Crew", "Average Feeds per Day", "Opportunity (%)"
     for index in range(len(list_of_crews)):
         resulting_average_table[index + 1][0] = list_of_crews[index]
+
+    longest_crew_name_len = print_crew_header(resulting_average_table, list_of_crews, 2)
 
     # calculate average feeds per day for each crew
     for index in range(len(list_of_crews)):
@@ -1163,7 +1051,8 @@ def calculate_average_feeds_by_crew(feeds_per_day_array, len_feeds_per_day_array
         else:
             resulting_average_table[index + 1][2] = "N/A"
 
-    print_three_column_array_by_crew(resulting_average_table, list_of_crews, 1)
+    print_three_column_array_by_crew(resulting_average_table, longest_crew_name_len)
+
     if yes_or_no(2):
         write_to_excel(resulting_average_table, len(resulting_average_table))
 
@@ -1188,26 +1077,26 @@ def print_average_feeds_by_shift(average_array):
 
     # print header
     print("---------------------------------------------------")
-    print("| Shift | " + AVERAGE_FEEDS_LABEL + " | " + OPPORTUNITY_LABEL + " |")
+    print("| Shift | " + "Average Feeds per Day" + " | " + "Opportunity (%)" + " |")
     print("---------------------------------------------------")
 
     # print rest of table
     for row in range(len(average_array) - 1):
         print("|   " + str(row + 1) + "   |", end="")
 
-        if len(str(average_array[row + 1][1])) <= len(AVERAGE_FEEDS_LABEL):
-            print_element_short(str(average_array[row + 1][1]), len(AVERAGE_FEEDS_LABEL) + 1)
+        if len(str(average_array[row + 1][1])) <= len(average_array[0][1]):
+            print_element_short(str(average_array[row + 1][1]), len(average_array[0][1]) + 1)
         else:
-            print_element_long(str(average_array[row + 1][1]), len(AVERAGE_FEEDS_LABEL) - 1)
+            print_element_long(str(average_array[row + 1][1]), len(average_array[0][1]) - 1)
 
         print(" | ", end="")
-        if len(str(average_array[row + 1][2])) <= len(OPPORTUNITY_LABEL):
-            print_element_short(str(average_array[row + 1][2]), len(OPPORTUNITY_LABEL))
+        if len(str(average_array[row + 1][2])) <= len(average_array[0][2]):
+            print_element_short(str(average_array[row + 1][2]), len(average_array[0][2]))
         else:
-            print_element_long(str(average_array[row + 1][2]), len(OPPORTUNITY_LABEL) - 1)
+            print_element_long(str(average_array[row + 1][2]), len(average_array[0][2]) - 1)
         print(" |")
 
-    for dash in range(len("Shift") + len(AVERAGE_FEEDS_LABEL) + len(OPPORTUNITY_LABEL) + 10):
+    for dash in range(len("Shift") + len(average_array[0][1]) + len(average_array[0][2]) + 10):
         print("-", end="")
     print()
 
@@ -1245,7 +1134,9 @@ def calculate_ODT_by_crew(charge_code_array, detailed_job_report, start_date_num
 
     if len(crews_list) != 0:
         crew_ODT_by_charge_code_array = [[0 for x in range(2)] for y in range(len(crews_list) + 1)]
-        crew_ODT_by_charge_code_array[0][0], crew_ODT_by_charge_code_array[0][1] = CREW_LABEL, (charge_code + " (hours elapsed)")
+        crew_ODT_by_charge_code_array[0][0], crew_ODT_by_charge_code_array[0][1] = "Crew", (charge_code + " (hours elapsed)")
+
+        longest_name_length = print_crew_header(crew_ODT_by_charge_code_array, crews_list, 1)
 
         for index in range(len(crews_list)): # write all crew names to resulting table
             crew_ODT_by_charge_code_array[index + 1][0] = crews_list[index]
@@ -1268,7 +1159,7 @@ def calculate_ODT_by_crew(charge_code_array, detailed_job_report, start_date_num
 
             crew_ODT_by_charge_code_array[index + 1][1] = elapsed_hours_for_crew
 
-        print_ODT_by_crew_for_charge_code(crew_ODT_by_charge_code_array, crews_list)
+        print_rest_of_table(crew_ODT_by_charge_code_array, longest_name_length)
 
         if use_algo and len(rows_with_no_name) > 0:
             if yes_or_no(3):
@@ -1280,48 +1171,6 @@ def calculate_ODT_by_crew(charge_code_array, detailed_job_report, start_date_num
             write_to_excel(crew_ODT_by_charge_code_array, len(crew_ODT_by_charge_code_array))
     else:
         print("There is nothing to show here")
-
-
-# function for printing the resulting array for the ODT by crew according to a specific charge code
-# arguments: the resulting ODT by charge code array and the list of all relevant crew members
-# returns nothing
-def print_ODT_by_crew_for_charge_code(crew_ODT_by_charge_code_array, list_of_crews):
-    # find length of longest name first
-    longest_name_length = 0
-    for crew in list_of_crews:
-        if len(crew) > longest_name_length:
-            longest_name_length = len(crew)
-
-    # print header
-    if longest_name_length > len(CREW_LABEL):
-        for dash in range(longest_name_length + len(str(crew_ODT_by_charge_code_array[0][1])) + 7):
-            print("-", end="")
-    else:
-        for dash in range(len(CREW_LABEL) + len(str(crew_ODT_by_charge_code_array[0][1])) + 7):
-            print("-", end="")
-
-    print("\n| ", end="")
-
-    if longest_name_length > len(CREW_LABEL):
-        for space in range(int((longest_name_length - len(CREW_LABEL)) / 2)):
-            print(" ", end="")
-    print(CREW_LABEL, end="")
-    if longest_name_length > len(CREW_LABEL):
-        for space in range(int((longest_name_length - len(CREW_LABEL)) / 2)):
-            print(" ", end="")
-    if longest_name_length % 2 != 0:
-        print(" ", end="")
-    print(" | " + crew_ODT_by_charge_code_array[0][1] + " |")
-
-    if longest_name_length > len(CREW_LABEL):
-        for dash in range(longest_name_length + len(str(crew_ODT_by_charge_code_array[0][1])) + 7):
-            print("-", end="")
-    else:
-        for dash in range(len(CREW_LABEL) + len(str(crew_ODT_by_charge_code_array[0][1])) + 7):
-            print("-", end="")
-    print()
-
-    print_rest_of_table(crew_ODT_by_charge_code_array, longest_name_length, 6)
 
 
 # function to keep adding unique orders to the unique orders list and to keep incrementing on the total quantity
@@ -1369,10 +1218,10 @@ def print_order_type_array(array_to_print, num_cols):
     print()
 
     print("| ", end="")
-    for space in range(int((len(str(array_to_print[0][0])) - (len(TOTAL_ORDERS_LABEL))) / 2)):
+    for space in range(int((len(str(array_to_print[0][0])) - (len(array_to_print[1][0]))) / 2)):
         print(" ", end="")
-    print(TOTAL_ORDERS_LABEL, end="")
-    for space in range(int((len(str(array_to_print[0][0])) - (len(TOTAL_ORDERS_LABEL))) / 2)):
+    print(array_to_print[1][0], end="")
+    for space in range(int((len(str(array_to_print[0][0])) - (len(array_to_print[1][0]))) / 2)):
         print(" ", end="")
     if len(str(array_to_print[0][0])) % 2 != 0:
         print(" ", end="")
@@ -1544,7 +1393,7 @@ def display_ODT(detailed_job_report, user_option, start_date, end_date):
             ODT_by_crew_array = [[0 for x in range(2)] for y in range(len(crews_list) + 1)]
             ODT_by_crew_array[0][0], ODT_by_crew_array[0][1] = "Crew", "ODT %"
 
-            longest_name_len = print_crew_header(crews_list, 1)
+            longest_name_len = print_crew_header(ODT_by_crew_array, crews_list, 1)
 
             counter = 1
             for crew in crews_list:
@@ -1584,7 +1433,7 @@ def display_ODT(detailed_job_report, user_option, start_date, end_date):
 
                 counter = counter + 1
 
-            print_rest_of_table(ODT_by_crew_array, longest_name_len, 1)
+            print_rest_of_table(ODT_by_crew_array, longest_name_len)
 
             if len(rows_with_no_name) > 0 or len(negative_num_rows) > 0 or len(excessive_num_rows) > 0:
                 if yes_or_no(3):
@@ -1650,7 +1499,7 @@ def display_ODT(detailed_job_report, user_option, start_date, end_date):
                 counter = counter + 1
 
             longest_charge_code_len = print_charge_code_header(charge_code_array)
-            print_rest_of_table(charge_code_array, longest_charge_code_len, 2)
+            print_rest_of_table(charge_code_array, longest_charge_code_len)
 
             if len(negative_num_rows) > 0 or len(excessive_num_rows) > 0:
                 if yes_or_no(3):
@@ -1710,10 +1559,10 @@ def display_total_feeds(detailed_job_report, user_choice, start_date_num, end_da
             if int(total_feeds_by_shift_array[row + 1][0]) != 0 and int(total_feeds_by_shift_array[row + 1][1]) != 0:
                 table_empty = False
                 print("|   " + str(total_feeds_by_shift_array[row + 1][0]) + "   | ", end="")
-                if longest_number < len(TOTAL_FEEDS_LABEL):
-                    print_element_short(str(int(total_feeds_by_shift_array[row + 1][1])), len(TOTAL_FEEDS_LABEL))
+                if longest_number < len(str(total_feeds_by_shift_array[0][1])):
+                    print_element_short(str(int(total_feeds_by_shift_array[row + 1][1])), len(str(total_feeds_by_shift_array[0][1])))
                 else:
-                    print_element_long(str(total_feeds_by_shift_array[row + 1][1]), len(TOTAL_FEEDS_LABEL))
+                    print_element_long(str(total_feeds_by_shift_array[row + 1][1]), len(str(total_feeds_by_shift_array[0][1])))
                 print(" |")
 
         if not table_empty:
@@ -1738,11 +1587,12 @@ def display_total_feeds(detailed_job_report, user_choice, start_date_num, end_da
 
         crews_list = []
         generate_crews_list(detailed_job_report, start_date_num, end_date_num, crews_list, empty_name_rows, use_algo)
-        longest_name_len = print_crew_header(crews_list, 2)
 
         if len(crews_list) != 0:
             total_feeds_by_crew_array = [[0 for x in range(2)] for y in range(len(crews_list) + 1)]
             total_feeds_by_crew_array[0][0], total_feeds_by_crew_array[0][1] = "Crew", "Total Feeds"
+
+            longest_name_len = print_crew_header(total_feeds_by_crew_array, crews_list, 1)
 
             counter = 1
             for crew in crews_list:
@@ -1764,7 +1614,7 @@ def display_total_feeds(detailed_job_report, user_choice, start_date_num, end_da
                 total_feeds_by_crew_array[counter][0], total_feeds_by_crew_array[counter][1] = crew, total_feeds
                 counter = counter + 1
 
-            print_rest_of_table(total_feeds_by_crew_array, longest_name_len, 3)
+            print_rest_of_table(total_feeds_by_crew_array, longest_name_len)
 
             if len(empty_name_rows) > 0 or len(negative_num_rows) > 0 or len(excessive_num_rows) > 0:
                 if yes_or_no(3):
@@ -1831,7 +1681,9 @@ def display_average_setup_time(detailed_job_report, user_choice, start_date_num,
 
         if len(crews_list) != 0:
             average_setup_time_by_crew_array = [[0 for x in range(3)] for y in range(len(crews_list) + 1)]
-            average_setup_time_by_crew_array[0][0], average_setup_time_by_crew_array[0][1] = "Crew", "Average Setup Time"
+            average_setup_time_by_crew_array[0][0], average_setup_time_by_crew_array[0][1], average_setup_time_by_crew_array[0][2] = "Crew", "Average Setup Time (minutes)", "Total Number of Setups"
+
+            longest_crew_name = print_crew_header(average_setup_time_by_crew_array, crews_list, 2)
 
             counter = 1
             for crew in crews_list:
@@ -1868,7 +1720,7 @@ def display_average_setup_time(detailed_job_report, user_choice, start_date_num,
                     average_setup_time_by_crew_array[counter][0], average_setup_time_by_crew_array[counter][1], average_setup_time_by_crew_array[counter][2] = crew, "N/A", "N/A"
                 counter = counter + 1
 
-            print_three_column_array_by_crew(average_setup_time_by_crew_array, crews_list, 2)
+            print_three_column_array_by_crew(average_setup_time_by_crew_array, longest_crew_name)
 
             if len(rows_with_no_name) > 0 or len(negative_num_rows) > 0 or len(excessive_num_rows) > 0:
                 if yes_or_no(3):
@@ -2082,9 +1934,10 @@ def display_order_type(detailed_job_report, option, start_date_num, end_date_num
         # create resulting array for printing/writing
         resulting_array = np.array([[0 for x in range(largest_num_items + 2)] for y in range(2)], dtype='object')
         if option == 2:
-            resulting_array[0][0], resulting_array[1][0] = NUM_COLORS_LABEL, TOTAL_ORDERS_LABEL
+            resulting_array[0][0] = "Number of Colors"
         else:
-            resulting_array[0][0], resulting_array[1][0] = NUM_UPS_LABEL, TOTAL_ORDERS_LABEL
+            resulting_array[0][0] = "Number of Ups"
+        resulting_array[1][0] = "Total Orders"
 
         counter = 1
         for num_items in range(largest_num_items + 1):
@@ -2118,6 +1971,7 @@ def display_order_type(detailed_job_report, option, start_date_num, end_date_num
             write_to_excel(resulting_array, 2)
 
 
+# function for printing the average run speed
 def display_average_run_speed(detailed_job_report, option, start_date_num, end_date_num):
     negative_num_rows = []
     excessive_num_rows = []
@@ -2156,14 +2010,16 @@ def display_average_run_speed(detailed_job_report, option, start_date_num, end_d
                 else:
                     print_element_short(str(average_run_speed), 30)
             else:
-                for spaces in range(int(len(AVERAGE_RUN_SPEED_LABEL) / 2) - 2):
+                for spaces in range(int(len(str(average_run_speed_by_shift_array[0][1])) / 2) - 2):
                     print(" ", end="")
                 print("N/A", end="")
-                for spaces in range(int(len(AVERAGE_RUN_SPEED_LABEL) / 2) - 2):
+                for spaces in range(int(len(str(average_run_speed_by_shift_array[0][1])) / 2) - 2):
                     print(" ", end="")
-                if len(AVERAGE_RUN_SPEED_LABEL) % 2 == 0:
+                if len(str(average_run_speed_by_shift_array[0][1])) % 2 == 0:
                     print(" ", end="")
             print(" |")
+
+        print("------------------------------------------")
 
         if len(negative_num_rows) > 0 or len(excessive_num_rows) > 0:
             if yes_or_no(3):
@@ -2188,9 +2044,9 @@ def display_average_run_speed(detailed_job_report, option, start_date_num, end_d
 
         if len(crews_list) != 0:
             average_run_speed_by_crew_array = [[0 for x in range(2)] for y in range(len(crews_list) + 1)]
-            average_run_speed_by_crew_array[0][0], average_run_speed_by_crew_array[0][1] = CREW_LABEL, AVERAGE_RUN_SPEED_LABEL
+            average_run_speed_by_crew_array[0][0], average_run_speed_by_crew_array[0][1] = "Crew", "Average Run Speed (feeds/hour)"
 
-            longest_name_len = print_crew_header(crews_list, 5)
+            longest_name_len = print_crew_header(average_run_speed_by_crew_array, crews_list, 1)
 
             crew_counter = 1
             for crew in crews_list:
@@ -2219,7 +2075,7 @@ def display_average_run_speed(detailed_job_report, option, start_date_num, end_d
 
                 crew_counter = crew_counter + 1
 
-            print_rest_of_table(average_run_speed_by_crew_array, longest_name_len, 5)
+            print_rest_of_table(average_run_speed_by_crew_array, longest_name_len)
 
             if len(rows_with_no_name) > 0 or len(negative_num_rows) > 0 or len(excessive_num_rows) > 0:
                 if yes_or_no(3):
@@ -2250,23 +2106,6 @@ NUM_UPS_COL_NUM = 19
 EMPLOYEE_NAME_COL_NUM = 26
 DOWNTIME_COL_NUM = 28
 NUM_COLORS_COL_NUM = 32
-
-
-ODT_LABEL_HOURS = "ODT (hours)"
-ODT_LABEL_PERCENTAGE = "ODT (%)"
-TOTAL_FEEDS_LABEL = "Total Feeds"
-AVERAGE_SETUP_TIME_LABEL = "Average Setup Time (minutes)"
-TOTAL_NUMBER_OF_SETUPS_LABEL = "Total Number of Setups"
-CREW_LABEL = "Crew"
-CHARGE_CODE_LABEL = "Charge Code"
-WORK_DATE_LABEL = "Work Date"
-AVERAGE_FEEDS_LABEL = "Average Feeds per Day"
-OPPORTUNITY_LABEL = "Opportunity (%)"
-NUM_COLORS_LABEL = "Number of Colors"
-NUM_UPS_LABEL = "Number of Ups"
-TOTAL_ORDERS_LABEL = "Total Orders"
-AVERAGE_ORDER_QTY_LABEL = "Average Order Quantity"
-AVERAGE_RUN_SPEED_LABEL = "Average Run Speed (feeds/hour)"
 
 EXCESSIVE_THRESHOLD = 5
 

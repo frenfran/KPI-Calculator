@@ -1786,7 +1786,7 @@ def display_average_run_speed(detailed_job_report, option, start_date_num, end_d
 # function for displaying the top three least or most efficient orders
 # arguments: the detailed job report, the start date as an integer and the end date as an integer
 # returns nothing
-def display_order_efficiency(detailed_job_report, option, sub_option, start_date_num, end_date_num):
+def display_top_three_orders(detailed_job_report, option, sub_option, start_date_num, end_date_num):
     top_three_orders_array = [[0 for x in range(2)] for y in range(4)]
     negative_num_rows = []
     excessive_num_rows = []
@@ -2064,7 +2064,7 @@ while True:
         else:
             print("total time spent from " + first_date_string + " to " + second_date_string + ":")
 
-        display_order_efficiency(djr_array, user_choice, user_sub_choice, start_date_num, end_date_num)
+        display_top_three_orders(djr_array, user_choice, user_sub_choice, start_date_num, end_date_num)
 
     ###############################################
     # analyze different machine/detailed job report

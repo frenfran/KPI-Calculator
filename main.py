@@ -1845,8 +1845,7 @@ def display_top_three_orders(detailed_job_report, option, sub_option, start_date
         # reorganize resulting table
         if sub_option == "1":
             if ODT_time + setup_time != 0 or run_time != 0:
-                efficiency = run_time / (ODT_time + setup_time + run_time) * 100
-                reorganize_top_three_orders_array(top_three_orders_array, order, efficiency, int(option), int(sub_option))
+                reorganize_top_three_orders_array(top_three_orders_array, order, run_time / (ODT_time + setup_time + run_time) * 100, int(option), int(sub_option))
         elif sub_option == "2":
             reorganize_top_three_orders_array(top_three_orders_array, order, ODT_time, int(option), int(sub_option))
         elif sub_option == "3":

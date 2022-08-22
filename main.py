@@ -1580,7 +1580,7 @@ def display_daily_feeds(detailed_job_report, user_choice, start_date_num, end_da
             for row in range(len(resulting_table) - location):
                 resulting_table = np.delete(resulting_table, location, axis=0)
             for row in range(location - 1):
-                for col in range(1, 4):
+                for col in range(1, len(crews_list) + 1):
                     resulting_table[row + 1][col] = int(resulting_table[row + 1][col])
 
             print_table(resulting_table)

@@ -478,32 +478,24 @@ def append_element_in_array(array, element):
         array.append(element)
 
 
-# function for reorganizing the resulting table of the top three best or worst orders
-# arguments: the resulting table as an array, the order number being analyzed, the item we wish to sort by,
-# an option which dictates if we want to sort by the top three best orders (1) or by the top three worst orders (2)
-# and a sub option which differentiates between sorting by efficiency (1) and sorting by any other category (2, 3, 4)
-# returns nothing but modifies the resulting table
-def reorganize_top_three_orders_array(array, order, item, option, sub_option):
-    if (option == 1 and sub_option == 1) or (option == 2 and sub_option != 1):
-        if item > array[1][1]:
-            array[3][0], array[3][1] = array[2][0], array[2][1]
-            array[2][0], array[2][1] = array[1][0], array[1][1]
-            array[1][0], array[1][1] = order, item
-        elif item > array[2][1]:
-            array[3][0], array[3][1] = array[2][0], array[2][1]
-            array[2][0], array[2][1] = order, item
-        elif item > array[3][1]:
-            array[3][0], array[3][1] = order, item
-    elif (option == 1 and sub_option != 1) or (option == 2 and sub_option == 1):
-        if item < array[1][1]:
-            array[3][0], array[3][1] = array[2][0], array[2][1]
-            array[2][0], array[2][1] = array[1][0], array[1][1]
-            array[1][0], array[1][1] = order, item
-        elif item < array[2][1]:
-            array[3][0], array[3][1] = array[2][0], array[2][1]
-            array[2][0], array[2][1] = order, item
-        elif item < array[3][1]:
-            array[3][0], array[3][1] = order, item
+# function for creating the top three orders array
+# arguments: the array we are building on, the dictionary containing the data we need,
+# an option which represents if we want the top three best or worst orders
+# and a sub option that represents the data the user wishes to see
+# returns nothing but modifies the array passed as an argument
+def build_top_three_orders_array(array, dictionary, option, sub_option):
+    for row in range(1, 4):
+        key_to_pop = 0
+        for key in dictionary.keys():
+            if (option == 1 and sub_option == 1) or (option == 2 and sub_option != 1):
+                if dictionary[key] > array[row][1]:
+                    array[row][0], array[row][1] = key, dictionary[key]
+                    key_to_pop = key
+            elif (option == 1 and sub_option != 1) or (option == 2 and sub_option == 1):
+                if dictionary[key] < array[row][1]:
+                    array[row][0], array[row][1] = key, dictionary[key]
+                    key_to_pop = key
+        dictionary.pop(key_to_pop)
 
 
 # function to obtain spreadsheet name and write data from user's previous
@@ -1156,19 +1148,22 @@ def display_ODT(detailed_job_report, user_option, start_date, end_date):
             # temporary dictionary to contain each charge code and their corresponding ODT
             charge_code_dict = {}
             for charge_code in charge_code_list:
-                # calculate total open downtime for specific charge code
-                ODT = 0
-                for row_num in range(ROWS):
-                    if start_date_num <= int(str(detailed_job_report[row_num][WORK_DATE_COL_NUM])[0:4] + str(detailed_job_report[row_num][WORK_DATE_COL_NUM])[5:7] + str(detailed_job_report[row_num][WORK_DATE_COL_NUM])[8:10]) <= end_date_num:
-                        if detailed_job_report[row_num][MACHINE_COL_NUM] == MACHINE:
-                            if detailed_job_report[row_num][CHARGE_CODE_COL_NUM] == charge_code and 0 <= detailed_job_report[row_num][ELAPSED_HOURS_COL_NUM] <= EXCESSIVE_THRESHOLD:
-                                ODT = ODT + detailed_job_report[row_num][ELAPSED_HOURS_COL_NUM]
-                            elif detailed_job_report[row_num][CHARGE_CODE_COL_NUM] == charge_code and detailed_job_report[row_num][ELAPSED_HOURS_COL_NUM] < 0:
+                charge_code_dict[charge_code] = 0
+            for row_num in range(ROWS):
+                if start_date_num <= int(str(detailed_job_report[row_num][WORK_DATE_COL_NUM])[0:4] + str(detailed_job_report[row_num][WORK_DATE_COL_NUM])[5:7] + str(detailed_job_report[row_num][WORK_DATE_COL_NUM])[8:10]) <= end_date_num:
+                    if detailed_job_report[row_num][MACHINE_COL_NUM] == MACHINE:
+                        charge_code_found = False
+                        for charge_code in charge_code_list:
+                            if detailed_job_report[row_num][CHARGE_CODE_COL_NUM] == charge_code:
+                                charge_code_found = True
+                                break
+                        if charge_code_found:
+                            if 0 <= detailed_job_report[row_num][ELAPSED_HOURS_COL_NUM] <= EXCESSIVE_THRESHOLD:
+                                charge_code_dict[detailed_job_report[row_num][CHARGE_CODE_COL_NUM]] += detailed_job_report[row_num][ELAPSED_HOURS_COL_NUM]
+                            elif detailed_job_report[row_num][ELAPSED_HOURS_COL_NUM] < 0:
                                 append_element_in_array(negative_num_rows, row_num)
-                            elif detailed_job_report[row_num][CHARGE_CODE_COL_NUM] == charge_code and detailed_job_report[row_num][ELAPSED_HOURS_COL_NUM] > EXCESSIVE_THRESHOLD:
+                            elif detailed_job_report[row_num][ELAPSED_HOURS_COL_NUM] > EXCESSIVE_THRESHOLD:
                                 append_element_in_array(excessive_num_rows, row_num)
-
-                charge_code_dict[charge_code] = ODT
 
             num_rows = 0
             for key in charge_code_dict.keys():
@@ -1783,14 +1778,20 @@ def display_average_run_speed(detailed_job_report, option, start_date_num, end_d
             print("There is nothing to show here")
 
 
-# function for displaying the top three least or most efficient orders
-# arguments: the detailed job report, the start date as an integer and the end date as an integer
+# function for displaying the top three best or worst orders
+# arguments: the detailed job report, an option and a sub option to determine what the user wishes to analyze,
+# the start date as an integer and the end date as an integer
 # returns nothing
 def display_top_three_orders(detailed_job_report, option, sub_option, start_date_num, end_date_num):
-    top_three_orders_array = [[0 for x in range(2)] for y in range(4)]
     negative_num_rows = []
     excessive_num_rows = []
     unique_orders = []
+
+    run_dict = {}
+    setup_dict = {}
+    ODT_dict = {}
+    efficiency_dict = {}
+    total_time_dict = {}
 
     # create list of unique orders
     for row in range(ROWS):
@@ -1810,6 +1811,47 @@ def display_top_three_orders(detailed_job_report, option, sub_option, start_date
                 if setup_check and run_check:
                     append_element_in_array(unique_orders, detailed_job_report[row][ORDER_NUM_COL_NUM])
 
+    # initialize all dictionaries
+    for unique_order in unique_orders:
+        run_dict[unique_order] = 0
+        setup_dict[unique_order] = 0
+        ODT_dict[unique_order] = 0
+        efficiency_dict[unique_order] = 0
+        total_time_dict[unique_order] = 0
+
+    # fill in run, setup and ODT dictionaries
+    for row in range(ROWS):
+        if start_date_num <= int(str(detailed_job_report[row][WORK_DATE_COL_NUM])[0:4] + str(detailed_job_report[row][WORK_DATE_COL_NUM])[5:7] + str(detailed_job_report[row][WORK_DATE_COL_NUM])[8:10]) <= end_date_num:
+            if detailed_job_report[row][MACHINE_COL_NUM] == MACHINE:
+                order_found = False
+                for unique_order in unique_orders:
+                    if detailed_job_report[row][ORDER_NUM_COL_NUM] == unique_order:
+                        order_found = True
+                        break
+
+                if order_found:
+                    if 0 <= detailed_job_report[row][ELAPSED_HOURS_COL_NUM] <= EXCESSIVE_THRESHOLD:
+                        if detailed_job_report[row][CHARGE_CODE_COL_NUM] == "RUN":
+                            run_dict[detailed_job_report[row][ORDER_NUM_COL_NUM]] += detailed_job_report[row][ELAPSED_HOURS_COL_NUM]
+                        elif detailed_job_report[row][CHARGE_CODE_COL_NUM] == "SET UP":
+                            setup_dict[detailed_job_report[row][ORDER_NUM_COL_NUM]] += detailed_job_report[row][ELAPSED_HOURS_COL_NUM]
+                        else:
+                            ODT_dict[detailed_job_report[row][ORDER_NUM_COL_NUM]] += detailed_job_report[row][ELAPSED_HOURS_COL_NUM]
+                    elif detailed_job_report[row][ELAPSED_HOURS_COL_NUM] > EXCESSIVE_THRESHOLD:
+                        append_element_in_array(excessive_num_rows, row)
+                    elif detailed_job_report[row][ELAPSED_HOURS_COL_NUM] < 0:
+                        append_element_in_array(negative_num_rows, row)
+
+    # fill in efficiency and total time dictionaries
+    for key in efficiency_dict.keys():
+        if ODT_dict[key] + setup_dict[key] != 0 or run_dict[key] != 0:
+            efficiency_dict[key] = run_dict[key] / (ODT_dict[key] + setup_dict[key] + run_dict[key]) * 100
+
+        total_time_dict[key] = run_dict[key] + ODT_dict[key] + setup_dict[key]
+
+    # produce resulting table
+    top_three_orders_array = [[0 for x in range(2)] for y in range(4)]
+
     # create headers for resulting table
     if sub_option == "1":
         top_three_orders_array[0][0], top_three_orders_array[0][1] = "Order Number", "Efficiency (%)"
@@ -1825,33 +1867,15 @@ def display_top_three_orders(detailed_job_report, option, sub_option, start_date
         for row in range(1, 4):
             top_three_orders_array[row][1] = 100
 
-    for order in unique_orders:
-        run_time, ODT_time, setup_time = 0, 0, 0
-        for row in range(ROWS):
-            if start_date_num <= int(str(detailed_job_report[row][WORK_DATE_COL_NUM])[0:4] + str(detailed_job_report[row][WORK_DATE_COL_NUM])[5:7] + str(detailed_job_report[row][WORK_DATE_COL_NUM])[8:10]) <= end_date_num:
-                if detailed_job_report[row][MACHINE_COL_NUM] == MACHINE and detailed_job_report[row][ORDER_NUM_COL_NUM] == order:
-                    if 0 <= detailed_job_report[row][ELAPSED_HOURS_COL_NUM] <= EXCESSIVE_THRESHOLD:
-                        if detailed_job_report[row][CHARGE_CODE_COL_NUM] == "RUN":
-                            run_time += detailed_job_report[row][ELAPSED_HOURS_COL_NUM]
-                        elif detailed_job_report[row][CHARGE_CODE_COL_NUM] == "SET UP":
-                            setup_time += detailed_job_report[row][ELAPSED_HOURS_COL_NUM]
-                        else:
-                            ODT_time += detailed_job_report[row][ELAPSED_HOURS_COL_NUM]
-                    elif detailed_job_report[row][ELAPSED_HOURS_COL_NUM] > EXCESSIVE_THRESHOLD:
-                        append_element_in_array(excessive_num_rows, row)
-                    elif detailed_job_report[row][ELAPSED_HOURS_COL_NUM] < 0:
-                        append_element_in_array(negative_num_rows, row)
-
-        # reorganize resulting table
-        if sub_option == "1":
-            if ODT_time + setup_time != 0 or run_time != 0:
-                reorganize_top_three_orders_array(top_three_orders_array, order, run_time / (ODT_time + setup_time + run_time) * 100, int(option), int(sub_option))
-        elif sub_option == "2":
-            reorganize_top_three_orders_array(top_three_orders_array, order, ODT_time, int(option), int(sub_option))
-        elif sub_option == "3":
-            reorganize_top_three_orders_array(top_three_orders_array, order, setup_time, int(option), int(sub_option))
-        else:
-            reorganize_top_three_orders_array(top_three_orders_array, order, ODT_time + setup_time + run_time, int(option), int(sub_option))
+    # create rest of table
+    if sub_option == "1":
+        build_top_three_orders_array(top_three_orders_array, efficiency_dict, int(option), int(sub_option))
+    elif sub_option == "2":
+        build_top_three_orders_array(top_three_orders_array, ODT_dict, int(option), int(sub_option))
+    elif sub_option == "3":
+        build_top_three_orders_array(top_three_orders_array, setup_dict, int(option), int(sub_option))
+    else:
+        build_top_three_orders_array(top_three_orders_array, total_time_dict, int(option), int(sub_option))
 
     print_table(top_three_orders_array)
 

@@ -1265,7 +1265,7 @@ def display_average_setup_time(detailed_job_report, user_choice, start_date_num,
                 if start_date_num <= int(str(detailed_job_report[elapsed_hours][WORK_DATE_COL_NUM])[0:4] + str(detailed_job_report[elapsed_hours][WORK_DATE_COL_NUM])[5:7] + str(detailed_job_report[elapsed_hours][WORK_DATE_COL_NUM])[8:10]) <= end_date_num:
                     if detailed_job_report[elapsed_hours][DOWNTIME_COL_NUM] == "Setup":
                         total_elapsed_hours = variable_incrementer(detailed_job_report, elapsed_hours, total_elapsed_hours, negative_num_rows, excessive_num_rows, 1)
-                        if 0 <= detailed_job_report[elapsed_hours][ELAPSED_HOURS_COL_NUM] <= 5:
+                        if 0 <= detailed_job_report[elapsed_hours][ELAPSED_HOURS_COL_NUM] <= EXCESSIVE_THRESHOLD:
                             append_element_in_array(unique_orders_list, detailed_job_report[elapsed_hours][ORDER_NUM_COL_NUM])
 
         print("\nTotal Elapsed Hours: " + str(total_elapsed_hours))
@@ -1298,7 +1298,7 @@ def display_average_setup_time(detailed_job_report, user_choice, start_date_num,
                         if detailed_job_report[elapsed_hours][MACHINE_COL_NUM] == MACHINE:
                             if detailed_job_report[elapsed_hours][SHIFT_COL_NUM] == shift + 1:
                                 total_elapsed_hours = variable_incrementer(detailed_job_report, elapsed_hours, total_elapsed_hours, negative_num_rows, excessive_num_rows, 1)
-                                if 0 <= detailed_job_report[elapsed_hours][ELAPSED_HOURS_COL_NUM] <= 5:
+                                if 0 <= detailed_job_report[elapsed_hours][ELAPSED_HOURS_COL_NUM] <= EXCESSIVE_THRESHOLD:
                                     append_element_in_array(unique_orders_list, detailed_job_report[elapsed_hours][ORDER_NUM_COL_NUM])
 
             # final calculation

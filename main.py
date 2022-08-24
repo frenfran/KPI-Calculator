@@ -166,7 +166,7 @@ def obtain_sub_instruction(option):
         elif option == 2:
             choice = input("Enter (1) to calculate total feeds by shift or (2) to total feeds by crew: ")
         elif option == 3:
-            choice = input("Enter (1) to calculate general average setup time, (2) to calculate average setup time by shift or (2) to calculate average setup time by crew: ")
+            choice = input("Enter (1) to calculate general average setup time, (2) to calculate average setup time by shift or (3) to calculate average setup time by crew: ")
         elif option == 4:
             choice = input("Enter (1) to calculate overall daily average feeds for all shifts/crews, (2) to display feeds per day by shift or (3) to display feeds per day by crew: ")
         elif option == 5:
@@ -275,23 +275,43 @@ def obtain_date_string(detailed_job_report):
     return result
 
 
-# function to obtain a second date as an input from the user and return that same date
-# function performs error checking to ensure date is valid and in the future relative to the first date
-# arguments: the detailed job report array and the first date as a string
-# returns the second date (entered by the user) as a string
+# function to obtain a end date as an input from the user and return that same date
+# function performs error checking to ensure date is valid and in the future relative to the start date
+# arguments: the detailed job report array and the start date as a string
+# returns the end date (entered by the user) as a string
 def obtain_second_date_string(detailed_job_report_array, first_date_string):
     second_date_string = ""
     error = True
     while error:
-        print("Enter the second date (YYYY/MM/DD): ", end="")
+        print("Enter the end date (YYYY/MM/DD): ", end="")
         second_date_string = obtain_date_string(detailed_job_report_array)
 
         if int(second_date_string[5:7]) < int(first_date_string[5:7]) or int(second_date_string[8:10]) < int(first_date_string[8:10]):
-            print("Error: second date precedes first date. Please try again.")
+            print("Error: end date precedes start date. Please try again.")
         else:
             error = False
 
     return second_date_string
+
+
+# function to increment a particular column of a particular row onto a particular variable
+# error-checks if the elapsed hours of that row are negative or excessive
+# arguments: the detailed job report, the row we are analyzing, the variable we wish to increment on,
+# the list of rows with negative elapsed hours, the list of rows with excessive elapsed hours and an option
+# 1 = increment on elapsed hours and 2 = increment on total FG quantity
+# returns the updated incremented variable
+def variable_incrementer(detailed_job_report, row, variable_to_increment, negative_num_rows, excessive_num_rows, option):
+    if detailed_job_report[row][ELAPSED_HOURS_COL_NUM] < 0:
+        append_element_in_array(negative_num_rows, row)
+    elif detailed_job_report[row][ELAPSED_HOURS_COL_NUM] > EXCESSIVE_THRESHOLD:
+        append_element_in_array(excessive_num_rows, row)
+    else:
+        if option == 1:
+            variable_to_increment += detailed_job_report[row][ELAPSED_HOURS_COL_NUM]
+        else:
+            variable_to_increment += detailed_job_report[row][GROSS_FG_QTY_COL_NUM]
+
+    return variable_to_increment
 
 
 # function to check for gaps in the Employee Name column for a given date frame
@@ -316,20 +336,17 @@ def check_for_gaps_in_data(detailed_job_report, start_date_num, end_date_num):
 # returns new value of the counter variable
 def name_filling_algorithm(detailed_job_report, counter, crew, row, empty_name_rows, negative_num_rows, excessive_num_rows, option):
     if detailed_job_report[row][MACHINE_COL_NUM] == MACHINE:
-        if option == 1: # increment on total machine hours
-            if detailed_job_report[row][DOWNTIME_COL_NUM] == "Run" and str(detailed_job_report[row][EMPLOYEE_NAME_COL_NUM]) == "nan":
+        if str(detailed_job_report[row][EMPLOYEE_NAME_COL_NUM]) == "nan":
+            if option == 1 and detailed_job_report[row][DOWNTIME_COL_NUM] != "Closed Downtime": # increment on total machine hours
                 assumed_name = assume_name(detailed_job_report, empty_name_rows, row)
                 counter = update_counter(detailed_job_report, row, assumed_name, crew, counter, negative_num_rows, excessive_num_rows, False)
-        elif option == 2: # increment on ODT
-            if detailed_job_report[row][DOWNTIME_COL_NUM] == "Open Downtime" and str(detailed_job_report[row][EMPLOYEE_NAME_COL_NUM]) == "nan":
+            elif option == 2 and detailed_job_report[row][DOWNTIME_COL_NUM] == "Open Downtime": # increment on ODT
                 assumed_name = assume_name(detailed_job_report, empty_name_rows, row)
                 counter = update_counter(detailed_job_report, row, assumed_name, crew, counter, negative_num_rows, excessive_num_rows, False)
-        elif option == 3: # increment on total setup hours
-            if detailed_job_report[row][DOWNTIME_COL_NUM] == "Setup" and str(detailed_job_report[row][EMPLOYEE_NAME_COL_NUM]) == "nan":
+            elif option == 3 and detailed_job_report[row][DOWNTIME_COL_NUM] == "Setup": # increment on total setup time
                 assumed_name = assume_name(detailed_job_report, empty_name_rows, row)
                 counter = update_counter(detailed_job_report, row, assumed_name, crew, counter, negative_num_rows, excessive_num_rows, False)
-        else: # increment on total feeds
-            if str(detailed_job_report[row][EMPLOYEE_NAME_COL_NUM]) == "nan":
+            elif option == 4: # increment on total feeds
                 assumed_name = assume_name(detailed_job_report, empty_name_rows, row)
                 counter = update_counter(detailed_job_report, row, assumed_name, crew, counter, negative_num_rows, excessive_num_rows, True)
 
@@ -399,15 +416,11 @@ def assume_name(detailed_job_report, empty_name_rows, row):
 # the list of rows with excessive elapsed hours and whether we are incrementing on the total feeds or not
 # returns the new updated counter value
 def update_counter(detailed_job_report, row, assumed_name, crew, counter, negative_num_rows, excessive_num_rows, is_total_feeds):
-    if assumed_name == crew and 0 <= detailed_job_report[row][ELAPSED_HOURS_COL_NUM] <= EXCESSIVE_THRESHOLD:
+    if assumed_name == crew:
         if is_total_feeds:
-            counter = counter + detailed_job_report[row][GROSS_FG_QTY_COL_NUM]
+            counter = variable_incrementer(detailed_job_report, row, counter, negative_num_rows, excessive_num_rows, 2)
         else:
-            counter = counter + detailed_job_report[row][ELAPSED_HOURS_COL_NUM]
-    elif assumed_name == crew and detailed_job_report[row][ELAPSED_HOURS_COL_NUM] > EXCESSIVE_THRESHOLD:
-        append_element_in_array(excessive_num_rows, row)
-    elif assumed_name == crew and detailed_job_report[row][ELAPSED_HOURS_COL_NUM] < 0:
-        append_element_in_array(negative_num_rows, row)
+            counter = variable_incrementer(detailed_job_report, row, counter, negative_num_rows, excessive_num_rows, 1)
 
     return counter
 
@@ -923,12 +936,12 @@ def calculate_ODT_by_crew(charge_code_array, detailed_job_report, start_date_num
                     if start_date_num <= int(str(detailed_job_report[row][WORK_DATE_COL_NUM])[0:4] + str(detailed_job_report[row][WORK_DATE_COL_NUM])[5:7] + str(detailed_job_report[row][WORK_DATE_COL_NUM])[8:10]) <= end_date_num:
                         if crews_list[index] == detailed_job_report[row][EMPLOYEE_NAME_COL_NUM]:
                             if 0 <= detailed_job_report[row][ELAPSED_HOURS_COL_NUM] <= EXCESSIVE_THRESHOLD:
-                                elapsed_hours_for_crew = elapsed_hours_for_crew + detailed_job_report[row][ELAPSED_HOURS_COL_NUM]
+                                elapsed_hours_for_crew += detailed_job_report[row][ELAPSED_HOURS_COL_NUM]
 
                         elif use_algo and str(detailed_job_report[row][EMPLOYEE_NAME_COL_NUM]) == "nan":
                             if assume_name(detailed_job_report, rows_with_no_name, row) == crews_list[index]:
                                 if 0 <= detailed_job_report[row][ELAPSED_HOURS_COL_NUM] <= EXCESSIVE_THRESHOLD:
-                                    elapsed_hours_for_crew = elapsed_hours_for_crew + detailed_job_report[row][ELAPSED_HOURS_COL_NUM]
+                                    elapsed_hours_for_crew += detailed_job_report[row][ELAPSED_HOURS_COL_NUM]
                             if assume_name(detailed_job_report, rows_with_no_name, row) == "nan":
                                 append_element_in_array(rows_with_no_name, row)
 
@@ -984,23 +997,10 @@ def display_ODT(detailed_job_report, user_option, start_date, end_date):
         for row in range(ROWS):
             if start_date_num <= int(str(detailed_job_report[row][WORK_DATE_COL_NUM])[0:4] + str(detailed_job_report[row][WORK_DATE_COL_NUM])[5:7] + str(detailed_job_report[row][WORK_DATE_COL_NUM])[8:10]) <= end_date_num:
                 if detailed_job_report[row][MACHINE_COL_NUM] == MACHINE:
-                    # calculate total machine hours for given date frame
-                    if detailed_job_report[row][DOWNTIME_COL_NUM] == "Run" and 0 <= detailed_job_report[row][ELAPSED_HOURS_COL_NUM] <= 5:
-                        total_machine_hours = total_machine_hours + detailed_job_report[row][ELAPSED_HOURS_COL_NUM]
-                    elif detailed_job_report[row][DOWNTIME_COL_NUM] == "Run" and detailed_job_report[row][ELAPSED_HOURS_COL_NUM] < 0:
-                        append_element_in_array(negative_num_rows, row)
-                    elif detailed_job_report[row][DOWNTIME_COL_NUM] == "Run" and detailed_job_report[row][ELAPSED_HOURS_COL_NUM] > 5:
-                        append_element_in_array(excessive_num_rows, row)
-
-                    # calculate total ODT hours for given date frame
-                    if detailed_job_report[row][DOWNTIME_COL_NUM] == "Open Downtime" and 0 <= detailed_job_report[row][ELAPSED_HOURS_COL_NUM] <= 5:
-                        total_ODT = total_ODT + detailed_job_report[row][ELAPSED_HOURS_COL_NUM]
-                    elif detailed_job_report[row][DOWNTIME_COL_NUM] == "Open Downtime" and detailed_job_report[row][ELAPSED_HOURS_COL_NUM] < 0:
-                        append_element_in_array(negative_num_rows, row)
-                    elif detailed_job_report[row][DOWNTIME_COL_NUM] == "Open Downtime" and detailed_job_report[row][ELAPSED_HOURS_COL_NUM] > 5:
-                        append_element_in_array(excessive_num_rows, row)
-
-        total_machine_hours = total_machine_hours + total_ODT
+                    if detailed_job_report[row][DOWNTIME_COL_NUM] != "Closed Downtime":
+                        total_machine_hours = variable_incrementer(detailed_job_report, row, total_machine_hours, negative_num_rows, excessive_num_rows, 1)
+                    if detailed_job_report[row][DOWNTIME_COL_NUM] == "Open Downtime":
+                        total_ODT = variable_incrementer(detailed_job_report, row, total_ODT, negative_num_rows, excessive_num_rows, 1)
 
         print("Total machine hours: " + str(total_machine_hours))
         print("Total ODT hours: " + str(total_ODT))
@@ -1021,31 +1021,18 @@ def display_ODT(detailed_job_report, user_option, start_date, end_date):
 
         for shift in range(3):
             total_machine_hours = 0
-            ODT = 0
+            total_ODT = 0
             for row in range(ROWS):
                 if start_date_num <= int(str(detailed_job_report[row][WORK_DATE_COL_NUM])[0:4] + str(detailed_job_report[row][WORK_DATE_COL_NUM])[5:7] + str(detailed_job_report[row][WORK_DATE_COL_NUM])[8:10]) <= end_date_num:
                     if detailed_job_report[row][MACHINE_COL_NUM] == MACHINE:
-                        # calculate total machine hours for specific shift
-                        if detailed_job_report[row][DOWNTIME_COL_NUM] == "Run" and str(detailed_job_report[row][SHIFT_COL_NUM]) == str(shift + 1) and 0 <= detailed_job_report[row][ELAPSED_HOURS_COL_NUM] <= EXCESSIVE_THRESHOLD:
-                            total_machine_hours = total_machine_hours + detailed_job_report[row][ELAPSED_HOURS_COL_NUM]
-                        elif detailed_job_report[row][DOWNTIME_COL_NUM] == "Run" and str(detailed_job_report[row][SHIFT_COL_NUM]) == str(shift + 1) and detailed_job_report[row][ELAPSED_HOURS_COL_NUM] > EXCESSIVE_THRESHOLD:
-                            append_element_in_array(excessive_num_rows, row)
-                        elif detailed_job_report[row][DOWNTIME_COL_NUM] == "Run" and str(detailed_job_report[row][SHIFT_COL_NUM]) == str(shift + 1) and detailed_job_report[row][ELAPSED_HOURS_COL_NUM] < 0:
-                            append_element_in_array(negative_num_rows, row)
-
-                        # calculate total open downtime for specific shift
-                        if detailed_job_report[row][DOWNTIME_COL_NUM] == "Open Downtime" and str(detailed_job_report[row][SHIFT_COL_NUM]) == str(shift + 1) and 0 <= detailed_job_report[row][ELAPSED_HOURS_COL_NUM] <= EXCESSIVE_THRESHOLD:
-                            ODT = ODT + detailed_job_report[row][ELAPSED_HOURS_COL_NUM]
-                        elif detailed_job_report[row][DOWNTIME_COL_NUM] == "Open Downtime" and str(detailed_job_report[row][SHIFT_COL_NUM]) == str(shift + 1) and detailed_job_report[row][ELAPSED_HOURS_COL_NUM] > EXCESSIVE_THRESHOLD:
-                            append_element_in_array(excessive_num_rows, row)
-                        elif detailed_job_report[row][DOWNTIME_COL_NUM] == "Open Downtime" and str(detailed_job_report[row][SHIFT_COL_NUM]) == str(shift + 1) and detailed_job_report[row][ELAPSED_HOURS_COL_NUM] < 0:
-                            append_element_in_array(negative_num_rows, row)
-
-            total_machine_hours = total_machine_hours + ODT
+                        if detailed_job_report[row][SHIFT_COL_NUM] == shift + 1:
+                            if detailed_job_report[row][DOWNTIME_COL_NUM] != "Closed Downtime":
+                                total_machine_hours = variable_incrementer(detailed_job_report, row, total_machine_hours, negative_num_rows, excessive_num_rows, 1)
+                            if detailed_job_report[row][DOWNTIME_COL_NUM] == "Open Downtime":
+                                total_ODT = variable_incrementer(detailed_job_report, row, total_ODT, negative_num_rows, excessive_num_rows, 1)
 
             if total_machine_hours != 0:
-                result = (ODT/total_machine_hours) * 100
-
+                result = (total_ODT/total_machine_hours) * 100
                 ODT_by_shift_array[shift + 1][0], ODT_by_shift_array[shift + 1][1] = shift + 1, result
             else:
                 ODT_by_shift_array[shift + 1][0], ODT_by_shift_array[shift + 1][1] = shift + 1, "N/A"
@@ -1083,39 +1070,24 @@ def display_ODT(detailed_job_report, user_option, start_date, end_date):
             counter = 1
             for crew in crews_list:
                 total_machine_hours = 0
-                ODT = 0
+                total_ODT = 0
                 for row in range(ROWS):
                     if start_date_num <= int(str(detailed_job_report[row][WORK_DATE_COL_NUM])[0:4] + str(detailed_job_report[row][WORK_DATE_COL_NUM])[5:7] + str(detailed_job_report[row][WORK_DATE_COL_NUM])[8:10]) <= end_date_num:
                         if detailed_job_report[row][MACHINE_COL_NUM] == MACHINE:
                             if str(detailed_job_report[row][EMPLOYEE_NAME_COL_NUM]) == crew:
-                                # calculate total machine hours for specific crew
-                                if str(detailed_job_report[row][DOWNTIME_COL_NUM]) == "Run" and 0 <= detailed_job_report[row][ELAPSED_HOURS_COL_NUM] <= EXCESSIVE_THRESHOLD:
-                                    total_machine_hours = total_machine_hours + detailed_job_report[row][ELAPSED_HOURS_COL_NUM]
-                                elif str(detailed_job_report[row][DOWNTIME_COL_NUM]) == "Run" and detailed_job_report[row][ELAPSED_HOURS_COL_NUM] > EXCESSIVE_THRESHOLD:
-                                    append_element_in_array(excessive_num_rows, row)
-                                elif str(detailed_job_report[row][DOWNTIME_COL_NUM]) == "Run" and detailed_job_report[row][ELAPSED_HOURS_COL_NUM] < 0:
-                                    append_element_in_array(negative_num_rows, row)
-
-                                # calculate total ODT for specific crew
-                                if str(detailed_job_report[row][DOWNTIME_COL_NUM]) == "Open Downtime" and 0 <= detailed_job_report[row][ELAPSED_HOURS_COL_NUM] <= EXCESSIVE_THRESHOLD:
-                                    ODT = ODT + detailed_job_report[row][ELAPSED_HOURS_COL_NUM]
-                                elif str(detailed_job_report[row][DOWNTIME_COL_NUM]) == "Open Downtime" and detailed_job_report[row][ELAPSED_HOURS_COL_NUM] > EXCESSIVE_THRESHOLD:
-                                    append_element_in_array(excessive_num_rows, row)
-                                elif str(detailed_job_report[row][DOWNTIME_COL_NUM]) == "Open Downtime" and detailed_job_report[row][ELAPSED_HOURS_COL_NUM] < 0:
-                                    append_element_in_array(negative_num_rows, row)
+                                if detailed_job_report[row][DOWNTIME_COL_NUM] != "Closed Downtime":
+                                    total_machine_hours = variable_incrementer(detailed_job_report, row, total_machine_hours, negative_num_rows, excessive_num_rows, 1)
+                                if detailed_job_report[row][DOWNTIME_COL_NUM] == "Open Downtime":
+                                    total_ODT = variable_incrementer(detailed_job_report, row, total_ODT, negative_num_rows, excessive_num_rows, 1)
 
                             elif use_algo:
                                 total_machine_hours = name_filling_algorithm(detailed_job_report, total_machine_hours, crew, row, rows_with_no_name, negative_num_rows, excessive_num_rows, 1)
-                                ODT = name_filling_algorithm(detailed_job_report, ODT, crew, row, rows_with_no_name, negative_num_rows, excessive_num_rows, 2)
-
-                # add total run time with total ODT for total_machine_hours
-                total_machine_hours = total_machine_hours + ODT
+                                total_ODT = name_filling_algorithm(detailed_job_report, total_ODT, crew, row, rows_with_no_name, negative_num_rows, excessive_num_rows, 2)
 
                 if total_machine_hours > 0:
-                    ODT_by_crew_array[counter][0], ODT_by_crew_array[counter][1] = crew, (ODT/total_machine_hours) * 100
+                    ODT_by_crew_array[counter][0], ODT_by_crew_array[counter][1] = crew, (total_ODT/total_machine_hours) * 100
                 else:
                     ODT_by_crew_array[counter][0], ODT_by_crew_array[counter][1] = crew, "N/A"
-
                 counter = counter + 1
 
             # print_rest_of_table(ODT_by_crew_array, longest_name_len)
@@ -1158,13 +1130,7 @@ def display_ODT(detailed_job_report, user_option, start_date, end_date):
                                 charge_code_found = True
                                 break
                         if charge_code_found:
-                            if 0 <= detailed_job_report[row_num][ELAPSED_HOURS_COL_NUM] <= EXCESSIVE_THRESHOLD:
-                                charge_code_dict[detailed_job_report[row_num][CHARGE_CODE_COL_NUM]] += detailed_job_report[row_num][ELAPSED_HOURS_COL_NUM]
-                            elif detailed_job_report[row_num][ELAPSED_HOURS_COL_NUM] < 0:
-                                append_element_in_array(negative_num_rows, row_num)
-                            elif detailed_job_report[row_num][ELAPSED_HOURS_COL_NUM] > EXCESSIVE_THRESHOLD:
-                                append_element_in_array(excessive_num_rows, row_num)
-
+                            charge_code_dict[detailed_job_report[row_num][CHARGE_CODE_COL_NUM]] = variable_incrementer(detailed_job_report, row_num, charge_code_dict[detailed_job_report[row_num][CHARGE_CODE_COL_NUM]], negative_num_rows, excessive_num_rows, 1)
             num_rows = 0
             for key in charge_code_dict.keys():
                 if charge_code_dict[key] > 0:
@@ -1221,12 +1187,8 @@ def display_total_feeds(detailed_job_report, user_choice, start_date_num, end_da
             for row in range(ROWS):
                 if start_date_num <= int(str(detailed_job_report[row][WORK_DATE_COL_NUM])[0:4] + str(detailed_job_report[row][WORK_DATE_COL_NUM])[5:7] + str(detailed_job_report[row][WORK_DATE_COL_NUM])[8:10]) <= end_date_num:
                     if detailed_job_report[row][MACHINE_COL_NUM] == MACHINE:
-                        if detailed_job_report[row][SHIFT_COL_NUM] == shift + 1 and 0 <= detailed_job_report[row][ELAPSED_HOURS_COL_NUM] <= EXCESSIVE_THRESHOLD:
-                            total_feeds = total_feeds + detailed_job_report[row][GROSS_FG_QTY_COL_NUM]
-                        elif detailed_job_report[row][SHIFT_COL_NUM] == shift + 1 and detailed_job_report[row][ELAPSED_HOURS_COL_NUM] < 0:
-                            append_element_in_array(negative_num_rows, row)
-                        elif detailed_job_report[row][SHIFT_COL_NUM] == shift + 1 and detailed_job_report[row][ELAPSED_HOURS_COL_NUM] > EXCESSIVE_THRESHOLD:
-                            append_element_in_array(excessive_num_rows, row)
+                        if detailed_job_report[row][SHIFT_COL_NUM] == shift + 1:
+                            total_feeds = variable_incrementer(detailed_job_report, row, total_feeds, negative_num_rows, excessive_num_rows, 2)
 
             if total_feeds > 0:
                 total_feeds_by_shift_array[shift_counter][0], total_feeds_by_shift_array[shift_counter][1] = shift + 1, total_feeds
@@ -1265,12 +1227,7 @@ def display_total_feeds(detailed_job_report, user_choice, start_date_num, end_da
                     if start_date_num <= int(str(detailed_job_report[row][WORK_DATE_COL_NUM])[0:4] + str(detailed_job_report[row][WORK_DATE_COL_NUM])[5:7] + str(detailed_job_report[row][WORK_DATE_COL_NUM])[8:10]) <= end_date_num:
                         if detailed_job_report[row][MACHINE_COL_NUM] == MACHINE:
                             if str(detailed_job_report[row][EMPLOYEE_NAME_COL_NUM]) == crew:
-                                if 0 <= detailed_job_report[row][ELAPSED_HOURS_COL_NUM] <= EXCESSIVE_THRESHOLD:
-                                    total_feeds = total_feeds + detailed_job_report[row][GROSS_FG_QTY_COL_NUM]
-                                elif detailed_job_report[row][ELAPSED_HOURS_COL_NUM] < 0:
-                                    append_element_in_array(negative_num_rows, row)
-                                elif detailed_job_report[row][ELAPSED_HOURS_COL_NUM] > EXCESSIVE_THRESHOLD:
-                                    append_element_in_array(excessive_num_rows, row)
+                                total_feeds = variable_incrementer(detailed_job_report, row, total_feeds, negative_num_rows, excessive_num_rows, 2)
 
                             elif use_algo:
                                 total_feeds = name_filling_algorithm(detailed_job_report, total_feeds, crew, row, empty_name_rows, negative_num_rows, excessive_num_rows, 4)
@@ -1304,15 +1261,11 @@ def display_average_setup_time(detailed_job_report, user_choice, start_date_num,
         unique_orders_list = []
 
         for elapsed_hours in range(ROWS):
-            if detailed_job_report[elapsed_hours][DOWNTIME_COL_NUM] == "Setup":
+            if detailed_job_report[elapsed_hours][MACHINE_COL_NUM] == MACHINE:
                 if start_date_num <= int(str(detailed_job_report[elapsed_hours][WORK_DATE_COL_NUM])[0:4] + str(detailed_job_report[elapsed_hours][WORK_DATE_COL_NUM])[5:7] + str(detailed_job_report[elapsed_hours][WORK_DATE_COL_NUM])[8:10]) <= end_date_num:
-                    if detailed_job_report[elapsed_hours][MACHINE_COL_NUM] == MACHINE:
-                        if detailed_job_report[elapsed_hours][ELAPSED_HOURS_COL_NUM] < 0:
-                            append_element_in_array(negative_num_rows, elapsed_hours)
-                        elif detailed_job_report[elapsed_hours][ELAPSED_HOURS_COL_NUM] > EXCESSIVE_THRESHOLD:
-                            append_element_in_array(excessive_num_rows, elapsed_hours)
-                        else:
-                            total_elapsed_hours = total_elapsed_hours + detailed_job_report[elapsed_hours][ELAPSED_HOURS_COL_NUM]
+                    if detailed_job_report[elapsed_hours][DOWNTIME_COL_NUM] == "Setup":
+                        total_elapsed_hours = variable_incrementer(detailed_job_report, elapsed_hours, total_elapsed_hours, negative_num_rows, excessive_num_rows, 1)
+                        if 0 <= detailed_job_report[elapsed_hours][ELAPSED_HOURS_COL_NUM] <= 5:
                             append_element_in_array(unique_orders_list, detailed_job_report[elapsed_hours][ORDER_NUM_COL_NUM])
 
         print("\nTotal Elapsed Hours: " + str(total_elapsed_hours))
@@ -1344,13 +1297,9 @@ def display_average_setup_time(detailed_job_report, user_choice, start_date_num,
                     if start_date_num <= int(str(detailed_job_report[elapsed_hours][WORK_DATE_COL_NUM])[0:4] + str(detailed_job_report[elapsed_hours][WORK_DATE_COL_NUM])[5:7] + str(detailed_job_report[elapsed_hours][WORK_DATE_COL_NUM])[8:10]) <= end_date_num:
                         if detailed_job_report[elapsed_hours][MACHINE_COL_NUM] == MACHINE:
                             if detailed_job_report[elapsed_hours][SHIFT_COL_NUM] == shift + 1:
-                                if detailed_job_report[elapsed_hours][ELAPSED_HOURS_COL_NUM] < 0:
-                                    append_element_in_array(negative_num_rows, elapsed_hours)
-                                elif detailed_job_report[elapsed_hours][ELAPSED_HOURS_COL_NUM] > EXCESSIVE_THRESHOLD:
-                                    append_element_in_array(excessive_num_rows, elapsed_hours)
-                                elif 0 <= detailed_job_report[elapsed_hours][ELAPSED_HOURS_COL_NUM] <= EXCESSIVE_THRESHOLD:
-                                    total_elapsed_hours = total_elapsed_hours + detailed_job_report[elapsed_hours][ELAPSED_HOURS_COL_NUM]  # increment elapsed hours
-                                    append_element_in_array(unique_orders_list, detailed_job_report[elapsed_hours][ORDER_NUM_COL_NUM])  # append order if unique
+                                total_elapsed_hours = variable_incrementer(detailed_job_report, elapsed_hours, total_elapsed_hours, negative_num_rows, excessive_num_rows, 1)
+                                if 0 <= detailed_job_report[elapsed_hours][ELAPSED_HOURS_COL_NUM] <= 5:
+                                    append_element_in_array(unique_orders_list, detailed_job_report[elapsed_hours][ORDER_NUM_COL_NUM])
 
             # final calculation
             if len(unique_orders_list) != 0:
@@ -1397,12 +1346,8 @@ def display_average_setup_time(detailed_job_report, user_choice, start_date_num,
                         if start_date_num <= int(str(detailed_job_report[elapsed_hours][WORK_DATE_COL_NUM])[0:4] + str(detailed_job_report[elapsed_hours][WORK_DATE_COL_NUM])[5:7] + str(detailed_job_report[elapsed_hours][WORK_DATE_COL_NUM])[8:10]) <= end_date_num:
                             if detailed_job_report[elapsed_hours][MACHINE_COL_NUM] == MACHINE:
                                 if detailed_job_report[elapsed_hours][EMPLOYEE_NAME_COL_NUM] == crew:
-                                    if detailed_job_report[elapsed_hours][ELAPSED_HOURS_COL_NUM] < 0:
-                                        append_element_in_array(negative_num_rows, elapsed_hours)
-                                    elif detailed_job_report[elapsed_hours][ELAPSED_HOURS_COL_NUM] > EXCESSIVE_THRESHOLD:
-                                        append_element_in_array(excessive_num_rows, elapsed_hours)
-                                    elif 0 <= detailed_job_report[elapsed_hours][ELAPSED_HOURS_COL_NUM] <= EXCESSIVE_THRESHOLD:
-                                        total_elapsed_hours = total_elapsed_hours + detailed_job_report[elapsed_hours][ELAPSED_HOURS_COL_NUM] # increment elapsed hours
+                                    total_elapsed_hours = variable_incrementer(detailed_job_report, elapsed_hours, total_elapsed_hours, negative_num_rows, excessive_num_rows, 1)
+                                    if 0 <= detailed_job_report[elapsed_hours][ELAPSED_HOURS_COL_NUM] <= EXCESSIVE_THRESHOLD:
                                         append_element_in_array(unique_orders_list, detailed_job_report[elapsed_hours][ORDER_NUM_COL_NUM]) # append order if unique
                                 elif use_algo:
                                     # increment elapsed hours
@@ -1449,13 +1394,9 @@ def display_daily_feeds(detailed_job_report, user_choice, start_date_num, end_da
         for row in range(ROWS):
             if str(start_date_num) <= str(detailed_job_report[row][WORK_DATE_COL_NUM])[0:4] + str(detailed_job_report[row][WORK_DATE_COL_NUM])[5:7] + str(detailed_job_report[row][WORK_DATE_COL_NUM])[8:10] <= str(end_date_num):
                 if detailed_job_report[row][MACHINE_COL_NUM] == MACHINE:
+                    total_feeds = variable_incrementer(detailed_job_report, row, total_feeds, negative_num_rows, excessive_num_rows, 2)
                     if 0 <= detailed_job_report[row][ELAPSED_HOURS_COL_NUM] <= EXCESSIVE_THRESHOLD:
-                        total_feeds = total_feeds + detailed_job_report[row][GROSS_FG_QTY_COL_NUM]
                         append_element_in_array(unique_days, detailed_job_report[row][WORK_DATE_COL_NUM])
-                    elif detailed_job_report[row][ELAPSED_HOURS_COL_NUM] < 0:
-                        append_element_in_array(negative_num_rows, row)
-                    elif detailed_job_report[row][ELAPSED_HOURS_COL_NUM] > EXCESSIVE_THRESHOLD:
-                        append_element_in_array(excessive_num_rows, row)
 
         print("Total feeds: " + str(total_feeds))
         print("Total work days: " + str(len(unique_days)))
@@ -1482,12 +1423,8 @@ def display_daily_feeds(detailed_job_report, user_choice, start_date_num, end_da
                 for row_table in range(len(resulting_table) - 1):
                     if str(start_date_num + row_table) == str(detailed_job_report[row_djr][WORK_DATE_COL_NUM])[0:4] + str(detailed_job_report[row_djr][WORK_DATE_COL_NUM])[5:7] + str(detailed_job_report[row_djr][WORK_DATE_COL_NUM])[8:10]:
                         for shift in range(3):
-                            if detailed_job_report[row_djr][SHIFT_COL_NUM] == shift + 1 and 0 <= detailed_job_report[row_djr][ELAPSED_HOURS_COL_NUM] <= EXCESSIVE_THRESHOLD:
-                                resulting_table[row_table + 1][shift + 1] = resulting_table[row_table + 1][shift + 1] + detailed_job_report[row_djr][GROSS_FG_QTY_COL_NUM]
-                            elif detailed_job_report[row_djr][SHIFT_COL_NUM] == shift + 1 and detailed_job_report[row_djr][ELAPSED_HOURS_COL_NUM] > EXCESSIVE_THRESHOLD:
-                                append_element_in_array(excessive_num_rows, row_djr)
-                            elif detailed_job_report[row_djr][SHIFT_COL_NUM] == shift + 1 and detailed_job_report[row_djr][ELAPSED_HOURS_COL_NUM] < 0:
-                                append_element_in_array(negative_num_rows, row_djr)
+                            if detailed_job_report[row_djr][SHIFT_COL_NUM] == shift + 1:
+                                resulting_table[row_table + 1][shift + 1] = variable_incrementer(detailed_job_report, row_djr, resulting_table[row_table + 1][shift + 1], negative_num_rows, excessive_num_rows, 2)
 
         if yes_or_no(5):
             # delete unnecessary rows
@@ -1551,12 +1488,7 @@ def display_daily_feeds(detailed_job_report, user_choice, start_date_num, end_da
                             if str(detailed_job_report[row_djr][EMPLOYEE_NAME_COL_NUM]) != "nan":
                                 for crew_counter in range(len(crews_list)):
                                     if detailed_job_report[row_djr][EMPLOYEE_NAME_COL_NUM] == crews_list[crew_counter]:
-                                        if 0 <= detailed_job_report[row_djr][ELAPSED_HOURS_COL_NUM] <= EXCESSIVE_THRESHOLD:
-                                            resulting_table[row_table + 1][crew_counter + 1] = resulting_table[row_table + 1][crew_counter + 1] + detailed_job_report[row_djr][GROSS_FG_QTY_COL_NUM]
-                                        elif detailed_job_report[row_djr][ELAPSED_HOURS_COL_NUM] > EXCESSIVE_THRESHOLD:
-                                            append_element_in_array(excessive_num_rows, row_djr)
-                                        elif detailed_job_report[row_djr][ELAPSED_HOURS_COL_NUM] < 0:
-                                            append_element_in_array(negative_num_rows, row_djr)
+                                        resulting_table[row_table + 1][crew_counter + 1] = variable_incrementer(detailed_job_report, row_djr, resulting_table[row_table + 1][crew_counter + 1], negative_num_rows, excessive_num_rows, 2)
                             if str(detailed_job_report[row_djr][EMPLOYEE_NAME_COL_NUM]) == "nan" and use_algo:
                                 for crew_index in range(len(crews_list)):
                                     feeds_calculated_by_AI = 0
@@ -1698,13 +1630,8 @@ def display_average_run_speed(detailed_job_report, option, start_date_num, end_d
                 if start_date_num <= int(str(detailed_job_report[row][WORK_DATE_COL_NUM])[0:4] + str(detailed_job_report[row][WORK_DATE_COL_NUM])[5:7] + str(detailed_job_report[row][WORK_DATE_COL_NUM])[8:10]) <= end_date_num:
                     if str(detailed_job_report[row][SHIFT_COL_NUM]) == str(shift + 1) and detailed_job_report[row][CHARGE_CODE_COL_NUM] == "RUN": # calculate total run elapsed hours for specific shift
                         if detailed_job_report[row][MACHINE_COL_NUM] == MACHINE:
-                            if 0 <= detailed_job_report[row][ELAPSED_HOURS_COL_NUM] <= EXCESSIVE_THRESHOLD:
-                                total_feeds = total_feeds + detailed_job_report[row][GROSS_FG_QTY_COL_NUM]
-                                total_run_hours = total_run_hours + detailed_job_report[row][ELAPSED_HOURS_COL_NUM]
-                            elif detailed_job_report[row][ELAPSED_HOURS_COL_NUM] > EXCESSIVE_THRESHOLD:
-                                append_element_in_array(excessive_num_rows, row)
-                            elif detailed_job_report[row][ELAPSED_HOURS_COL_NUM] < 0:
-                                append_element_in_array(negative_num_rows, row)
+                            total_feeds = variable_incrementer(detailed_job_report, row, total_feeds, negative_num_rows, excessive_num_rows, 2)
+                            total_run_hours = variable_incrementer(detailed_job_report, row, total_run_hours, negative_num_rows, excessive_num_rows, 1)
 
             if total_run_hours != 0:
                 average_run_speed = (total_feeds / total_run_hours)
@@ -1747,14 +1674,8 @@ def display_average_run_speed(detailed_job_report, option, start_date_num, end_d
                     if start_date_num <= int(str(detailed_job_report[row][WORK_DATE_COL_NUM])[0:4] + str(detailed_job_report[row][WORK_DATE_COL_NUM])[5:7] + str(detailed_job_report[row][WORK_DATE_COL_NUM])[8:10]) <= end_date_num:
                         if str(detailed_job_report[row][EMPLOYEE_NAME_COL_NUM]) == crew and detailed_job_report[row][CHARGE_CODE_COL_NUM] == "RUN":
                             if detailed_job_report[row][MACHINE_COL_NUM] == MACHINE:
-                                if 0 <= detailed_job_report[row][ELAPSED_HOURS_COL_NUM] <= EXCESSIVE_THRESHOLD:
-                                    total_feeds = total_feeds + detailed_job_report[row][GROSS_FG_QTY_COL_NUM]
-                                    total_run_hours = total_run_hours + detailed_job_report[row][ELAPSED_HOURS_COL_NUM]
-                                elif detailed_job_report[row][ELAPSED_HOURS_COL_NUM] > EXCESSIVE_THRESHOLD:
-                                    append_element_in_array(excessive_num_rows, row)
-                                elif detailed_job_report[row][ELAPSED_HOURS_COL_NUM] < 0:
-                                    append_element_in_array(negative_num_rows, row)
-
+                                total_feeds = variable_incrementer(detailed_job_report, row, total_feeds, negative_num_rows, excessive_num_rows, 2)
+                                total_run_hours = variable_incrementer(detailed_job_report, row, total_run_hours, negative_num_rows, excessive_num_rows, 1)
                         elif use_algo and detailed_job_report[row][CHARGE_CODE_COL_NUM] == "RUN":
                             total_feeds = name_filling_algorithm(detailed_job_report, total_feeds, crew, row, rows_with_no_name, negative_num_rows, excessive_num_rows, 4)
                             total_run_hours = name_filling_algorithm(detailed_job_report, total_run_hours, crew, row, rows_with_no_name, negative_num_rows, excessive_num_rows, 1)
@@ -1830,17 +1751,12 @@ def display_top_three_orders(detailed_job_report, option, sub_option, start_date
                         break
 
                 if order_found:
-                    if 0 <= detailed_job_report[row][ELAPSED_HOURS_COL_NUM] <= EXCESSIVE_THRESHOLD:
-                        if detailed_job_report[row][CHARGE_CODE_COL_NUM] == "RUN":
-                            run_dict[detailed_job_report[row][ORDER_NUM_COL_NUM]] += detailed_job_report[row][ELAPSED_HOURS_COL_NUM]
-                        elif detailed_job_report[row][CHARGE_CODE_COL_NUM] == "SET UP":
-                            setup_dict[detailed_job_report[row][ORDER_NUM_COL_NUM]] += detailed_job_report[row][ELAPSED_HOURS_COL_NUM]
-                        else:
-                            ODT_dict[detailed_job_report[row][ORDER_NUM_COL_NUM]] += detailed_job_report[row][ELAPSED_HOURS_COL_NUM]
-                    elif detailed_job_report[row][ELAPSED_HOURS_COL_NUM] > EXCESSIVE_THRESHOLD:
-                        append_element_in_array(excessive_num_rows, row)
-                    elif detailed_job_report[row][ELAPSED_HOURS_COL_NUM] < 0:
-                        append_element_in_array(negative_num_rows, row)
+                    if detailed_job_report[row][CHARGE_CODE_COL_NUM] == "RUN":
+                        run_dict[detailed_job_report[row][ORDER_NUM_COL_NUM]] = variable_incrementer(detailed_job_report, row, run_dict[detailed_job_report[row][ORDER_NUM_COL_NUM]], negative_num_rows, excessive_num_rows, 1)
+                    elif detailed_job_report[row][CHARGE_CODE_COL_NUM] == "SET UP":
+                        setup_dict[detailed_job_report[row][ORDER_NUM_COL_NUM]] = variable_incrementer(detailed_job_report, row, setup_dict[detailed_job_report[row][ORDER_NUM_COL_NUM]], negative_num_rows, excessive_num_rows, 1)
+                    else:
+                        ODT_dict[detailed_job_report[row][ORDER_NUM_COL_NUM]] = variable_incrementer(detailed_job_report, row, ODT_dict[detailed_job_report[row][ORDER_NUM_COL_NUM]], negative_num_rows, excessive_num_rows, 1)
 
     # fill in efficiency and total time dictionaries
     for key in efficiency_dict.keys():
@@ -1930,7 +1846,7 @@ while True:
     # calculating open down time percentage
     #######################################
     if user_input == 1:
-        print("\nEnter the first date (YYYY/MM/DD): ", end="")
+        print("\nEnter the start date (YYYY/MM/DD): ", end="")
         first_date_string = obtain_date_string(djr_array)
         second_date_string = obtain_second_date_string(djr_array, first_date_string)
 
@@ -1952,7 +1868,7 @@ while True:
     #########################
     elif user_input == 2:
         # obtain date frame from user
-        print("Enter the first date (YYYY/MM/DD): ", end="")
+        print("Enter the start date (YYYY/MM/DD): ", end="")
         first_date_string = obtain_date_string(djr_array)
         second_date_string = obtain_second_date_string(djr_array, first_date_string)
 
@@ -1973,7 +1889,7 @@ while True:
     ################################
     elif user_input == 3:
         # obtain date frame from user
-        print("Enter the first date (YYYY/MM/DD): ", end="")
+        print("Enter the start date (YYYY/MM/DD): ", end="")
         first_date_string = obtain_date_string(djr_array)
         second_date_string = obtain_second_date_string(djr_array, first_date_string)
 
@@ -1996,7 +1912,7 @@ while True:
     #############################
     elif user_input == 4:
         # obtain date frame from user
-        print("Enter the first date (YYYY/MM/DD): ", end="")
+        print("Enter the start date (YYYY/MM/DD): ", end="")
         first_date_string = obtain_date_string(djr_array)
         second_date_string = obtain_second_date_string(djr_array, first_date_string)
 
@@ -2019,7 +1935,7 @@ while True:
     #######################
     elif user_input == 5:
         # obtain date frame from user
-        print("Enter the first date (YYYY/MM/DD): ", end="")
+        print("Enter the start date (YYYY/MM/DD): ", end="")
         first_date_string = obtain_date_string(djr_array)
         second_date_string = obtain_second_date_string(djr_array, first_date_string)
 
@@ -2042,7 +1958,7 @@ while True:
     #####################
     elif user_input == 6:
         # obtain date frame from user
-        print("Enter the first date (YYYY/MM/DD): ", end="")
+        print("Enter the start date (YYYY/MM/DD): ", end="")
         first_date_string = obtain_date_string(djr_array)
         second_date_string = obtain_second_date_string(djr_array, first_date_string)
 
@@ -2063,7 +1979,7 @@ while True:
     #####################################
     elif user_input == 7:
         # obtain date frame from user
-        print("Enter the first date (YYYY/MM/DD): ", end="")
+        print("Enter the start date (YYYY/MM/DD): ", end="")
         first_date_string = obtain_date_string(djr_array)
         second_date_string = obtain_second_date_string(djr_array, first_date_string)
 

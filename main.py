@@ -1355,8 +1355,9 @@ def display_average_setup_time(detailed_job_report, user_choice, start_date_num,
 
                                     # append order if unique
                                     if str(detailed_job_report[elapsed_hours][EMPLOYEE_NAME_COL_NUM]) == "nan":
-                                        if assume_name(djr_array, rows_with_no_name, elapsed_hours) == crew:
-                                            append_element_in_array(unique_orders_list, detailed_job_report[elapsed_hours][ORDER_NUM_COL_NUM])
+                                        if 0 <= detailed_job_report[elapsed_hours][ELAPSED_HOURS_COL_NUM] <= EXCESSIVE_THRESHOLD:
+                                            if assume_name(djr_array, rows_with_no_name, elapsed_hours) == crew:
+                                                append_element_in_array(unique_orders_list, detailed_job_report[elapsed_hours][ORDER_NUM_COL_NUM])
 
                 # final calculation
                 if len(unique_orders_list) != 0:

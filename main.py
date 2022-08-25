@@ -587,7 +587,7 @@ def validate_spreadsheet_name():
         valid_name = True
         name = input("Enter the name for the new spreadsheet: ")
 
-        if name and name.strip() and name[0] != " ": # check for exceptions in input
+        if name and name.strip() and name[0] != " " and name[0] != '\t': # check for exceptions in input
             print_error_phrase = False
             for item in unacceptable_characters:
                 for char in name:

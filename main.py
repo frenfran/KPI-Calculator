@@ -511,8 +511,7 @@ def build_top_three_orders_array(array, dictionary, option, sub_option):
         dictionary.pop(key_to_pop)
 
 
-# function to obtain spreadsheet name and write data from user's previous
-# command to said spreadsheet
+# function to obtain Excel spreadsheet name and write data from user's previous command to said spreadsheet
 # arguments: array containing the data to write to spreadsheet and its length
 # returns nothing
 def write_to_excel(array, length_of_array):
@@ -551,7 +550,7 @@ def write_to_excel(array, length_of_array):
                 print("Error: no such file found in current directory")
                 print("Please try again")
     else: # user wants to create new spreadsheet
-        spreadsheet_name = input("Enter the name for the new spreadsheet: ")
+        spreadsheet_name = validate_spreadsheet_name()
         spreadsheet_name_split = spreadsheet_name.split(".")
 
         contains_file_type = False
@@ -577,6 +576,35 @@ def write_to_excel(array, length_of_array):
     charge_code_dataframe = pd.DataFrame(array[0:length_of_array]) # convert array containing data into a dataframe
     charge_code_dataframe.to_excel(spreadsheet_name, index=False) # write dataframe to Excel spreadsheet
     print("Data successfully copied to spreadsheet.")
+
+
+# function for ensuring the name of a newly created spreadsheet follows Microsoft's naming conventions
+# arguments: none
+# returns the spreadsheet name once the user has entered an acceptable file name
+def validate_spreadsheet_name():
+    unacceptable_characters = ['\\', '/', ':', '*', '?', '"', '<', '>', '|']
+    while True:
+        valid_name = True
+        name = input("Enter the name for the new spreadsheet: ")
+
+        if name and name.strip() and name[0] != " ": # check for exceptions in input
+            print_error_phrase = False
+            for item in unacceptable_characters:
+                for char in name:
+                    if char == item:
+                        if not print_error_phrase:
+                            print("Error. File name cannot contain the following character(s): ", end="")
+                            print_error_phrase = True
+                        print(item + " ", end="")
+                        valid_name = False
+                        break
+
+            if valid_name:
+                return name
+            else:
+                print()
+        else:
+            print("Error. Please try again.")
 
 
 # function for printing the resulting table from any command

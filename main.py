@@ -15,8 +15,7 @@ def obtain_detailed_job_report():
     djr_array = []  # initialize detailed job report array
     user_error = True
     while user_error:  # obtaining the Detailed Job Report (.xlsx) spreadsheet by name from directory
-        choice = input(
-            "Enter (1) to enter the Detailed Job Report by name or (2) to enter the Detailed Job Report by path: ")
+        choice = input("Enter (1) to enter the Detailed Job Report by name or (2) to enter the Detailed Job Report by path: ")
         if choice == "1":
             file_found = False
             while not file_found:
@@ -989,25 +988,6 @@ def calculate_ODT_by_crew(charge_code_array, detailed_job_report, start_date_num
         print("There is nothing to show here")
 
 
-# function to keep adding unique orders to the unique orders list and to keep incrementing on the total quantity
-# used when computing the average order quantity for a given date frame
-# arguments: the detailed job report, the row being parsed, the total quantity so far
-# and the list of unique orders so far
-# returns the new total quantity
-def incrementing_algo(detailed_job_report, row, total_quantity, unique_orders_list):
-    unique = True
-    for item in unique_orders_list:
-        unique = True
-        if detailed_job_report[row][ORDER_NUM_COL_NUM] == item:
-            unique = False
-            break
-    if unique:
-        unique_orders_list.append(detailed_job_report[row][ORDER_NUM_COL_NUM])
-        total_quantity = total_quantity + detailed_job_report[row][ORDER_QTY_COL_NUM]
-
-    return total_quantity
-
-
 # function to display ODT by either shift or crew
 # arguments: the detailed job report array, which type of ODT the user wants,
 # the start date and the end date
@@ -1574,7 +1554,15 @@ def display_order_type(detailed_job_report, option, start_date_num, end_date_num
         for row in range(ROWS):
             if start_date_num <= int(str(detailed_job_report[row][WORK_DATE_COL_NUM])[0:4] + str(detailed_job_report[row][WORK_DATE_COL_NUM])[5:7] + str(detailed_job_report[row][WORK_DATE_COL_NUM])[8:10]) <= end_date_num:
                 if detailed_job_report[row][MACHINE_COL_NUM] == MACHINE:
-                    total_quantity = incrementing_algo(detailed_job_report, row, total_quantity, unique_orders)
+                    unique = True
+                    for item in unique_orders:
+                        unique = True
+                        if detailed_job_report[row][ORDER_NUM_COL_NUM] == item:
+                            unique = False
+                            break
+                    if unique:
+                        unique_orders.append(detailed_job_report[row][ORDER_NUM_COL_NUM])
+                        total_quantity = total_quantity + detailed_job_report[row][ORDER_QTY_COL_NUM]
 
         print("\nTotal Order Quantity: " + str(total_quantity))
         print("Total Unique Orders: " + str(len(unique_orders)))

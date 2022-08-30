@@ -130,7 +130,7 @@ def obtain_instruction():
     print("\nWhat would you like to do?")
     print("----------------------------------------")
     print("| 1 - calculate open down time         |")
-    print("| 2 - calculate total feeds            |")
+    print("| 2 - break down total waste           |")
     print("| 3 - calculate average setup time     |")
     print("| 4 - break down feeds per day         |")
     print("| 5 - analyze orders by type           |")
@@ -235,7 +235,6 @@ def obtain_date_string(detailed_job_report):
     error = True
     while error:
         try:
-            day, month, year = "", "", ""
             date = input()
             date_split = date.split("/")
 
@@ -559,18 +558,6 @@ def write_to_excel(array, length_of_array):
 
         if not contains_file_type:
             spreadsheet_name = spreadsheet_name + ".xlsx"
-
-    # clear any rows with irrelevant data
-    rows_to_delete = [] # list to remember which rows to delete
-    counter = 0
-    for row in range(length_of_array):
-        if array[row][0] == 0 and array[row][1] == 0:
-            rows_to_delete.append(row)
-    for row in rows_to_delete:
-        array = np.delete(array, row - counter, axis=0)
-        # size of array decreases with every deletion
-        counter = counter + 1
-        length_of_array = length_of_array - 1
 
     charge_code_dataframe = pd.DataFrame(array[0:length_of_array]) # convert array containing data into a dataframe
     charge_code_dataframe.to_excel(spreadsheet_name, index=False) # write dataframe to Excel spreadsheet
@@ -1146,6 +1133,48 @@ def display_ODT(detailed_job_report, user_option, start_date, end_date):
                 calculate_ODT_by_crew(charge_code_array, detailed_job_report, start_date_num, end_date_num)
         else:
             print("There is nothing to show here")
+
+
+# function to display total waste according to machine
+# arguments: the detailed job report, the start date as an integer and the end date as an integer
+# returns nothing
+def display_total_waste(detailed_job_report, start_date_num, end_date_num):
+    negative_num_rows = []
+    total_waste_in_feeds = 0
+    total_feeds = 0
+    total_waste_in_MSF = 0
+
+
+    for row in range(ROWS):
+        if detailed_job_report[row][MACHINE_COL_NUM] == MACHINE:
+            if start_date_num <= int(str(detailed_job_report[row][WORK_DATE_COL_NUM])[0:4] + str(djr_array[row][WORK_DATE_COL_NUM])[5:7] + str(detailed_job_report[row][WORK_DATE_COL_NUM])[8:10]) <= end_date_num:
+                if detailed_job_report[row][GROSS_FG_QTY_COL_NUM] < 0 or detailed_job_report[row][WASTE_QTY_COL_NUM] < 0 or detailed_job_report[row][NON_FED_WASTE_QTY_COL_NUM] < 0:
+                    append_element_in_array(negative_num_rows, row)
+                else:
+                    if detailed_job_report[row][GROSS_FG_QTY_COL_NUM] > 0:
+                        total_feeds += detailed_job_report[row][GROSS_FG_QTY_COL_NUM]
+
+
+                    if detailed_job_report[row][WASTE_QTY_COL_NUM] > 0:
+                        total_waste_in_feeds += detailed_job_report[row][WASTE_QTY_COL_NUM]
+                        if detailed_job_report[row][GROSS_FG_QTY_COL_NUM] > 0:
+                            total_waste_in_MSF += detailed_job_report[row][MSF_COL_NUM] / detailed_job_report[row][GROSS_FG_QTY_COL_NUM] * detailed_job_report[row][WASTE_QTY_COL_NUM]
+
+
+                    if detailed_job_report[row][NON_FED_WASTE_QTY_COL_NUM] > 0:
+                        total_waste_in_feeds += detailed_job_report[row][NON_FED_WASTE_QTY_COL_NUM]
+                        if detailed_job_report[row][GROSS_FG_QTY_COL_NUM] > 0:
+                            total_waste_in_MSF += detailed_job_report[row][MSF_COL_NUM] / detailed_job_report[row][GROSS_FG_QTY_COL_NUM] * detailed_job_report[row][NON_FED_WASTE_QTY_COL_NUM]
+
+    print("\nTotal Waste (%): " + str(total_waste_in_feeds / total_feeds * 100))
+    print("Total Waste (MSF): " + str(total_waste_in_MSF))
+
+    if len(negative_num_rows) > 0:
+        print()
+        if yes_or_no(3):
+            print("\n")
+            sorting_algorithm(negative_num_rows)
+            print_list_of_problematic_rows(negative_num_rows, 1)
 
 
 # function to display total feeds either by shift or by crew
@@ -1806,8 +1835,11 @@ SHIFT_COL_NUM = 5
 ORDER_NUM_COL_NUM = 8
 ORDER_QTY_COL_NUM = 9
 GROSS_FG_QTY_COL_NUM = 15
+WASTE_QTY_COL_NUM = 16
+NON_FED_WASTE_QTY_COL_NUM = 17
 MACHINE_COL_NUM = 18
 NUM_UPS_COL_NUM = 19
+MSF_COL_NUM = 25
 EMPLOYEE_NAME_COL_NUM = 26
 DOWNTIME_COL_NUM = 28
 NUM_COLORS_COL_NUM = 32
@@ -1854,7 +1886,7 @@ while True:
         display_ODT(djr_array, user_choice, first_date_string, second_date_string) # show calculated data
 
     #########################
-    # calculating total feeds
+    # calculating total waste
     #########################
     elif user_input == 2:
         # obtain date frame from user
@@ -1865,14 +1897,8 @@ while True:
         start_date_num = int(first_date_string[0:4] + first_date_string[5:7] + first_date_string[8:10])
         end_date_num = int(second_date_string[0:4] + second_date_string[5:7] + second_date_string[8:10])
 
-        user_choice = obtain_sub_instruction(2)
-
-        if user_choice == "1":
-            print("\nTotal feeds by shift from " + first_date_string + " to " + second_date_string + ":")
-        else:
-            print("\nTotal feeds by crew from " + first_date_string + " to " + second_date_string + ":")
-
-        display_total_feeds(djr_array, user_choice, start_date_num, end_date_num)
+        print("\nWaste for '" + MACHINE + "' from " + first_date_string + " to " + second_date_string + ":")
+        display_total_waste(djr_array, start_date_num, end_date_num)
 
     ################################
     # calculating average setup time

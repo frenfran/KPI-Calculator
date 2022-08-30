@@ -1819,7 +1819,6 @@ EXCESSIVE_THRESHOLD = 5
 ######
 preliminary_choices_made = False
 while True:
-    djr_array = [] # array to contain the detailed job report the user would like to analyze
 
     while not preliminary_choices_made:
         # obtaining preliminary information from the user

@@ -174,8 +174,10 @@ def obtain_sub_instruction(option):
             choice = input("Enter (1) to calculate the average run speed by shift or (2) to calculate the average run speed by crew: ")
         elif option == 7:
             choice = input("Enter (1) to find the top three best orders or (2) to find the top three worst orders: ")
-        else:
+        elif option == 8:
             choice = input("Enter (1) to sort by efficiency, (2) to sort by ODT, (3) to sort by setup time or (4) to sort by total time spent on each order: ")
+        else:
+            choice = input("Enter (1) to select another detailed job report or (2) to select another machine: ")
 
         if option == 1 or option == 8:
             if choice == "1" or choice == "2" or choice == "3" or choice == "4":
@@ -1843,17 +1845,21 @@ NUM_COLORS_COL_NUM = 32
 
 EXCESSIVE_THRESHOLD = 5
 
+
 ######
 # main
 ######
-preliminary_choices_made = False
+detailed_job_report_selected = False
+machine_selected = False
+
 while True:
-    while not preliminary_choices_made:
-        # obtaining preliminary information from the user
+    if not detailed_job_report_selected:
         djr_array = obtain_detailed_job_report()
         ROWS, COLUMNS = djr_array.shape
+        detailed_job_report_selected = True
+    if not machine_selected:
         MACHINE = obtain_machine_to_analyze(djr_array)
-        preliminary_choices_made = True
+        machine_selected = True
 
     # obtaining instruction from the user
     user_input = obtain_instruction()
@@ -2021,7 +2027,11 @@ while True:
     # analyze different machine/detailed job report
     ###############################################
     elif user_input == 8:
-        preliminary_choices_made = False
+        user_choice = obtain_sub_instruction(9)
+
+        if user_choice == "1":
+            detailed_job_report_selected = False
+        machine_selected = False
 
     ######
     # exit

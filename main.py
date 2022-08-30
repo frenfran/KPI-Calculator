@@ -235,7 +235,6 @@ def obtain_date_string(detailed_job_report):
     error = True
     while error:
         try:
-            day, month, year = "", "", ""
             date = input()
             date_split = date.split("/")
 
@@ -560,18 +559,6 @@ def write_to_excel(array, length_of_array):
         if not contains_file_type:
             spreadsheet_name = spreadsheet_name + ".xlsx"
 
-    # clear any rows with irrelevant data
-    rows_to_delete = [] # list to remember which rows to delete
-    counter = 0
-    for row in range(length_of_array):
-        if array[row][0] == 0 and array[row][1] == 0:
-            rows_to_delete.append(row)
-    for row in rows_to_delete:
-        array = np.delete(array, row - counter, axis=0)
-        # size of array decreases with every deletion
-        counter = counter + 1
-        length_of_array = length_of_array - 1
-
     charge_code_dataframe = pd.DataFrame(array[0:length_of_array]) # convert array containing data into a dataframe
     charge_code_dataframe.to_excel(spreadsheet_name, index=False) # write dataframe to Excel spreadsheet
     print("Data successfully copied to spreadsheet.")
@@ -700,30 +687,32 @@ def print_table_element(element, length_to_fill):
         print(" ", end="")
 
 
-# function to print all incorrect numbers in a given list
-# arguments: the number of numbers in an array, the array itself
-# and an option to indicate what sort of wrong numbers we are printing
-# 1 = negative elapsed hours and 2 = excessive elapsed hours
+# function to display all rows with potentially incorrect data to the user
+# arguments: the list of problematic rows and an option to determine what kind of rows we are displaying
+# 1 = rows with negative elapsed hours, 2 = rows with excessive elapsed hours and
+# 3 = rows for which the AI was unable to attribute names to
 # returns nothing
-def print_wrong_nums_list(num_numbers, wrong_nums_list, option):
+def print_list_of_problematic_rows(list_of_problematic_rows, option):
     if option == 1:
         print("Row(s) with negative elapsed hours:\n")
-    else:
+    elif option == 2:
         print("Row(s) with excessive elapsed hours (greater than " + str(EXCESSIVE_THRESHOLD) + "):\n")
+    else:
+        print("AI was unable to attribute names to the following row(s) due to insufficient information:\n")
 
     counter = 0
-    for row in range(num_numbers):
-        print(wrong_nums_list[row] + 2, end=" ")
-        counter = counter + 1
+    for row in list_of_problematic_rows:
+        print(int(row) + 2, end=" ")
+        counter += 1
 
         if counter > 15:
-            print("")
+            print()
             counter = 0
 
     if counter != 0:
         print()
     print("\nThese row(s) were omitted from calculations")
-    print("---------------------------------------------")
+    print("-------------------------------------------------------------------------------")
 
 
 # function for printing both the list of rows with negative elapsed hours
@@ -737,61 +726,32 @@ def print_incorrect_hours(negative_num_rows, excessive_num_rows):
 
     if len(negative_num_rows) > 0:
         sorting_algorithm(negative_num_rows)
-        print_wrong_nums_list(len(negative_num_rows), negative_num_rows, 1)
+        print_list_of_problematic_rows(negative_num_rows, 1)
 
     if len(excessive_num_rows) > 0:
         sorting_algorithm(excessive_num_rows)
-        print_wrong_nums_list(len(excessive_num_rows), excessive_num_rows, 2)
+        print_list_of_problematic_rows(excessive_num_rows, 2)
 
 
-# function for printing all the rows in which AI was unable to attribute a name
-# arguments: the completed list of rows with no name
-# returns nothing
-def print_rows_with_no_name(rows_with_no_name):
-    if len(rows_with_no_name) > 0:
-        print("AI was unable to attribute names to the following row(s) due to insufficient information:\n")
-        counter = 0
-        for item in rows_with_no_name:
-            counter = counter + 1
-
-            if counter < 19:
-                print(str(item + 2) + " ", end="")
-            else:
-                print(str(item + 2) + " ")
-                counter = 0
-
-        if counter != 0:
-            print("")
-        print("\nThese row(s) were omitted from calculations")
-
-
-# function for displaying both the list of rows where no crew name could be attributed by the AI,
+# function for displaying the list of rows where no crew name could be attributed to by the AI,
 # the list of rows with negative elapsed hours and the list of excessive elapsed hours
 # arguments: whether the algorithm was used, the list of rows with no names,
 # the list of rows with negative elapsed hours and the list of rows with excessive elapsed hours
+# returns nothing
 def print_additional_info(algorithm_used, rows_with_no_name, negative_num_rows, excessive_num_rows):
     print("\n")
 
-    # print list of rows where no name was attributed
     if algorithm_used:
         sorting_algorithm(rows_with_no_name)
-        print_rows_with_no_name(rows_with_no_name)
-        if len(negative_num_rows) <= 0 and len(excessive_num_rows) <= 0 and len(rows_with_no_name) > 0:
-            print("---------------------------------------------")
+        print_list_of_problematic_rows(rows_with_no_name, 3)
 
-    # print list of rows with negative elapsed hours
     if len(negative_num_rows) > 0:
         sorting_algorithm(negative_num_rows)
-        if len(rows_with_no_name) > 0:
-            print("---------------------------------------------")
-        print_wrong_nums_list(len(negative_num_rows), negative_num_rows, 1)
+        print_list_of_problematic_rows(negative_num_rows, 1)
 
-    # print list of rows with excessive elapsed hours
     if len(excessive_num_rows) > 0:
         sorting_algorithm(excessive_num_rows)
-        if len(rows_with_no_name) > 0 and len(negative_num_rows) == 0:
-            print("---------------------------------------------")
-        print_wrong_nums_list(len(excessive_num_rows), excessive_num_rows, 2)
+        print_list_of_problematic_rows(excessive_num_rows, 2)
 
 
 # function for converting an integer corresponding to a date
@@ -846,7 +806,7 @@ def calculate_average_feeds_by_shift(feeds_per_day_array, len_feeds_per_day_arra
         denominator = 0
         for row in range(len_feeds_per_day_array - 1):
             if feeds_per_day_array[row + 1][index + 1] != 0:
-                total_for_shift = total_for_shift + feeds_per_day_array[row + 1][index + 1]
+                total_for_shift += feeds_per_day_array[row + 1][index + 1]
                 denominator = denominator + 1
 
         if denominator != 0:
@@ -891,7 +851,7 @@ def calculate_average_feeds_by_crew(feeds_per_day_array, len_feeds_per_day_array
         denominator = 0
         for row in range(len_feeds_per_day_array - 1):
             if feeds_per_day_array[row + 1][index + 1] != 0:
-                total_for_crew = total_for_crew + feeds_per_day_array[row + 1][index + 1]
+                total_for_crew += feeds_per_day_array[row + 1][index + 1]
                 denominator = denominator + 1
 
         if denominator != 0:
@@ -979,8 +939,7 @@ def calculate_ODT_by_crew(charge_code_array, detailed_job_report, start_date_num
         if use_algo and len(rows_with_no_name) > 0:
             if yes_or_no(3):
                 print("\n")
-                print_rows_with_no_name(rows_with_no_name)
-                print("---------------------------------------------")
+                print_list_of_problematic_rows(rows_with_no_name, 3)
 
         if yes_or_no(2):
             write_to_excel(crew_ODT_by_charge_code_array, len(crew_ODT_by_charge_code_array))
@@ -1185,6 +1144,7 @@ def display_total_waste(detailed_job_report, start_date_num, end_date_num):
     total_feeds = 0
     total_waste_in_MSF = 0
 
+
     for row in range(ROWS):
         if detailed_job_report[row][MACHINE_COL_NUM] == MACHINE:
             if start_date_num <= int(str(detailed_job_report[row][WORK_DATE_COL_NUM])[0:4] + str(djr_array[row][WORK_DATE_COL_NUM])[5:7] + str(detailed_job_report[row][WORK_DATE_COL_NUM])[8:10]) <= end_date_num:
@@ -1194,10 +1154,12 @@ def display_total_waste(detailed_job_report, start_date_num, end_date_num):
                     if detailed_job_report[row][GROSS_FG_QTY_COL_NUM] > 0:
                         total_feeds += detailed_job_report[row][GROSS_FG_QTY_COL_NUM]
 
+
                     if detailed_job_report[row][WASTE_QTY_COL_NUM] > 0:
                         total_waste_in_feeds += detailed_job_report[row][WASTE_QTY_COL_NUM]
                         if detailed_job_report[row][GROSS_FG_QTY_COL_NUM] > 0:
                             total_waste_in_MSF += detailed_job_report[row][MSF_COL_NUM] / detailed_job_report[row][GROSS_FG_QTY_COL_NUM] * detailed_job_report[row][WASTE_QTY_COL_NUM]
+
 
                     if detailed_job_report[row][NON_FED_WASTE_QTY_COL_NUM] > 0:
                         total_waste_in_feeds += detailed_job_report[row][NON_FED_WASTE_QTY_COL_NUM]
@@ -1210,9 +1172,9 @@ def display_total_waste(detailed_job_report, start_date_num, end_date_num):
     if len(negative_num_rows) > 0:
         print()
         if yes_or_no(3):
-            print("---------------------------------------------")
+            print("\n")
             sorting_algorithm(negative_num_rows)
-            print_wrong_nums_list(len(negative_num_rows), negative_num_rows, 1)
+            print_list_of_problematic_rows(negative_num_rows, 1)
 
 
 # function to display total feeds either by shift or by crew
@@ -1557,11 +1519,11 @@ def display_daily_feeds(detailed_job_report, user_choice, start_date_num, end_da
 
                         location = location + 1
 
-            for row in range(len(resulting_table) - location):
-                resulting_table = np.delete(resulting_table, location, axis=0)
-            for row in range(location - 1):
-                for col in range(1, len(crews_list) + 1):
-                    resulting_table[row + 1][col] = int(resulting_table[row + 1][col])
+                for row in range(len(resulting_table) - location):
+                    resulting_table = np.delete(resulting_table, location, axis=0)
+                for row in range(location - 1):
+                    for col in range(1, len(crews_list) + 1):
+                        resulting_table[row + 1][col] = int(resulting_table[row + 1][col])
 
             print_table(resulting_table)
 
@@ -1923,7 +1885,7 @@ while True:
         display_ODT(djr_array, user_choice, first_date_string, second_date_string) # show calculated data
 
     #########################
-    # calculating total feeds
+    # calculating total waste
     #########################
     elif user_input == 2:
         # obtain date frame from user
@@ -1933,17 +1895,6 @@ while True:
 
         start_date_num = int(first_date_string[0:4] + first_date_string[5:7] + first_date_string[8:10])
         end_date_num = int(second_date_string[0:4] + second_date_string[5:7] + second_date_string[8:10])
-
-        """
-        user_choice = obtain_sub_instruction(2)
-
-        if user_choice == "1":
-            print("\nTotal feeds by shift from " + first_date_string + " to " + second_date_string + ":")
-        else:
-            print("\nTotal feeds by crew from " + first_date_string + " to " + second_date_string + ":")
-
-        display_total_feeds(djr_array, user_choice, start_date_num, end_date_num)
-        """
 
         print("\nWaste for '" + MACHINE + "' from " + first_date_string + " to " + second_date_string + ":")
         display_total_waste(djr_array, start_date_num, end_date_num)

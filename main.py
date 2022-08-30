@@ -1144,7 +1144,6 @@ def display_total_waste(detailed_job_report, start_date_num, end_date_num):
     total_feeds = 0
     total_waste_in_MSF = 0
 
-
     for row in range(ROWS):
         if detailed_job_report[row][MACHINE_COL_NUM] == MACHINE:
             if start_date_num <= int(str(detailed_job_report[row][WORK_DATE_COL_NUM])[0:4] + str(djr_array[row][WORK_DATE_COL_NUM])[5:7] + str(detailed_job_report[row][WORK_DATE_COL_NUM])[8:10]) <= end_date_num:
@@ -1154,12 +1153,10 @@ def display_total_waste(detailed_job_report, start_date_num, end_date_num):
                     if detailed_job_report[row][GROSS_FG_QTY_COL_NUM] > 0:
                         total_feeds += detailed_job_report[row][GROSS_FG_QTY_COL_NUM]
 
-
                     if detailed_job_report[row][WASTE_QTY_COL_NUM] > 0:
                         total_waste_in_feeds += detailed_job_report[row][WASTE_QTY_COL_NUM]
                         if detailed_job_report[row][GROSS_FG_QTY_COL_NUM] > 0:
                             total_waste_in_MSF += detailed_job_report[row][MSF_COL_NUM] / detailed_job_report[row][GROSS_FG_QTY_COL_NUM] * detailed_job_report[row][WASTE_QTY_COL_NUM]
-
 
                     if detailed_job_report[row][NON_FED_WASTE_QTY_COL_NUM] > 0:
                         total_waste_in_feeds += detailed_job_report[row][NON_FED_WASTE_QTY_COL_NUM]
@@ -1851,7 +1848,6 @@ EXCESSIVE_THRESHOLD = 5
 ######
 preliminary_choices_made = False
 while True:
-
     while not preliminary_choices_made:
         # obtaining preliminary information from the user
         djr_array = obtain_detailed_job_report()

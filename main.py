@@ -286,7 +286,7 @@ def obtain_second_date_string(detailed_job_report_array, first_date_string):
         print("Enter the end date (YYYY/MM/DD): ", end="")
         second_date_string = obtain_date_string(detailed_job_report_array)
 
-        if int(second_date_string[5:7]) < int(first_date_string[5:7]) or int(second_date_string[8:10]) < int(first_date_string[8:10]):
+        if int(second_date_string[0:4] + second_date_string[5:7] + second_date_string[8:10]) - int(first_date_string[0:4] + first_date_string[5:7] + first_date_string[8:10]) < 0:
             print("Error: end date precedes start date. Please try again.")
         else:
             error = False
@@ -743,7 +743,7 @@ def print_incorrect_hours(negative_num_rows, excessive_num_rows):
 def print_additional_info(algorithm_used, rows_with_no_name, negative_num_rows, excessive_num_rows):
     print("\n")
 
-    if algorithm_used:
+    if algorithm_used and len(rows_with_no_name) > 0:
         sorting_algorithm(rows_with_no_name)
         print_list_of_problematic_rows(rows_with_no_name, 3)
 
@@ -791,6 +791,29 @@ def convert_date_int_to_string(date_num):
     year = str(date_num)[0:4]
 
     return day + "-" + month + "-" + year
+
+
+# function for checking if a date is logically valid
+# arguments: the date as an integer (format: YYYYMMDD)
+# returns true or false depending on if the date is valid or not
+def logical_date_check(date_int):
+    month = int(str(date_int)[4:6])
+    day = int(str(date_int)[6:8])
+
+    if day == 0:
+        return False
+
+    if month == 1 or month == 3 or month == 5 or month == 7 or month == 8 or month == 10 or month == 12:
+        if day > 31:
+            return False
+    elif month == 2:
+        if day > 29:
+            return False
+    else:
+        if day > 30:
+            return False
+
+    return True
 
 
 # function for calculating the average feeds by shift
@@ -1420,17 +1443,25 @@ def display_daily_feeds(detailed_job_report, user_choice, start_date_num, end_da
                 print_incorrect_hours(negative_num_rows, excessive_num_rows)
 
     elif user_choice == "2": # user wants to display feeds per day by shift
+        num_rows = 2
+        for row_counter in range(int(end_date_num - start_date_num)):
+            if logical_date_check(start_date_num + row_counter):
+                num_rows += 1
+
         # create header for resulting table
-        resulting_table = np.array([[0 for x in range(4)] for y in range(int(end_date_num - start_date_num + 2))], dtype='object')
+        resulting_table = np.array([[0 for x in range(4)] for y in range(num_rows)], dtype='object')
         resulting_table[0][0], resulting_table[0][1], resulting_table[0][2], resulting_table[0][3] = "Work Date", "Shift 1", "Shift 2", "Shift 3"
 
         # generate rest of table
-        for row_table in range(len(resulting_table) - 1):
-            resulting_table[row_table + 1][0] = convert_date_int_to_string(start_date_num + row_table)
+        row_table = 0
+        for row_counter in range(int(end_date_num - start_date_num) + 1):
+            if logical_date_check(start_date_num + row_counter):
+                resulting_table[row_table + 1][0] = convert_date_int_to_string(start_date_num + row_counter)
+                row_table += 1
         for row_djr in range(ROWS):
             if detailed_job_report[row_djr][MACHINE_COL_NUM] == MACHINE:
-                for row_table in range(len(resulting_table) - 1):
-                    if str(start_date_num + row_table) == str(detailed_job_report[row_djr][WORK_DATE_COL_NUM])[0:4] + str(detailed_job_report[row_djr][WORK_DATE_COL_NUM])[5:7] + str(detailed_job_report[row_djr][WORK_DATE_COL_NUM])[8:10]:
+                for row_table in range(num_rows - 1):
+                    if str(resulting_table[row_table + 1][0]) == convert_date_int_to_string(int(str(detailed_job_report[row_djr][WORK_DATE_COL_NUM])[0:4] + str(detailed_job_report[row_djr][WORK_DATE_COL_NUM])[5:7] + str(detailed_job_report[row_djr][WORK_DATE_COL_NUM])[8:10])):
                         for shift in range(3):
                             if detailed_job_report[row_djr][SHIFT_COL_NUM] == shift + 1:
                                 resulting_table[row_table + 1][shift + 1] = variable_incrementer(detailed_job_report, row_djr, resulting_table[row_table + 1][shift + 1], negative_num_rows, excessive_num_rows, 2)
@@ -1481,24 +1512,32 @@ def display_daily_feeds(detailed_job_report, user_choice, start_date_num, end_da
         generate_crews_list(detailed_job_report, start_date_num, end_date_num, crews_list, empty_name_rows, use_algo)
 
         if len(crews_list) != 0:
+            num_rows = 2
+            for row_counter in range(int(end_date_num - start_date_num)):
+                if logical_date_check(start_date_num + row_counter):
+                    num_rows += 1
+
             # create header for resulting table
-            resulting_table = np.array([[0 for x in range(len(crews_list) + 1)] for y in range(int(end_date_num - start_date_num + 2))], dtype='object')
+            resulting_table = np.array([[0 for x in range(len(crews_list) + 1)] for y in range(num_rows)], dtype='object')
             resulting_table[0][0] = "Work Date"
             for col in range(len(crews_list)):
                 resulting_table[0][col + 1] = crews_list[col]
 
             # generate rest of table
-            for row_table in range(len(resulting_table) - 1):
-                resulting_table[row_table + 1][0] = convert_date_int_to_string(start_date_num + row_table)
+            row_table = 0
+            for row_counter in range(int(end_date_num - start_date_num) + 1):
+                if logical_date_check(start_date_num + row_counter):
+                    resulting_table[row_table + 1][0] = convert_date_int_to_string(start_date_num + row_counter)
+                    row_table += 1
             for row_djr in range(ROWS):
                 if detailed_job_report[row_djr][MACHINE_COL_NUM] == MACHINE:
                     for row_table in range(len(resulting_table) - 1):
-                        if str(start_date_num + row_table) == str(detailed_job_report[row_djr][WORK_DATE_COL_NUM])[0:4] + str(detailed_job_report[row_djr][WORK_DATE_COL_NUM])[5:7] + str(detailed_job_report[row_djr][WORK_DATE_COL_NUM])[8:10]:
+                        if str(resulting_table[row_table + 1][0]) == convert_date_int_to_string(int(str(detailed_job_report[row_djr][WORK_DATE_COL_NUM])[0:4] + str(detailed_job_report[row_djr][WORK_DATE_COL_NUM])[5:7] + str(detailed_job_report[row_djr][WORK_DATE_COL_NUM])[8:10])):
                             if str(detailed_job_report[row_djr][EMPLOYEE_NAME_COL_NUM]) != "nan":
                                 for crew_counter in range(len(crews_list)):
                                     if detailed_job_report[row_djr][EMPLOYEE_NAME_COL_NUM] == crews_list[crew_counter]:
                                         resulting_table[row_table + 1][crew_counter + 1] = variable_incrementer(detailed_job_report, row_djr, resulting_table[row_table + 1][crew_counter + 1], negative_num_rows, excessive_num_rows, 2)
-                            if str(detailed_job_report[row_djr][EMPLOYEE_NAME_COL_NUM]) == "nan" and use_algo:
+                            elif use_algo:
                                 for crew_index in range(len(crews_list)):
                                     feeds_calculated_by_AI = 0
                                     feeds_calculated_by_AI = name_filling_algorithm(detailed_job_report, feeds_calculated_by_AI, crews_list[crew_index], row_djr, empty_name_rows, negative_num_rows, excessive_num_rows, 4)
@@ -1849,6 +1888,7 @@ EXCESSIVE_THRESHOLD = 5
 ######
 # main
 ######
+djr_array = []
 detailed_job_report_selected = False
 machine_selected = False
 

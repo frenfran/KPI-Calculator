@@ -63,29 +63,6 @@ def obtain_detailed_job_report():
     return djr_array
 
 
-# function for obtaining which machine for analysis from the user
-# arguments: the detailed job report array
-# returns the machine selected by the user
-# includes error checking
-def obtain_machine_to_analyze(detailed_job_report):
-    list_of_machines = []  # initialize list of all possible machines within the detailed job report
-    for row in range(ROWS):
-        append_element_in_array(list_of_machines, detailed_job_report[row][MACHINE_COL_NUM])
-
-    print_list_of_machines(list_of_machines)
-
-    while True:
-        machine_selection = input("Enter the number associated to the machine you would like to analyze: ")
-
-        try:
-            if 1 <= int(machine_selection) <= len(list_of_machines):
-                return list_of_machines[int(machine_selection) - 1]
-            else:
-                print("Invalid input. Please try again.")
-        except:
-            print("Error. Please try again.")
-
-
 # function for printing all machines found within a detailed job report
 # prints each machine name (as found in the detailed job report) along with an associated number
 # arguments: the list of all machines found within the detailed job report
@@ -120,6 +97,29 @@ def print_list_of_machines(machines_list):
     for dashes in range(longest_machine_name_length + 11):
         print("-", end="")
     print()
+
+
+# function for obtaining which machine for analysis from the user
+# arguments: the detailed job report array
+# returns the machine selected by the user
+# includes error checking
+def obtain_machine_to_analyze(detailed_job_report):
+    list_of_machines = []  # initialize list of all possible machines within the detailed job report
+    for row in range(ROWS):
+        append_element_in_array(list_of_machines, detailed_job_report[row][MACHINE_COL_NUM])
+
+    print_list_of_machines(list_of_machines)
+
+    while True:
+        machine_selection = input("Enter the number associated to the machine you would like to analyze: ")
+
+        try:
+            if 1 <= int(machine_selection) <= len(list_of_machines):
+                return list_of_machines[int(machine_selection) - 1]
+            else:
+                print("Invalid input. Please try again.")
+        except:
+            print("Error. Please try again.")
 
 
 # function to print all possible instructions and receive input from the user
@@ -968,13 +968,11 @@ def calculate_ODT_by_crew(charge_code_array, detailed_job_report, start_date_num
 
 # function to display ODT by either shift or crew
 # arguments: the detailed job report array, which type of ODT the user wants,
-# the start date and the end date
+# the start date and the end date as integers
 # returns nothing
-def display_ODT(detailed_job_report, user_option, start_date, end_date):
+def display_ODT(detailed_job_report, user_option, start_date_num, end_date_num):
     negative_num_rows = []
     excessive_num_rows = []
-    start_date_num = int(start_date[0:4] + start_date[5:7] + start_date[8:10])
-    end_date_num = int(end_date[0:4] + end_date[5:7] + end_date[8:10])
 
     if user_option == "1": # user wants overall ODT for all shifts/crews
         total_machine_hours = 0
@@ -1827,13 +1825,16 @@ while True:
     first_date_string = ""
     second_date_string = ""
 
-    #######################################
-    # calculating open down time percentage
-    #######################################
+    ############################
+    # calculating open down time
+    ############################
     if user_input == 1:
         print("\nEnter the start date (YYYY/MM/DD): ", end="")
         first_date_string = obtain_date_string(djr_array)
         second_date_string = obtain_second_date_string(djr_array, first_date_string)
+
+        start_date_num = int(first_date_string[0:4] + first_date_string[5:7] + first_date_string[8:10])
+        end_date_num = int(second_date_string[0:4] + second_date_string[5:7] + second_date_string[8:10])
 
         user_choice = obtain_sub_instruction(1)
 
@@ -1846,7 +1847,7 @@ while True:
         else:
             print("\nPareto chart of open down time from " + first_date_string + " to " + second_date_string + ":")
 
-        display_ODT(djr_array, user_choice, first_date_string, second_date_string) # show calculated data
+        display_ODT(djr_array, user_choice, start_date_num, end_date_num) # show calculated data
 
     #########################
     # calculating total waste

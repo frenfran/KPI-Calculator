@@ -41,8 +41,6 @@ def obtain_detailed_job_report():
             user_error = False
 
         elif choice == "2":  # obtaining the Detailed Job Report (.xlsx) spreadsheet by path
-            path = ""
-
             file_found = False
             while not file_found:
                 try:
@@ -966,7 +964,7 @@ def calculate_ODT_by_crew(charge_code_array, detailed_job_report, start_date_num
         print("There is nothing to show here")
 
 
-# function to display ODT by either shift or crew
+# function to display ODT either by shift, by crew or for all shifts and crews
 # arguments: the detailed job report array, which type of ODT the user wants,
 # the start date and the end date as integers
 # returns nothing
@@ -1152,7 +1150,7 @@ def display_ODT(detailed_job_report, user_option, start_date_num, end_date_num):
             print("There is nothing to show here")
 
 
-# function to display total waste according to machine
+# function to display total waste according to machine being analyzed
 # arguments: the detailed job report, the start date as an integer and the end date as an integer
 # returns nothing
 def display_total_waste(detailed_job_report, start_date_num, end_date_num):
@@ -1196,9 +1194,9 @@ def display_total_waste(detailed_job_report, start_date_num, end_date_num):
             print_list_of_problematic_rows(negative_num_rows, 1)
 
 
-# function to display average setup time either by shift or by crew
+# function to display average setup time either by shift, by crew or for all shifts and crews (general setup time)
 # arguments: the detailed job report as an array, whether the user wants
-# average setup time by shift or by crew, the start date as an integer and
+# general setup time, average setup time by shift or average setup time by crew, the start date as an integer and
 # the end date as an integer
 # returns nothing
 def display_average_setup_time(detailed_job_report, user_choice, start_date_num, end_date_num):
@@ -1329,10 +1327,10 @@ def display_average_setup_time(detailed_job_report, user_choice, start_date_num,
             print("There is nothing to show here")
 
 
-# function to display chart for feeds per day either by shift or by crew
+# function to display information regarding feeds per day either by shift, by crew or for both shifts and crews
 # arguments: the detailed job report as an array, whether the user wants
-# feeds per day by shift or by crew, the start date as an integer and
-# the end date as an integer
+# average daily feeds for all shifts and crews, feeds per day by shift or feeds per day by crew,
+# the start date as an integer and the end date as an integer
 # returns nothing
 def display_daily_feeds(detailed_job_report, user_choice, start_date_num, end_date_num):
     negative_num_rows = []
@@ -1497,7 +1495,7 @@ def display_daily_feeds(detailed_job_report, user_choice, start_date_num, end_da
             print("There is nothing to show here")
 
 
-# function to display the average order size, or the total number of jobs by # of colors or ups
+# function to display the average order size, or the total number of jobs by # of colors or # of ups
 # arguments: the detailed job report as an array, whether the user wants average order size, the total number of jobs
 # by the number of colors or the total number of jobs by the number of ups,
 # the start date as an integer and the end date as an integer
@@ -1584,7 +1582,7 @@ def display_order_type(detailed_job_report, option, start_date_num, end_date_num
 
 
 # function for printing the average run speed
-# arguments: the detailed job report, an option to determine what we need to print
+# arguments: the detailed job report, an option to determine what the user would like to see
 # the start date as an integer and the end date as an integer
 # 1 = average run speed by shift and 2 = average run speed by crew
 # returns nothing
@@ -1812,6 +1810,7 @@ detailed_job_report_selected = False
 machine_selected = False
 
 while True:
+    # selecting the detailed job report and/or machine to analyze
     if not detailed_job_report_selected:
         djr_array = obtain_detailed_job_report()
         ROWS, COLUMNS = djr_array.shape

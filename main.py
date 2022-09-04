@@ -161,18 +161,16 @@ def obtain_sub_instruction(option):
         if option == 1:
             choice = input("Enter (1) to calculate overall ODT for all shifts/crews, (2) to calculate ODT by shift, (3) to calculate ODT by crew or (4) to produce Pareto chart: ")
         elif option == 2:
-            choice = input("Enter (1) to calculate total feeds by shift or (2) to total feeds by crew: ")
-        elif option == 3:
             choice = input("Enter (1) to calculate general average setup time, (2) to calculate average setup time by shift or (3) to calculate average setup time by crew: ")
-        elif option == 4:
+        elif option == 3:
             choice = input("Enter (1) to calculate overall daily average feeds for all shifts/crews, (2) to display feeds per day by shift or (3) to display feeds per day by crew: ")
-        elif option == 5:
+        elif option == 4:
             choice = input("Enter (1) to calculate the average order size, (2) to analyze jobs by the number of colors or (3) to analyze jobs by the number of ups: ")
-        elif option == 6:
+        elif option == 5:
             choice = input("Enter (1) to calculate the average run speed by shift or (2) to calculate the average run speed by crew: ")
-        elif option == 7:
+        elif option == 6:
             choice = input("Enter (1) to find the top three best orders or (2) to find the top three worst orders: ")
-        elif option == 8:
+        elif option == 7:
             choice = input("Enter (1) to sort by efficiency, (2) to sort by ODT, (3) to sort by setup time or (4) to sort by total time spent on each order: ")
         else:
             choice = input("Enter (1) to select another detailed job report or (2) to select another machine: ")
@@ -1875,7 +1873,7 @@ while True:
         start_date_num = int(first_date_string[0:4] + first_date_string[5:7] + first_date_string[8:10])
         end_date_num = int(second_date_string[0:4] + second_date_string[5:7] + second_date_string[8:10])
 
-        user_choice = obtain_sub_instruction(3)
+        user_choice = obtain_sub_instruction(2)
 
         if user_choice == "1":
             print("\nGeneral average setup time from " + first_date_string + " to " + second_date_string + ":")
@@ -1898,7 +1896,7 @@ while True:
         start_date_num = int(first_date_string[0:4] + first_date_string[5:7] + first_date_string[8:10])
         end_date_num = int(second_date_string[0:4] + second_date_string[5:7] + second_date_string[8:10])
 
-        user_choice = obtain_sub_instruction(4)
+        user_choice = obtain_sub_instruction(3)
 
         if user_choice == "1":
             print("\nAverage daily feeds for all shifts/crew from " + first_date_string + " to " + second_date_string + ":\n")
@@ -1921,7 +1919,7 @@ while True:
         start_date_num = int(first_date_string[0:4] + first_date_string[5:7] + first_date_string[8:10])
         end_date_num = int(second_date_string[0:4] + second_date_string[5:7] + second_date_string[8:10])
 
-        user_choice = obtain_sub_instruction(5)
+        user_choice = obtain_sub_instruction(4)
 
         if user_choice == "1":
             print("\nAverage order size from " + first_date_string + " to " + second_date_string + ":")
@@ -1944,7 +1942,7 @@ while True:
         start_date_num = int(first_date_string[0:4] + first_date_string[5:7] + first_date_string[8:10])
         end_date_num = int(second_date_string[0:4] + second_date_string[5:7] + second_date_string[8:10])
 
-        user_choice = obtain_sub_instruction(6)
+        user_choice = obtain_sub_instruction(5)
 
         if user_choice == "1":
             print("\nAverage run speed by shift from " + first_date_string + " to " + second_date_string + ":")
@@ -1965,8 +1963,8 @@ while True:
         start_date_num = int(first_date_string[0:4] + first_date_string[5:7] + first_date_string[8:10])
         end_date_num = int(second_date_string[0:4] + second_date_string[5:7] + second_date_string[8:10])
 
-        user_choice = obtain_sub_instruction(7)
-        user_sub_choice = obtain_sub_instruction(8)
+        user_choice = obtain_sub_instruction(6)
+        user_sub_choice = obtain_sub_instruction(7)
 
         if user_choice == "1":
             print("\nTop three best orders by ", end="")
@@ -1988,7 +1986,7 @@ while True:
     # analyze different machine/detailed job report
     ###############################################
     elif user_input == 8:
-        user_choice = obtain_sub_instruction(9)
+        user_choice = obtain_sub_instruction(8)
 
         if user_choice == "1":
             detailed_job_report_selected = False

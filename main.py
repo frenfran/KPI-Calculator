@@ -12,7 +12,7 @@ from sys import exit
 # returns the detailed job report as an array
 # includes error checking
 
-_detailed_job_report():
+obtain_detailed_job_report():
     djr_array = []  # initialize detailed job report array
     user_error = True
     while user_error:  # obtaining the Detailed Job Report (.xlsx) spreadsheet by name from directory

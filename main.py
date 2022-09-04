@@ -11,7 +11,8 @@ from sys import exit
 # arguments: none
 # returns the detailed job report as an array
 # includes error checking
-def obtain_detailed_job_report():
+
+_detailed_job_report():
     djr_array = []  # initialize detailed job report array
     user_error = True
     while user_error:  # obtaining the Detailed Job Report (.xlsx) spreadsheet by name from directory
@@ -175,12 +176,12 @@ def obtain_sub_instruction(option):
         else:
             choice = input("Enter (1) to select another detailed job report or (2) to select another machine: ")
 
-        if option == 1 or option == 8:
+        if option == 1 or option == 7:
             if choice == "1" or choice == "2" or choice == "3" or choice == "4":
                 error = False
             else:
                 print("Please try again.")
-        elif option == 3 or option == 4 or option == 5:
+        elif option == 2 or option == 3 or option == 4:
             if choice == "1" or choice == "2" or choice == "3":
                 error = False
             else:

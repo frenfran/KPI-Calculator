@@ -272,7 +272,7 @@ def obtain_date_string(detailed_job_report):
     return result
 
 
-# function to obtain a end date as an input from the user and return that same date
+# function to obtain an end date as an input from the user and return that same date
 # function performs error checking to ensure date is valid and in the future relative to the start date
 # arguments: the detailed job report array and the start date as a string
 # returns the end date (entered by the user) as a string
@@ -384,13 +384,7 @@ def assume_name(detailed_job_report, empty_name_rows, row):
                         iterator = iterator + 1
                     else:
                         keep_going = False
-                        already_included = False
-                        for item in empty_name_rows:
-                            if row == item:
-                                already_included = True
-
-                        if not already_included:
-                            empty_name_rows.append(row)
+                        append_element_in_array(empty_name_rows, row)
                 else:
                     iterator = iterator + 1
             else:

@@ -11,7 +11,6 @@ from sys import exit
 # arguments: none
 # returns the detailed job report as an array
 # includes error checking
-# returns nothing
 def obtain_detailed_job_report():
     djr_array = []  # initialize detailed job report array
     user_error = True

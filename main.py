@@ -440,7 +440,7 @@ def generate_crews_list(detailed_job_report, start_date_num, end_date_num, crews
             if detailed_job_report[row][MACHINE_COL_NUM] == MACHINE:
                 last_row = row
 
-    for row in range(ROWS): # must parse the entire detailed job report still in case dates within the date frame are dispersed throughout the spreadsheet
+    for row in range(ROWS): # must still parse the entire detailed job report in case dates within the date frame are dispersed throughout the spreadsheet
         if start_date_num <= int(str(detailed_job_report[row][WORK_DATE_COL_NUM])[0:4] + str(detailed_job_report[row][WORK_DATE_COL_NUM])[5:7] + str(detailed_job_report[row][WORK_DATE_COL_NUM])[8:10]) <= end_date_num:
             if detailed_job_report[row][MACHINE_COL_NUM] == MACHINE:
                 if str(detailed_job_report[row][EMPLOYEE_NAME_COL_NUM]) != "nan":
@@ -532,8 +532,7 @@ def write_to_excel(array, length_of_array):
                 file_found = True
                 print("File found.")
             except:
-                print("Error: no such file found in current directory")
-                print("Please try again")
+                print("Error: no such file found in current directory. Please try again.")
     else: # user wants to create new spreadsheet
         spreadsheet_name = validate_spreadsheet_name()
         spreadsheet_name_split = spreadsheet_name.split(".")
@@ -704,12 +703,13 @@ def print_list_of_problematic_rows(list_of_problematic_rows, option):
 
 # function for printing both the list of rows with negative elapsed hours
 # and the list of rows with excessive elapsed hours
-# arguments: the list of rows with negative elapsed hours and
-# the list of rows with excessive elapsed hours
+# arguments: the list of rows with negative elapsed hours, the list of rows with excessive elapsed hours
+# and whether or not a whitespace should be included prior to printing
 # used in all situations except when user requests information by crew
 # returns nothing
-def print_incorrect_hours(negative_num_rows, excessive_num_rows):
-    print("\n")
+def print_incorrect_hours(negative_num_rows, excessive_num_rows, include_whitespace):
+    if include_whitespace:
+        print("\n")
 
     if len(negative_num_rows) > 0:
         sorting_algorithm(negative_num_rows)
@@ -732,13 +732,7 @@ def print_additional_info(algorithm_used, rows_with_no_name, negative_num_rows, 
         sorting_algorithm(rows_with_no_name)
         print_list_of_problematic_rows(rows_with_no_name, 3)
 
-    if len(negative_num_rows) > 0:
-        sorting_algorithm(negative_num_rows)
-        print_list_of_problematic_rows(negative_num_rows, 1)
-
-    if len(excessive_num_rows) > 0:
-        sorting_algorithm(excessive_num_rows)
-        print_list_of_problematic_rows(excessive_num_rows, 2)
+    print_incorrect_hours(negative_num_rows, excessive_num_rows, False)
 
 
 # function for converting an integer corresponding to a date
@@ -987,7 +981,7 @@ def display_ODT(detailed_job_report, user_option, start_date_num, end_date_num):
         if len(negative_num_rows) > 0 or len(excessive_num_rows) > 0:
             print()
             if yes_or_no(3):
-                print_incorrect_hours(negative_num_rows, excessive_num_rows)
+                print_incorrect_hours(negative_num_rows, excessive_num_rows, True)
 
     elif user_option == "2": # user wants ODT by shift
         # create & initialize array to hold data in case user wants to write data to an Excel spreadsheet
@@ -1016,7 +1010,7 @@ def display_ODT(detailed_job_report, user_option, start_date_num, end_date_num):
 
         if len(negative_num_rows) > 0 or len(excessive_num_rows) > 0:
             if yes_or_no(3):
-                print_incorrect_hours(negative_num_rows, excessive_num_rows)
+                print_incorrect_hours(negative_num_rows, excessive_num_rows, True)
 
         if yes_or_no(2):
             write_to_excel(ODT_by_shift_array, len(ODT_by_shift_array))
@@ -1132,7 +1126,7 @@ def display_ODT(detailed_job_report, user_option, start_date_num, end_date_num):
 
             if len(negative_num_rows) > 0 or len(excessive_num_rows) > 0:
                 if yes_or_no(3):
-                    print_incorrect_hours(negative_num_rows, excessive_num_rows)
+                    print_incorrect_hours(negative_num_rows, excessive_num_rows, True)
 
             if yes_or_no(2):
                 write_to_excel(charge_code_array, len(charge_code_array))
@@ -1221,7 +1215,7 @@ def display_average_setup_time(detailed_job_report, user_choice, start_date_num,
         if len(negative_num_rows) > 0 or len(excessive_num_rows) > 0:
             print()
             if yes_or_no(3):
-                print_incorrect_hours(negative_num_rows, excessive_num_rows)
+                print_incorrect_hours(negative_num_rows, excessive_num_rows, True)
 
     elif user_choice == "2": # user wants average setup time by shift
         average_setup_time_by_shift_array = [[0 for x in range(3)] for y in range(4)]
@@ -1254,7 +1248,7 @@ def display_average_setup_time(detailed_job_report, user_choice, start_date_num,
 
         if len(negative_num_rows) > 0 or len(excessive_num_rows) > 0:
             if yes_or_no(3):
-                print_incorrect_hours(negative_num_rows, excessive_num_rows)
+                print_incorrect_hours(negative_num_rows, excessive_num_rows, True)
 
         if yes_or_no(2):
             write_to_excel(average_setup_time_by_shift_array, len(average_setup_time_by_shift_array))
@@ -1349,7 +1343,7 @@ def display_daily_feeds(detailed_job_report, user_choice, start_date_num, end_da
         if len(negative_num_rows) > 0 or len(excessive_num_rows) > 0:
             print()
             if yes_or_no(3):
-                print_incorrect_hours(negative_num_rows, excessive_num_rows)
+                print_incorrect_hours(negative_num_rows, excessive_num_rows, True)
 
     elif user_choice == "2": # user wants to display feeds per day by shift
         num_rows = 2
@@ -1399,7 +1393,7 @@ def display_daily_feeds(detailed_job_report, user_choice, start_date_num, end_da
 
         if len(negative_num_rows) > 0 or len(excessive_num_rows) > 0:
             if yes_or_no(3):
-                print_incorrect_hours(negative_num_rows, excessive_num_rows)
+                print_incorrect_hours(negative_num_rows, excessive_num_rows, True)
 
         if yes_or_no(2):
             write_to_excel(resulting_table, len(resulting_table))
@@ -1608,7 +1602,7 @@ def display_average_run_speed(detailed_job_report, option, start_date_num, end_d
 
         if len(negative_num_rows) > 0 or len(excessive_num_rows) > 0:
             if yes_or_no(3):
-                print_incorrect_hours(negative_num_rows, excessive_num_rows)
+                print_incorrect_hours(negative_num_rows, excessive_num_rows, True)
 
         if yes_or_no(2):
             write_to_excel(average_run_speed_by_shift_array, len(average_run_speed_by_shift_array))
@@ -1763,7 +1757,7 @@ def display_top_three_orders(detailed_job_report, option, sub_option, start_date
 
     if len(negative_num_rows) != 0 or len(excessive_num_rows) != 0:
         if yes_or_no(3):
-            print_incorrect_hours(negative_num_rows, excessive_num_rows)
+            print_incorrect_hours(negative_num_rows, excessive_num_rows, True)
 
     if yes_or_no(2):
         write_to_excel(top_three_orders_array, len(top_three_orders_array))

@@ -36,8 +36,7 @@ def obtain_detailed_job_report():
                     file_found = True
                     print("File found.")
                 except:
-                    print("Error: no such file found in current directory")
-                    print("Please try again")
+                    print("Error: no such file found in current directory. Please try again.")
             user_error = False
 
         elif choice == "2":  # obtaining the Detailed Job Report (.xlsx) spreadsheet by path
@@ -51,8 +50,7 @@ def obtain_detailed_job_report():
                     print("File found.")
                     file_found = True
                 except:
-                    print("Error: no such file found")
-                    print("Please try again")
+                    print("Error: no such file found. Please try again.")
             user_error = False
 
         else:

@@ -1078,7 +1078,6 @@ def display_ODT(detailed_job_report, user_option, start_date_num, end_date_num):
                     if detailed_job_report[row_iterator][CHARGE_CODE_COL_NUM] == charge_code:
                         already_included = True
                         break
-
                 if not already_included and detailed_job_report[row_iterator][CHARGE_CODE_COL_NUM] != "RUN" and detailed_job_report[row_iterator][CHARGE_CODE_COL_NUM] != "SET UP":
                     charge_code_list.append(detailed_job_report[row_iterator][CHARGE_CODE_COL_NUM])
 
@@ -1090,13 +1089,10 @@ def display_ODT(detailed_job_report, user_option, start_date_num, end_date_num):
             for row_num in range(ROWS):
                 if start_date_num <= int(str(detailed_job_report[row_num][WORK_DATE_COL_NUM])[0:4] + str(detailed_job_report[row_num][WORK_DATE_COL_NUM])[5:7] + str(detailed_job_report[row_num][WORK_DATE_COL_NUM])[8:10]) <= end_date_num:
                     if detailed_job_report[row_num][MACHINE_COL_NUM] == MACHINE:
-                        charge_code_found = False
                         for charge_code in charge_code_list:
                             if detailed_job_report[row_num][CHARGE_CODE_COL_NUM] == charge_code:
-                                charge_code_found = True
+                                charge_code_dict[detailed_job_report[row_num][CHARGE_CODE_COL_NUM]] = variable_incrementer(detailed_job_report, row_num, charge_code_dict[detailed_job_report[row_num][CHARGE_CODE_COL_NUM]], negative_num_rows, excessive_num_rows, 1)
                                 break
-                        if charge_code_found:
-                            charge_code_dict[detailed_job_report[row_num][CHARGE_CODE_COL_NUM]] = variable_incrementer(detailed_job_report, row_num, charge_code_dict[detailed_job_report[row_num][CHARGE_CODE_COL_NUM]], negative_num_rows, excessive_num_rows, 1)
             num_rows = 0
             for key in charge_code_dict.keys():
                 if charge_code_dict[key] > 0:

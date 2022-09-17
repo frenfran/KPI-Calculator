@@ -924,12 +924,13 @@ def calculate_ODT_by_crew(charge_code_array, detailed_job_report, start_date_num
                             crew_ODT_by_charge_code_dict[detailed_job_report[row][EMPLOYEE_NAME_COL_NUM]] += detailed_job_report[row][ELAPSED_HOURS_COL_NUM]
                     elif use_algo:
                         assumed_name = assume_name(detailed_job_report, rows_with_no_name, row)
-                        for crew in crews_list:
-                            if assumed_name == crew:
-                                if 0 <= detailed_job_report[row][ELAPSED_HOURS_COL_NUM] <= EXCESSIVE_THRESHOLD:
-                                    crew_ODT_by_charge_code_dict[crew] += detailed_job_report[row][ELAPSED_HOURS_COL_NUM]
-                                break
-                        if assumed_name == "nan":
+                        if assumed_name != "nan":
+                            for crew in crews_list:
+                                if assumed_name == crew:
+                                    if 0 <= detailed_job_report[row][ELAPSED_HOURS_COL_NUM] <= EXCESSIVE_THRESHOLD:
+                                        crew_ODT_by_charge_code_dict[crew] += detailed_job_report[row][ELAPSED_HOURS_COL_NUM]
+                                    break
+                        else:
                             append_element_in_array(rows_with_no_name, row)
 
         # create array for resulting table

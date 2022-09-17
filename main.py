@@ -911,29 +911,33 @@ def calculate_ODT_by_crew(charge_code_array, detailed_job_report, start_date_num
     generate_crews_list(detailed_job_report, start_date_num, end_date_num, crews_list, rows_with_no_name, use_algo)
 
     if len(crews_list) != 0:
+        # create dictionary for hashing
+        crew_ODT_by_charge_code_dict = {}
+        for crew in crews_list:
+            crew_ODT_by_charge_code_dict[crew] = 0
+
+        for row in range(len(detailed_job_report)):
+            if detailed_job_report[row][MACHINE_COL_NUM] == MACHINE and detailed_job_report[row][CHARGE_CODE_COL_NUM] == charge_code:
+                if start_date_num <= int(str(detailed_job_report[row][WORK_DATE_COL_NUM])[0:4] + str(detailed_job_report[row][WORK_DATE_COL_NUM])[5:7] + str(detailed_job_report[row][WORK_DATE_COL_NUM])[8:10]) <= end_date_num:
+                    if str(detailed_job_report[row][EMPLOYEE_NAME_COL_NUM]) != "nan":
+                        if 0 <= detailed_job_report[row][ELAPSED_HOURS_COL_NUM] <= EXCESSIVE_THRESHOLD:
+                            crew_ODT_by_charge_code_dict[detailed_job_report[row][EMPLOYEE_NAME_COL_NUM]] += detailed_job_report[row][ELAPSED_HOURS_COL_NUM]
+                    elif use_algo:
+                        assumed_name = assume_name(detailed_job_report, rows_with_no_name, row)
+                        for crew in crews_list:
+                            if assumed_name == crew:
+                                if 0 <= detailed_job_report[row][ELAPSED_HOURS_COL_NUM] <= EXCESSIVE_THRESHOLD:
+                                    crew_ODT_by_charge_code_dict[crew] += detailed_job_report[row][ELAPSED_HOURS_COL_NUM]
+                                break
+                        if assumed_name == "nan":
+                            append_element_in_array(rows_with_no_name, row)
+
+        # create array for resulting table
         crew_ODT_by_charge_code_array = [[0 for x in range(2)] for y in range(len(crews_list) + 1)]
         crew_ODT_by_charge_code_array[0][0], crew_ODT_by_charge_code_array[0][1] = "Crew", (charge_code + " (hours elapsed)")
 
-        for index in range(len(crews_list)): # write all crew names to resulting table
-            crew_ODT_by_charge_code_array[index + 1][0] = crews_list[index]
-
-        for index in range(len(crews_list)): # compute ODT elapsed hours for each crew member based on charge code
-            elapsed_hours_for_crew = 0
-            for row in range(len(detailed_job_report)):
-                if detailed_job_report[row][MACHINE_COL_NUM] == MACHINE and detailed_job_report[row][CHARGE_CODE_COL_NUM] == charge_code:
-                    if start_date_num <= int(str(detailed_job_report[row][WORK_DATE_COL_NUM])[0:4] + str(detailed_job_report[row][WORK_DATE_COL_NUM])[5:7] + str(detailed_job_report[row][WORK_DATE_COL_NUM])[8:10]) <= end_date_num:
-                        if crews_list[index] == detailed_job_report[row][EMPLOYEE_NAME_COL_NUM]:
-                            if 0 <= detailed_job_report[row][ELAPSED_HOURS_COL_NUM] <= EXCESSIVE_THRESHOLD:
-                                elapsed_hours_for_crew += detailed_job_report[row][ELAPSED_HOURS_COL_NUM]
-
-                        elif use_algo and str(detailed_job_report[row][EMPLOYEE_NAME_COL_NUM]) == "nan":
-                            if assume_name(detailed_job_report, rows_with_no_name, row) == crews_list[index]:
-                                if 0 <= detailed_job_report[row][ELAPSED_HOURS_COL_NUM] <= EXCESSIVE_THRESHOLD:
-                                    elapsed_hours_for_crew += detailed_job_report[row][ELAPSED_HOURS_COL_NUM]
-                            if assume_name(detailed_job_report, rows_with_no_name, row) == "nan":
-                                append_element_in_array(rows_with_no_name, row)
-
-            crew_ODT_by_charge_code_array[index + 1][1] = elapsed_hours_for_crew
+        for index in range(len(crews_list)):
+            crew_ODT_by_charge_code_array[index + 1][0], crew_ODT_by_charge_code_array[index + 1][1] = crews_list[index], crew_ODT_by_charge_code_dict[crews_list[index]]
 
         print_table(crew_ODT_by_charge_code_array)
 

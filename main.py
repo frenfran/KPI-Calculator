@@ -1031,8 +1031,6 @@ def display_ODT(detailed_job_report, user_option, start_date_num, end_date_num):
             ODT_by_crew_array = [[0 for x in range(2)] for y in range(len(crews_list) + 1)]
             ODT_by_crew_array[0][0], ODT_by_crew_array[0][1] = "Crew", "ODT (%)"
 
-            # longest_name_len = print_crew_header(ODT_by_crew_array, crews_list, 1)
-
             counter = 1
             for crew in crews_list:
                 total_machine_hours = 0
@@ -1073,13 +1071,8 @@ def display_ODT(detailed_job_report, user_option, start_date_num, end_date_num):
         charge_code_list = []
         for row_iterator in range(ROWS):
             if detailed_job_report[row_iterator][MACHINE_COL_NUM] == MACHINE:
-                already_included = False
-                for charge_code in charge_code_list:
-                    if detailed_job_report[row_iterator][CHARGE_CODE_COL_NUM] == charge_code:
-                        already_included = True
-                        break
-                if not already_included and detailed_job_report[row_iterator][CHARGE_CODE_COL_NUM] != "RUN" and detailed_job_report[row_iterator][CHARGE_CODE_COL_NUM] != "SET UP":
-                    charge_code_list.append(detailed_job_report[row_iterator][CHARGE_CODE_COL_NUM])
+                if detailed_job_report[row_iterator][CHARGE_CODE_COL_NUM] != "RUN" and detailed_job_report[row_iterator][CHARGE_CODE_COL_NUM] != "SET UP":
+                    append_element_in_array(charge_code_list, detailed_job_report[row_iterator][CHARGE_CODE_COL_NUM])
 
         if len(charge_code_list) != 0:
             # temporary dictionary to contain each charge code and their corresponding ODT

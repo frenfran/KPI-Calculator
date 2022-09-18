@@ -919,19 +919,18 @@ def calculate_ODT_by_crew(charge_code_array, detailed_job_report, start_date_num
         for row in range(len(detailed_job_report)):
             if detailed_job_report[row][MACHINE_COL_NUM] == MACHINE and detailed_job_report[row][CHARGE_CODE_COL_NUM] == charge_code:
                 if start_date_num <= int(str(detailed_job_report[row][WORK_DATE_COL_NUM])[0:4] + str(detailed_job_report[row][WORK_DATE_COL_NUM])[5:7] + str(detailed_job_report[row][WORK_DATE_COL_NUM])[8:10]) <= end_date_num:
-                    if str(detailed_job_report[row][EMPLOYEE_NAME_COL_NUM]) != "nan":
-                        if 0 <= detailed_job_report[row][ELAPSED_HOURS_COL_NUM] <= EXCESSIVE_THRESHOLD:
+                    if 0 <= detailed_job_report[row][ELAPSED_HOURS_COL_NUM] <= EXCESSIVE_THRESHOLD:
+                        if str(detailed_job_report[row][EMPLOYEE_NAME_COL_NUM]) != "nan":
                             crew_ODT_by_charge_code_dict[detailed_job_report[row][EMPLOYEE_NAME_COL_NUM]] += detailed_job_report[row][ELAPSED_HOURS_COL_NUM]
-                    elif use_algo:
-                        assumed_name = assume_name(detailed_job_report, rows_with_no_name, row)
-                        if assumed_name != "nan":
-                            for crew in crews_list:
-                                if assumed_name == crew:
-                                    if 0 <= detailed_job_report[row][ELAPSED_HOURS_COL_NUM] <= EXCESSIVE_THRESHOLD:
+                        elif use_algo:
+                            assumed_name = assume_name(detailed_job_report, rows_with_no_name, row)
+                            if assumed_name != "nan":
+                                for crew in crews_list:
+                                    if assumed_name == crew:
                                         crew_ODT_by_charge_code_dict[crew] += detailed_job_report[row][ELAPSED_HOURS_COL_NUM]
-                                    break
-                        else:
-                            append_element_in_array(rows_with_no_name, row)
+                                        break
+                            else:
+                                append_element_in_array(rows_with_no_name, row)
 
         # create array for resulting table
         crew_ODT_by_charge_code_array = [[0 for x in range(2)] for y in range(len(crews_list) + 1)]

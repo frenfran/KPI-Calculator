@@ -515,13 +515,6 @@ def append_order_for_setup(detailed_job_report, row, orders, order):
             else:
                 break
 
-    # convert the time portion to an int
-    for character in range(starting_index, len(start_time)):
-        if start_time[character] != ":":
-            start_time_string += start_time[character]
-
-    return int(start_time_string)
-
 
 # function for creating the top three orders array
 # arguments: the array we are building on, the dictionary containing the data we need,
@@ -797,6 +790,13 @@ def convert_start_time_string_to_int(start_time):
             starting_index += 1
         else:
             break
+
+    # convert the time portion to an int
+    for character in range(starting_index, len(start_time)):
+        if start_time[character] != ":":
+            start_time_string += start_time[character]
+
+    return int(start_time_string)
 
 # function for converting an integer corresponding to a date
 # to its string equivalent

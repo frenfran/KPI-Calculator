@@ -578,15 +578,14 @@ def write_to_excel(array, length_of_array):
         spreadsheet_name_split = spreadsheet_name.split(".")
 
         contains_file_type = False
-        for item in range(len(spreadsheet_name_split)):
-            if spreadsheet_name_split[item] == "xlsx":
-                contains_file_type = True
+        if spreadsheet_name_split[len(spreadsheet_name_split) - 1] == "xlsx" and len(spreadsheet_name_split) > 1:
+            contains_file_type = True
 
         if not contains_file_type:
             spreadsheet_name = spreadsheet_name + ".xlsx"
 
-    charge_code_dataframe = pd.DataFrame(array[0:length_of_array]) # convert array containing data into a dataframe
-    charge_code_dataframe.to_excel(spreadsheet_name, index=False) # write dataframe to Excel spreadsheet
+    array_as_dataframe = pd.DataFrame(array[0:length_of_array]) # convert array containing data into a dataframe
+    array_as_dataframe.to_excel(spreadsheet_name, index=False) # write dataframe to Excel spreadsheet
     print("Data successfully copied to spreadsheet.")
 
 

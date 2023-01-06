@@ -45,6 +45,10 @@ def obtain_detailed_job_report():
                 try:
                     path = input("Paste the path to the Detailed Job Report here: ")
 
+                    # necessary clipping in case file was drag-and-dropped
+                    if path[0] == '\"' and path[len(path) - 1] == '\"':
+                        path = path[1:len(path) - 1]
+
                     djr_dataframe = pd.read_excel(path)
                     djr_array = djr_dataframe.to_numpy()  # convert from dataframe to numpy array
                     print("File found.")
@@ -594,11 +598,25 @@ def write_to_excel(array, length_of_array):
 # returns the spreadsheet name once the user has entered an acceptable file name
 def validate_spreadsheet_name():
     unacceptable_characters = ['\\', '/', ':', '*', '?', '"', '<', '>', '|']
+
     while True:
         valid_name = True
         name = input("Enter the name for the new spreadsheet: ")
 
-        if name and name.strip() and name[0] != " " and name[0] != '\t': # check for exceptions in input
+        all_dots = True
+        for character in name:
+            if character != '.':
+                all_dots = False
+        valid_name = not all_dots
+
+        if len(name) > 4 and name[len(name) - 4:len(name)] == "xlsx":
+            all_dots = True
+            for character in name[:len(name) - 4]:
+                if character != '.':
+                    all_dots = False
+        valid_name = not all_dots
+
+        if name and name.strip() and name[0] != " " and name[0] != '\t' and valid_name: # check for additional exceptions in input
             print_error_phrase = False
             for item in unacceptable_characters:
                 for char in name:

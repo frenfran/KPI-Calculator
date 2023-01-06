@@ -607,7 +607,7 @@ def validate_spreadsheet_name():
         for character in name:
             if character != '.':
                 all_dots = False
-        valid_name = not all_dots
+                break
 
         if len(name) > 4 and name[len(name) - 4:len(name)] == "xlsx":
             all_dots = True

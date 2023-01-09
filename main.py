@@ -601,7 +601,7 @@ def validate_spreadsheet_name():
 
     while True:
         name = input("Enter the name for the new spreadsheet: ")
-
+        
         all_dots = True
         if len(name) > 4 and name[len(name) - 4:len(name)] == "xlsx":
             for character in name[:len(name) - 4]:
@@ -612,10 +612,15 @@ def validate_spreadsheet_name():
             for character in name:
                 if character != '.':
                     all_dots = False
-                    break
+                    break       
         valid_name = not all_dots
 
-        if name and name.strip() and name[0] != " " and name[0] != '\t' and valid_name: # check for additional exceptions in input
+        if valid_name:
+            for character in name:
+                if character == '\t':
+                    valid_name = False
+
+        if name and name.strip() and name[0] != " " and valid_name: # check for additional exceptions in input
             print_error_phrase = False
             for item in unacceptable_characters:
                 for char in name:
@@ -2068,3 +2073,4 @@ while True:
     ######
     elif user_input == 9:
         exit()
+        
